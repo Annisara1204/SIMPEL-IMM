@@ -3,9 +3,11 @@
 import { useState } from "react";
 import { DashboardAssessmentResults } from "./dashboard-assessment-results";
 import type { DashboardAssessmentData } from "@/lib/dashboard-results";
+import { InstructorDutyDashboard, type InstructorAssignment } from "./instructor-duty-dashboard";
+import { instructorPositionLabel } from "@/lib/instructor-roles";
 
 export type AppRole = "admin_system" | "bidang_kader" | "observer" | "instruktur" | "komisariat" | "peserta" | "public";
-type DashboardProps = { role: AppRole; displayName?: string; isPublic?: boolean; assessmentData?: DashboardAssessmentData | null };
+type DashboardProps = { role: AppRole; displayName?: string; isPublic?: boolean; assessmentData?: DashboardAssessmentData | null; instructorAssignments?: InstructorAssignment[] };
 type NavItem = { label: string; icon: string; group: string };
 
 const labels: Record<AppRole, string> = {
@@ -44,8 +46,8 @@ const agenda = [
 
 function SampleTag() { return <span className="sample-tag">CONTOH SIMULASI</span>; }
 
-function DashboardContent({ role, onNavigate }: { role: AppRole; onNavigate: (page: string) => void }) {
-  if (role === "instruktur") return <div className="section-heading role-heading"><div><h2>Rekap hasil kegiatan</h2><p>Ringkasan hasil hanya untuk kegiatan yang ditugaskan kepada Anda</p></div><span className="sample-tag">REKAP SAJA</span></div>;
+function DashboardContent({ role, onNavigate, instructorAssignments = [] }: { role: AppRole; onNavigate: (page: string) => void; instructorAssignments?: InstructorAssignment[] }) {
+  if (role === "instruktur") return <div className="section-heading role-heading"><div><h2>Tugas Instruktur</h2><p>{instructorAssignments.length ? [...new Set(instructorAssignments.map((item) => instructorPositionLabel(item.position)))].join(" · ") : "Menunggu penugasan per kegiatan dari Superadmin"}</p></div><span className="sample-tag">SUBROLE PER KEGIATAN</span></div>;
   if (role === "observer") return <>
     <div className="section-heading role-heading"><div><h2>Kegiatan yang ditugaskan</h2><p>Daftar kegiatan dan materi untuk Anda</p></div><SampleTag/></div>
     <div className="role-grid"><section className="panel"><div className="assigned-card"><div className="assigned-icon">▣</div><div className="assigned-copy"><span className="agenda-status live">Sedang berlangsung</span><h3>DAD Simulasi 2026</h3><p>Komisariat FEB · 3 hari · 8 materi</p><small>Peran Anda: Observer · 12 peserta</small></div><button className="text-button" onClick={() => onNavigate("Observasi")}>Buka penilaian →</button></div><div className="assigned-foot">Progres tugas Anda <strong>8 dari 12 peserta</strong><div className="bar-track"><i style={{ width: "67%" }}/></div></div></section>
@@ -83,7 +85,7 @@ function DashboardContent({ role, onNavigate }: { role: AppRole; onNavigate: (pa
   </>;
 }
 
-export function RoleDashboard({ role, displayName, isPublic = false, assessmentData = null }: DashboardProps) {
+export function RoleDashboard({ role, displayName, isPublic = false, assessmentData = null, instructorAssignments = [] }: DashboardProps) {
   const [active, setActive] = useState("Dashboard");
   const [mobileOpen, setMobileOpen] = useState(false);
   const items = menuByRole[role];
@@ -101,8 +103,9 @@ export function RoleDashboard({ role, displayName, isPublic = false, assessmentD
       <header className="topbar"><div className="topbar-left"><button className="mobile-menu" onClick={() => setMobileOpen(true)} aria-label="Buka menu">☰</button><div className="breadcrumb">Ruang kerja <span>/</span> <b>{active}</b></div></div><div className="topbar-right">{!isPublic && <span className="safe-pill"><i/> Sesi terverifikasi</span>}{!isPublic && <div className="profile"><div className="avatar">{displayName?.slice(0, 2).toUpperCase() ?? "AK"}</div><div className="profile-text"><strong>{displayName ?? "Akun pengguna"}</strong><small>{labels[role]}</small></div></div>}{!isPublic && <form action="/auth/signout" method="post"><button className="signout-button" type="submit">Keluar</button></form>}</div></header>
       <div className="content"><div className="welcome-row"><div><div className="eyebrow"><span/> {isPublic ? "PORTAL PUBLIK" : "DASHBOARD KEGIATAN"}</div><h1>{active === "Dashboard" ? pageTitle[role] : active}</h1><p className="intro">{isPublic ? "Informasi publik Pelatihan Kader DAD IMM Kota Bandung." : `Ruang kerja ${labels[role]}.`}</p></div>{isPublic && <a className="period-button login-link" href="/login">Login pengguna <span>→</span></a>}</div>
         {active !== "Dashboard" && <div className="preview-banner"><span>ⓘ</span><div><strong>Pratinjau navigasi</strong><p>Halaman <b>{active}</b> akan tersedia pada tahap pengembangan berikutnya.</p></div></div>}
-        <DashboardContent role={role} onNavigate={setActive}/>
-        {active === "Dashboard" && assessmentData && <DashboardAssessmentResults data={assessmentData}/>}
+        <DashboardContent role={role} onNavigate={setActive} instructorAssignments={instructorAssignments}/>
+        {active === "Dashboard" && role === "instruktur" && <InstructorDutyDashboard assignments={instructorAssignments}/>}
+        {active === "Dashboard" && assessmentData && (role !== "instruktur" || instructorAssignments.some((item) => ["mot", "vice_mot", "master_observer", "vice_observer"].includes(item.position))) && <DashboardAssessmentResults data={assessmentData}/>}
         <footer className="page-footer"><span>IMM Observer <b>·</b> Tahap uji coba</span><span>Data simulasi untuk keperluan pengembangan</span></footer>
       </div>
     </section>

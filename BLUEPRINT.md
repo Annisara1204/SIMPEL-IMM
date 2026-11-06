@@ -104,11 +104,25 @@ Pengguna pemula; gunakan bahasa Indonesia sederhana dan jelaskan istilah teknis 
 2. Admin sistem: akun, role, konfigurasi.
 3. Bidang Kader: konfigurasi penilaian, penugasan, pemantauan dan laporan sesuai kewenangan. Impor pretest/posttest saat ini khusus Admin Sistem. Sesuai aturan terbaru pengguna, pengelolaan kegiatan dan peserta dilakukan Observer dan Super Admin.
 4. Observer: penilaian/catatan sesuai penugasan.
-5. Instruktur: hanya melihat rekap skor dan kategori untuk kegiatan yang ditugaskan; tidak melihat nama peserta atau catatan privat Observer.
+5. Instruktur: subrole diberikan per kegiatan. MoT/Vice MoT mendapat ringkasan hasil dan daftar tugas koordinasi; IoT/Vice IoT mendapat daftar tugas agenda ruhiyah; Master of Observer/Vice Observer mendapat ringkasan hasil dan tugas koordinasi Observer. Subrole Instruktur tidak membuka identitas peserta atau catatan privat Observer.
 6. Komisariat: informasi/laporan yang diizinkan.
 7. Peserta: kelak mengakses tes/rapor yang diizinkan melalui username/password sementara atau token dengan masa berlaku yang dapat diatur.
 
 Admin Sistem, Bidang Kader, Observer, Instruktur, dan Komisariat memakai login email + kata sandi. Akun/token peserta belum dibuat dan metode akses peserta masih terbuka.
+
+### Subrole Instruktur per kegiatan
+
+- Superadmin menetapkan satu dari enam subrole pada setiap penugasan kegiatan. Akun yang sama dapat mendapat subrole berbeda pada kegiatan berbeda.
+- **MoT:** memimpin koordinasi tim, memastikan rencana program/jadwal/target siap, mencatat kendala, dan mengoordinasikan evaluasi pasca kegiatan. Dashboard menampilkan checklist tugas dan ringkasan hasil.
+- **Vice MoT:** membantu koordinasi MoT, menindaklanjuti delegasi dan siap menggantikan saat diperlukan. Dashboard menampilkan checklist dukungan dan ringkasan hasil.
+- **IoT:** mengoordinasikan agenda ibadah dan pembinaan ruhiyah, petugas, jadwal, dan evaluasinya. Dashboard berisi checklist agenda; tidak menampilkan nilai peserta.
+- **Vice IoT:** membantu kesiapan petugas/perlengkapan dan kelancaran agenda IoT. Dashboard berisi checklist tugas.
+- **Master of Observer:** mengoordinasikan pembagian tugas Observer, memastikan rubrik dipahami, memantau progres, dan menyampaikan ringkasan hasil kepada MoT. Dashboard berisi checklist dan rekap agregat tanpa catatan privat.
+- **Vice Observer:** membantu pemantauan penilaian yang belum selesai dan menyiapkan ringkasan untuk Master of Observer. Dashboard berisi checklist dan rekap agregat tanpa catatan privat.
+- Semua daftar tugas merupakan checklist operasional yang dapat ditandai selesai. Tugas dapat disesuaikan Superadmin bila praktik lokal membutuhkan perubahan.
+- **Observer** tetap role terpisah seperti alur yang sudah dijalankan: hanya Observer yang ditugaskan mengisi skor dan catatan observasi. Subrole Instruktur tidak memperoleh akses itu.
+- **Publik** tetap dapat melihat informasi publik dan agregat yang aman saja. Role Komisariat/Peserta/Bidang Kader yang mendukung fitur lama tetap dipertahankan; perubahan ini tidak menghapusnya.
+- Dasar rujukan yang ditemukan: Sistem Perkaderan Ikatan IMM (2011) menjelaskan MoT sebagai pemimpin dan penanggung jawab keinstrukturan, Vice MoT membantu atau menggantikan, IoT memandu syariat/akhlak, Observer mengevaluasi perkembangan peserta, dan Koordinator Observer mengelola laporan serta mengoordinasikan konsolidasi. Tugas Vice IoT serta pembagian detail Master/Vice Observer di aplikasi ini adalah rancangan operasional yang diturunkan dari kebutuhan pengguna, bukan definisi baku resmi.
 
 ## Preferensi visual yang sudah disepakati
 

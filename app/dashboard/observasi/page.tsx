@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ObservationCell } from "./observation-cell";
 import { completeObserverAssignment, reopenObserverAssignment } from "../penilaian/actions";
-import { calculateWeightedScore, type ScoringAspect } from "@/lib/scoring";
+import { calculateWeightedScore, categorizeScore, type ScoringAspect } from "@/lib/scoring";
 
 type ObservationsPageProps = {
   searchParams: Promise<{ eventId?: string | string[]; stage?: string | string[]; materialId?: string | string[]; typeId?: string | string[] }>;
@@ -11,6 +11,7 @@ type ObservationsPageProps = {
 const stages = [
   { id: "screening", label: "1. Screening" },
   { id: "training", label: "2. Pelatihan" },
+  { id: "follow_up", label: "3. Rencana Tindak Lanjut" },
 ] as const;
 
 export default async function ObservationsPage({ searchParams }: ObservationsPageProps) {
@@ -75,8 +76,8 @@ export default async function ObservationsPage({ searchParams }: ObservationsPag
 
     {selectedEvent && <>
       <a className="users-back" href="/dashboard/observasi">← Pilih kegiatan lain</a>
-      {!selectedStage && <section className="event-manage-card"><div className="event-manage-title"><div><h2>{selectedEvent.name}</h2><p>Pilih tahap yang akan dinilai.</p></div></div><div className="assessment-event-list">{stages.map((stage) => <a className="assessment-event-option" key={stage.id} href={`/dashboard/observasi?eventId=${selectedEvent.id}&stage=${stage.id}`}><strong>{stage.label}</strong><span className="assessment-event-arrow">→</span></a>)}<div className="assessment-event-option" aria-disabled="true"><strong>3. Rencana Tindak Lanjut</strong><small>Belum tersedia</small></div></div></section>}
-      {selectedStage && !selectedPhaseIsValid && <p className="users-error">Tahap tidak dikenali. Kembali dan pilih Screening atau Pelatihan.</p>}
+      {!selectedStage && <section className="event-manage-card"><div className="event-manage-title"><div><h2>{selectedEvent.name}</h2><p>Pilih tahap yang akan dinilai.</p></div></div><div className="assessment-event-list">{stages.map((stage) => <a className="assessment-event-option" key={stage.id} href={`/dashboard/observasi?eventId=${selectedEvent.id}&stage=${stage.id}`}><strong>{stage.label}</strong><span className="assessment-event-arrow">→</span></a>)}</div></section>}
+      {selectedStage && !selectedPhaseIsValid && <p className="users-error">Tahap tidak dikenali. Kembali dan pilih Screening, Pelatihan, atau Rencana Tindak Lanjut.</p>}
 
       {selectedEvent && selectedStage === "training" && !selectedMaterialId && <section className="event-manage-card"><a className="users-back" href={`/dashboard/observasi?eventId=${selectedEvent.id}`}>← Pilih tahap lain</a><h2>{selectedEvent.name} · Pelatihan</h2><p>Pilih materi yang akan dinilai.</p>{eventMaterials.length ? <div className="assessment-event-list">{eventMaterials.map((material) => <a className="assessment-event-option" href={`/dashboard/observasi?eventId=${selectedEvent.id}&stage=training&materialId=${material.id}`} key={material.id}><strong>{material.name}</strong><span className="assessment-event-arrow">→</span></a>)}</div> : <p className="users-empty">Belum ada materi. Minta Super Admin menambah materi dan mengaktifkan rubriknya.</p>}</section>}
       {selectedEvent && selectedStage === "training" && selectedMaterialId && !selectedMaterial && <p className="users-error">Materi tidak ditemukan pada kegiatan ini.</p>}
@@ -94,8 +95,9 @@ export default async function ObservationsPage({ searchParams }: ObservationsPag
             const participantObservations = (observations ?? []).filter((item) => item.participant_id === participant.id && activeVersion.rubric_aspects.some((aspect) => aspect.rubric_indicators.some((indicator) => indicator.id === item.indicator_id)));
             const participantScores = new Map(participantObservations.map((item) => [item.indicator_id, { score: item.score }]));
             const calculated = calculateWeightedScore(scoringAspects, participantScores);
+            const category = categorizeScore(calculated.value);
             return <details className="observation-participant" key={participant.id}><summary>{participant.display_name}</summary>
-              <div className="score-summary"><strong>{calculated.value === null ? "Belum ada nilai teramati" : `${isOfficial ? "Nilai resmi" : "Nilai sementara"}: ${calculated.value.toFixed(2)} / 100`}</strong><small>{calculated.observedIndicators} indikator teramati · {calculated.includedAspects.length} aspek masuk perhitungan</small></div>
+              <div className="score-summary"><strong>{calculated.value === null ? "Belum ada nilai teramati" : `${isOfficial ? "Nilai resmi" : "Nilai sementara"}: ${calculated.value.toFixed(2)} / 100`}</strong>{category && <span className={`score-category ${category.id}`}>{category.label}</span>}<small>{calculated.observedIndicators} indikator teramati · {calculated.includedAspects.length} aspek masuk perhitungan</small></div>
               {[...activeVersion.rubric_aspects].sort((a, b) => a.position - b.position).map((aspect) => <div className="observation-aspect" key={aspect.id}><h3>{aspect.name} <small>{Number(aspect.weight).toFixed(2)}%</small></h3>{[...aspect.rubric_indicators].sort((a, b) => a.position - b.position).map((indicator) => {
                 const saved = observationMap.get(`${participant.id}:${indicator.id}`);
                 return <div className="observation-indicator" key={indicator.id}><div><strong>{indicator.name}</strong>{indicator.target && <small>Target: {indicator.target}</small>}<small>Bobot {Number(indicator.weight).toFixed(2)}% dalam aspek</small></div><ObservationCell participantId={participant.id} indicatorId={indicator.id} score={saved?.score ?? null} note={saved?.note ?? ""} revision={saved?.revision ?? 0} updatedAt={saved?.updated_at ?? null} history={saved?.observation_revisions ?? []}/></div>;

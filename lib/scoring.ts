@@ -2,6 +2,18 @@ export type ScoringIndicator = { id: string; weight: number };
 export type ScoringAspect = { id: string; weight: number; rubric_indicators: ScoringIndicator[] };
 export type ScoringObservation = { score: number | null };
 
+export const scoreCategories = [
+  { id: "development", label: "Perlu pengembangan", minimum: 0, exclusiveMaximum: 60 },
+  { id: "adequate", label: "Cukup", minimum: 60, exclusiveMaximum: 75 },
+  { id: "good", label: "Baik", minimum: 75, exclusiveMaximum: 90 },
+  { id: "excellent", label: "Sangat baik", minimum: 90, exclusiveMaximum: 101 },
+] as const;
+
+export function categorizeScore(score: number | null) {
+  if (score === null || !Number.isFinite(score)) return null;
+  return scoreCategories.find((category) => score >= category.minimum && score < category.exclusiveMaximum) ?? scoreCategories.at(-1) ?? null;
+}
+
 export function calculateWeightedScore(aspects: ScoringAspect[], observations: Map<string, ScoringObservation>) {
   let weightedAspects = 0;
   let observedAspectWeight = 0;

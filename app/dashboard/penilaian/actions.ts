@@ -20,7 +20,7 @@ export async function createRubricVersion(formData: FormData) {
   const stage = String(formData.get("stage") ?? "");
   const assessmentTypeId = String(formData.get("assessmentTypeId") ?? "");
   const materialId = String(formData.get("materialId") ?? "");
-  if (!/^[0-9a-f-]{36}$/i.test(eventId) || !["screening", "training"].includes(stage) || !/^[0-9a-f-]{36}$/i.test(assessmentTypeId) || (stage === "training" && !/^[0-9a-f-]{36}$/i.test(materialId)) || (stage === "screening" && materialId)) throw new Error("Kegiatan, tahap, materi, atau jenis penilaian tidak valid.");
+  if (!/^[0-9a-f-]{36}$/i.test(eventId) || !["screening", "training", "follow_up"].includes(stage) || !/^[0-9a-f-]{36}$/i.test(assessmentTypeId) || (stage === "training" && !/^[0-9a-f-]{36}$/i.test(materialId)) || (stage !== "training" && materialId)) throw new Error("Kegiatan, tahap, materi, atau jenis penilaian tidak valid.");
   const { data: type } = await supabase.from("rubric_assessment_types").select("id").eq("id", assessmentTypeId).eq("event_id", eventId).eq("stage", stage).maybeSingle();
   if (!type) throw new Error("Jenis penilaian tidak ditemukan pada tahap ini.");
   if (stage === "training") {
@@ -62,7 +62,7 @@ export async function createAssessmentType(formData: FormData) {
   const eventId = String(formData.get("eventId") ?? "");
   const stage = String(formData.get("stage") ?? "");
   const name = String(formData.get("name") ?? "").trim();
-  if (!/^[0-9a-f-]{36}$/i.test(eventId) || !["screening", "training"].includes(stage) || name.length < 2 || name.length > 80) throw new Error("Nama jenis penilaian atau tahap tidak valid.");
+  if (!/^[0-9a-f-]{36}$/i.test(eventId) || !["screening", "training", "follow_up"].includes(stage) || name.length < 2 || name.length > 80) throw new Error("Nama jenis penilaian atau tahap tidak valid.");
   const { data: previous } = await supabase.from("rubric_assessment_types").select("position").eq("event_id", eventId).eq("stage", stage).order("position", { ascending: false }).limit(1);
   const { error } = await supabase.from("rubric_assessment_types").insert({ event_id: eventId, stage, name, position: (previous?.[0]?.position ?? -1) + 1 });
   if (error) throw new Error("Jenis penilaian gagal ditambahkan. Periksa apakah nama sudah ada.");
@@ -143,6 +143,30 @@ export async function removeObserverAssignment(formData: FormData) {
   if (error) throw new Error("Penugasan gagal dihapus.");
   revalidatePath("/dashboard/penilaian");
   revalidatePath("/dashboard/observasi");
+}
+
+export async function assignInstructorEvent(formData: FormData) {
+  const { supabase, userId } = await staffClient(["admin_system"]);
+  const eventId = String(formData.get("eventId") ?? "");
+  const instructorId = String(formData.get("instructorId") ?? "");
+  if (!/^[0-9a-f-]{36}$/i.test(eventId) || !/^[0-9a-f-]{36}$/i.test(instructorId)) throw new Error("Kegiatan atau akun Instruktur tidak valid.");
+  const { data: instructor } = await supabase.from("profiles").select("id").eq("id", instructorId).eq("role", "instruktur").maybeSingle();
+  if (!instructor) throw new Error("Pilih akun dengan role Instruktur.");
+  const { error } = await supabase.from("instructor_event_assignments").insert({ event_id: eventId, instructor_id: instructorId, assigned_by: userId });
+  if (error?.code === "23505") throw new Error("Instruktur sudah ditugaskan pada kegiatan ini.");
+  if (error) throw new Error("Penugasan Instruktur gagal disimpan.");
+  revalidatePath("/dashboard/penilaian");
+  revalidatePath("/dashboard");
+}
+
+export async function removeInstructorEventAssignment(formData: FormData) {
+  const { supabase } = await staffClient(["admin_system"]);
+  const assignmentId = String(formData.get("assignmentId") ?? "");
+  if (!/^[0-9a-f-]{36}$/i.test(assignmentId)) throw new Error("Penugasan tidak valid.");
+  const { error } = await supabase.from("instructor_event_assignments").delete().eq("id", assignmentId);
+  if (error) throw new Error("Penugasan Instruktur gagal dihapus.");
+  revalidatePath("/dashboard/penilaian");
+  revalidatePath("/dashboard");
 }
 
 export async function completeObserverAssignment(formData: FormData) {

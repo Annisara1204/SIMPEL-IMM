@@ -6,6 +6,7 @@ const roles = [
   ["admin_system", "Admin Sistem"],
   ["bidang_kader", "Bidang Kader"],
   ["observer", "Observer"],
+  ["instruktur", "Instruktur"],
   ["komisariat", "Komisariat"],
   ["peserta", "Peserta"],
 ] as const;

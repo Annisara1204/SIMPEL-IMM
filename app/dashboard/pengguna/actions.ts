@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
-const roles = ["admin_system", "bidang_kader", "observer", "komisariat", "peserta"] as const;
+const roles = ["admin_system", "bidang_kader", "observer", "instruktur", "komisariat", "peserta"] as const;
 
 export async function updateUserRole(formData: FormData) {
   const supabase = await createClient();

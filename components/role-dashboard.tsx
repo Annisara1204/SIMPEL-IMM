@@ -1,14 +1,16 @@
 "use client";
 
 import { useState } from "react";
+import { DashboardAssessmentResults } from "./dashboard-assessment-results";
+import type { DashboardAssessmentData } from "@/lib/dashboard-results";
 
-export type AppRole = "admin_system" | "bidang_kader" | "observer" | "komisariat" | "peserta" | "public";
-type DashboardProps = { role: AppRole; displayName?: string; isPublic?: boolean };
+export type AppRole = "admin_system" | "bidang_kader" | "observer" | "instruktur" | "komisariat" | "peserta" | "public";
+type DashboardProps = { role: AppRole; displayName?: string; isPublic?: boolean; assessmentData?: DashboardAssessmentData | null };
 type NavItem = { label: string; icon: string; group: string };
 
 const labels: Record<AppRole, string> = {
   public: "Pengunjung Publik", admin_system: "Admin Sistem", bidang_kader: "Bidang Kader",
-  observer: "Observer", komisariat: "Komisariat", peserta: "Peserta",
+  observer: "Observer", instruktur: "Instruktur", komisariat: "Komisariat", peserta: "Peserta",
 };
 const menuByRole: Record<AppRole, NavItem[]> = {
   public: [
@@ -23,6 +25,9 @@ const menuByRole: Record<AppRole, NavItem[]> = {
   ],
   observer: [
     { label: "Dashboard", icon: "▦", group: "MENU UTAMA" }, { label: "Kegiatan DAD", icon: "▣", group: "MENU UTAMA" }, { label: "Peserta", icon: "♙", group: "MENU UTAMA" }, { label: "Observasi", icon: "◉", group: "PEMANTAUAN" }, { label: "Seleksi Komisariat", icon: "▤", group: "PEMANTAUAN" },
+  ],
+  instruktur: [
+    { label: "Dashboard", icon: "▦", group: "MENU UTAMA" },
   ],
   komisariat: [
     { label: "Dashboard", icon: "▦", group: "MENU UTAMA" }, { label: "Pengajuan Peserta", icon: "⇧", group: "MENU UTAMA" }, { label: "Analitik & Rekap", icon: "▥", group: "DATA & LAPORAN" },
@@ -40,6 +45,7 @@ const agenda = [
 function SampleTag() { return <span className="sample-tag">CONTOH SIMULASI</span>; }
 
 function DashboardContent({ role, onNavigate }: { role: AppRole; onNavigate: (page: string) => void }) {
+  if (role === "instruktur") return <div className="section-heading role-heading"><div><h2>Rekap hasil kegiatan</h2><p>Ringkasan hasil hanya untuk kegiatan yang ditugaskan kepada Anda</p></div><span className="sample-tag">REKAP SAJA</span></div>;
   if (role === "observer") return <>
     <div className="section-heading role-heading"><div><h2>Kegiatan yang ditugaskan</h2><p>Daftar kegiatan dan materi untuk Anda</p></div><SampleTag/></div>
     <div className="role-grid"><section className="panel"><div className="assigned-card"><div className="assigned-icon">▣</div><div className="assigned-copy"><span className="agenda-status live">Sedang berlangsung</span><h3>DAD Simulasi 2026</h3><p>Komisariat FEB · 3 hari · 8 materi</p><small>Peran Anda: Observer · 12 peserta</small></div><button className="text-button" onClick={() => onNavigate("Observasi")}>Buka penilaian →</button></div><div className="assigned-foot">Progres tugas Anda <strong>8 dari 12 peserta</strong><div className="bar-track"><i style={{ width: "67%" }}/></div></div></section>
@@ -77,12 +83,12 @@ function DashboardContent({ role, onNavigate }: { role: AppRole; onNavigate: (pa
   </>;
 }
 
-export function RoleDashboard({ role, displayName, isPublic = false }: DashboardProps) {
+export function RoleDashboard({ role, displayName, isPublic = false, assessmentData = null }: DashboardProps) {
   const [active, setActive] = useState("Dashboard");
   const [mobileOpen, setMobileOpen] = useState(false);
   const items = menuByRole[role];
   const groups = [...new Set(items.map((item) => item.group))];
-  const pageTitle: Record<AppRole, string> = { public: "Informasi DAD IMM Kota Bandung", admin_system: "Ringkasan sistem", bidang_kader: "Pantau proses kaderisasi.", observer: "Kegiatan dan jadwal observasi", komisariat: "Kegiatan komisariat Anda", peserta: "Perkembangan Anda" };
+  const pageTitle: Record<AppRole, string> = { public: "Informasi DAD IMM Kota Bandung", admin_system: "Ringkasan sistem", bidang_kader: "Pantau proses kaderisasi.", observer: "Kegiatan dan jadwal observasi", instruktur: "Rekap hasil penilaian", komisariat: "Kegiatan komisariat Anda", peserta: "Perkembangan Anda" };
   return <main className="app-shell">
     <aside className={`sidebar ${mobileOpen ? "sidebar-open" : ""}`}>
       <div className="brand"><div className="brand-mark">i<span>•</span></div><div><strong>IMM Observer</strong><small>KOTA BANDUNG</small></div><button className="mobile-close" onClick={() => setMobileOpen(false)} aria-label="Tutup menu">×</button></div>
@@ -96,6 +102,7 @@ export function RoleDashboard({ role, displayName, isPublic = false }: Dashboard
       <div className="content"><div className="welcome-row"><div><div className="eyebrow"><span/> {isPublic ? "PORTAL PUBLIK" : "DASHBOARD KEGIATAN"}</div><h1>{active === "Dashboard" ? pageTitle[role] : active}</h1><p className="intro">{isPublic ? "Informasi publik Pelatihan Kader DAD IMM Kota Bandung." : `Ruang kerja ${labels[role]}.`}</p></div>{isPublic && <a className="period-button login-link" href="/login">Login pengguna <span>→</span></a>}</div>
         {active !== "Dashboard" && <div className="preview-banner"><span>ⓘ</span><div><strong>Pratinjau navigasi</strong><p>Halaman <b>{active}</b> akan tersedia pada tahap pengembangan berikutnya.</p></div></div>}
         <DashboardContent role={role} onNavigate={setActive}/>
+        {active === "Dashboard" && assessmentData && <DashboardAssessmentResults data={assessmentData}/>}
         <footer className="page-footer"><span>IMM Observer <b>·</b> Tahap uji coba</span><span>Data simulasi untuk keperluan pengembangan</span></footer>
       </div>
     </section>

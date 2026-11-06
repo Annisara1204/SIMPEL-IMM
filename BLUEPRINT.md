@@ -22,8 +22,9 @@ Pengguna pemula; gunakan bahasa Indonesia sederhana dan jelaskan istilah teknis 
 - Pelatihan lazimnya 2–3 hari, 6–9 materi. Tiap materi dapat memuat aspek kognitif/perilaku dengan sejumlah indikator.
 - Gambar yang diberikan pengguna adalah referensi struktur (KPI/aspek/indikator, bobot/target, dan lembar Observer); angka dan bobot dalam gambar hanya contoh, bukan ketentuan final.
 - Perlu halaman **Pengaturan Penilaian** untuk mengatur skala, aspek/indikator, bobot, target dan aturan sesuai kesepakatan instruktur.
-- Pengaturan rubrik dipisah menurut kegiatan, tahap, dan jenis penilaian. Tahap yang disiapkan dahulu adalah Screening dan Pelatihan; Rencana Tindak Lanjut menunggu. Super Admin dapat menambahkan jenis penilaian pada setiap tahap, dan masing-masing jenis memiliki rubrik berversi sendiri.
+- Pengaturan rubrik dipisah menurut kegiatan, tahap, dan jenis penilaian. Super Admin dapat menambahkan jenis penilaian pada setiap tahap, dan masing-masing jenis memiliki rubrik berversi sendiri.
 - Pada tahap Pelatihan, setiap materi memiliki rubrik dan status penilaian sendiri. Screening tidak memakai materi.
+- Rencana Tindak Lanjut memakai rubrik dan skor bulat 1–5 seperti Screening; tahap ini tidak memakai materi.
 - Konfigurasi disimpan sebagai versi pada kegiatan; perubahan baru tidak boleh mengubah hasil lama.
 - Skor akhir memakai rata-rata berbobot dan rumus harus ditampilkan. Validasi bobot/rentang wajib dilakukan sebelum konfigurasi dipakai.
 - Skala indikator yang disepakati: 1–5 dengan label 1 = Belum terlihat, 2 = Mulai berkembang, 3 = Cukup, 4 = Baik, 5 = Sangat baik.
@@ -34,6 +35,7 @@ Pengguna pemula; gunakan bahasa Indonesia sederhana dan jelaskan istilah teknis 
 - Jika hanya sebagian indikator dalam aspek berstatus `Belum diamati`, bobot indikator yang memiliki skor dinormalisasi ulang agar aspek tetap berjumlah 100% untuk hasil peserta tersebut.
 - Jika seluruh indikator dalam aspek berstatus `Belum diamati`, aspek dikeluarkan dari nilai keseluruhan dan bobot aspek yang diamati dinormalisasi ulang.
 - Nilai untuk setiap jenis penilaian menjadi resmi setelah seluruh Observer yang ditugaskan menyelesaikan jenis penilaian tersebut. Status selesai dicatat terpisah per jenis.
+- Kategori nilai 0–100: 0–<60 **Perlu pengembangan**, 60–<75 **Cukup**, 75–<90 **Baik**, dan 90–100 **Sangat baik**.
 - Persetujuan/review Bidang Kader pada rapor ditunda dari versi awal sederhana; dapat ditambahkan pada pengembangan selanjutnya.
 
 ### Akses dan privasi
@@ -102,10 +104,11 @@ Pengguna pemula; gunakan bahasa Indonesia sederhana dan jelaskan istilah teknis 
 2. Admin sistem: akun, role, konfigurasi.
 3. Bidang Kader: konfigurasi penilaian, penugasan, pemantauan dan laporan sesuai kewenangan. Impor pretest/posttest saat ini khusus Admin Sistem. Sesuai aturan terbaru pengguna, pengelolaan kegiatan dan peserta dilakukan Observer dan Super Admin.
 4. Observer: penilaian/catatan sesuai penugasan.
-5. Komisariat: informasi/laporan yang diizinkan.
-6. Peserta: kelak mengakses tes/rapor yang diizinkan melalui username/password sementara atau token dengan masa berlaku yang dapat diatur.
+5. Instruktur: hanya melihat rekap skor dan kategori untuk kegiatan yang ditugaskan; tidak melihat nama peserta atau catatan privat Observer.
+6. Komisariat: informasi/laporan yang diizinkan.
+7. Peserta: kelak mengakses tes/rapor yang diizinkan melalui username/password sementara atau token dengan masa berlaku yang dapat diatur.
 
-Admin Sistem, Bidang Kader, Observer, dan Komisariat memakai login email + kata sandi. Akun/token peserta belum dibuat dan metode akses peserta masih terbuka.
+Admin Sistem, Bidang Kader, Observer, Instruktur, dan Komisariat memakai login email + kata sandi. Akun/token peserta belum dibuat dan metode akses peserta masih terbuka.
 
 ## Preferensi visual yang sudah disepakati
 
@@ -134,6 +137,7 @@ Admin Sistem, Bidang Kader, Observer, dan Komisariat memakai login email + kata 
 Masukan pengguna yang sudah diterima:
 
 - **Observer:** bagian utama dashboard adalah daftar kegiatan yang ditugaskan dan jadwal kegiatan hari ini.
+- **Instruktur:** dashboard menampilkan rekap skor dan kategori per tahap untuk kegiatan yang ditugaskan, tanpa nama peserta atau catatan privat.
 - **Bidang Kader:** bagian utama dashboard adalah daftar kegiatan DAD beserta statusnya, serta ringkasan jumlah peserta dan progres penilaian.
 - **Komisariat:** bagian utama dashboard adalah daftar kegiatan DAD yang berkaitan dengan komisariatnya dan rekap/laporan yang memang diizinkan untuk diakses.
 - **Peserta:** bagian utama dashboard adalah nilai sementara miliknya dalam bentuk ringkasan dan catatan pengembangan/perhatian. Tidak menampilkan nilai mentah Observer.

@@ -21,7 +21,7 @@ export default async function ObservationsPage({ searchParams }: ObservationsPag
   const userId = claims?.claims?.sub;
   if (!userId) redirect("/login");
   const { data: profile } = await supabase.from("profiles").select("role").eq("id", userId).maybeSingle();
-  if (!profile || !["admin_system", "observer"].includes(profile.role ?? "")) redirect("/dashboard");
+  if (!profile || !["admin_system", "observer", "instruktur"].includes(profile.role ?? "")) redirect("/dashboard");
 
   const params = await searchParams;
   const requestedEventId = Array.isArray(params.eventId) ? params.eventId[0] : params.eventId;
@@ -30,6 +30,8 @@ export default async function ObservationsPage({ searchParams }: ObservationsPag
   const selectedTypeId = Array.isArray(params.typeId) ? params.typeId[0] : params.typeId;
   const { data: myAssignments } = profile.role === "observer"
     ? await supabase.from("observer_assignments").select("event_id").eq("observer_id", userId)
+    : profile.role === "instruktur"
+      ? await supabase.from("instructor_event_assignments").select("event_id").eq("instructor_id", userId)
     : { data: null };
   const assignedEventIds = myAssignments?.map((assignment) => assignment.event_id) ?? [];
   const eventQuery = supabase.from("events").select("id, name, starts_on, participants(id, display_name)").order("starts_on", { ascending: false });
@@ -60,17 +62,17 @@ export default async function ObservationsPage({ searchParams }: ObservationsPag
   const myCompletion = myAssignment && (completions ?? []).some((completion) => completion.assignment_id === myAssignment.id);
 
   const { data: observations, error: observationError } = activeVersion
-    ? await supabase.from("observations").select("participant_id, indicator_id, score, note, revision, updated_at, observation_revisions(score, note, revision, changed_at)")
+    ? await supabase.from("observations").select("participant_id, indicator_id, score, note, revision, updated_at, updated_by_name, observation_revisions(score, note, revision, changed_at, actor_name, score_after, note_after)")
     : { data: [], error: null };
   const observationMap = new Map((observations ?? []).map((item) => [`${item.participant_id}:${item.indicator_id}`, item]));
   const stageLabel = stages.find((stage) => stage.id === selectedStage)?.label;
 
   return <main className="users-page">
     <a className="users-back" href="/dashboard">← Kembali ke dashboard</a>
-    <div className="users-heading"><div><p className="login-eyebrow">TAHAP 4 · LEMBAR BERSAMA</p><h1>Observasi</h1><p>Pilih kegiatan, tahap, dan jenis penilaian. Perubahan nilai disimpan otomatis.</p></div><span className="temporary-pill">CATATAN PRIVAT</span></div>
+    <div className="users-heading"><div><p className="login-eyebrow">TAHAP 4 · LEMBAR BERSAMA</p><h1>Observasi</h1><p>{profile.role === "instruktur" ? "Subrole Instruktur yang ditugaskan dapat menginput nilai dan catatan pada kegiatan ini." : "Pilih kegiatan, tahap, dan jenis penilaian. Perubahan nilai disimpan otomatis."} Setiap perubahan nilai dan catatan masuk ke riwayat.</p></div><span className="temporary-pill">AKSES BERDASARKAN PENUGASAN</span></div>
     {(eventsError || versionsError || typesError || materialsError || completionsError || observationError) && <p className="users-error">Sebagian data belum dapat dibaca. Pastikan migrasi tahap, materi, dan jenis penilaian sudah dijalankan.</p>}
 
-    {!requestedEventId && <section className="event-manage-card"><h2>Pilih kegiatan DAD</h2><p>Daftar hanya menampilkan kegiatan yang ditugaskan kepada Observer.</p>{events?.length ? <div className="assessment-event-list">{events.map((event) => <a className="assessment-event-option" href={`/dashboard/observasi?eventId=${event.id}`} key={event.id}><span className="assessment-event-main"><strong>{event.name}</strong><small>{event.participants.length} peserta</small></span><span className="assessment-event-arrow">→</span></a>)}</div> : <p className="users-empty">{profile.role === "observer" ? "Belum ada kegiatan yang ditugaskan kepada Anda." : "Belum ada kegiatan."}</p>}</section>}
+    {!requestedEventId && <section className="event-manage-card"><h2>Pilih kegiatan DAD</h2><p>{profile.role === "observer" ? "Daftar hanya menampilkan kegiatan yang ditugaskan kepada Observer." : profile.role === "instruktur" ? "Daftar hanya menampilkan kegiatan dengan penugasan subrole Instruktur kepada Anda." : "Pilih kegiatan yang ingin ditinjau."}</p>{events?.length ? <div className="assessment-event-list">{events.map((event) => <a className="assessment-event-option" href={`/dashboard/observasi?eventId=${event.id}`} key={event.id}><span className="assessment-event-main"><strong>{event.name}</strong><small>{event.participants.length} peserta</small></span><span className="assessment-event-arrow">→</span></a>)}</div> : <p className="users-empty">{profile.role === "observer" || profile.role === "instruktur" ? "Belum ada kegiatan yang ditugaskan kepada Anda." : "Belum ada kegiatan."}</p>}</section>}
 
     {requestedEventId && !selectedEvent && <p className="users-error">Kegiatan tidak ditemukan atau Anda tidak ditugaskan padanya.</p>}
 
@@ -88,7 +90,7 @@ export default async function ObservationsPage({ searchParams }: ObservationsPag
       {selectedEvent && selectedPhaseIsValid && selectedType && (selectedStage !== "training" || selectedMaterial) && <>
         <a className="users-back" href={`/dashboard/observasi?eventId=${selectedEvent.id}&stage=${selectedStage}${selectedMaterial ? `&materialId=${selectedMaterial.id}` : ""}`}>← Pilih jenis penilaian lain</a>
         <section className="event-manage-card">
-          <div className="event-manage-title"><div><p className="login-eyebrow">{stageLabel}{selectedMaterial ? ` · ${selectedMaterial.name}` : ""} · {selectedType.name}</p><h2>{selectedEvent.name}</h2><p>{selectedEvent.participants.length} peserta · {completedAssignments.length} dari {eventAssignments.length} Observer selesai untuk rubrik ini</p></div><span className={`agenda-status ${isOfficial ? "done" : "next"}`}>{isOfficial ? "Nilai resmi" : "Nilai sementara"}</span></div>
+          <div className="event-manage-title"><div><p className="login-eyebrow">{stageLabel}{selectedMaterial ? ` · ${selectedMaterial.name}` : ""} · {selectedType.name}</p><h2>{selectedEvent.name}</h2><p>{selectedEvent.participants.length} peserta{profile.role === "instruktur" ? " · akses dari penugasan subrole Instruktur" : ` · ${completedAssignments.length} dari ${eventAssignments.length} Observer selesai untuk rubrik ini`}</p></div><span className={`agenda-status ${isOfficial ? "done" : "next"}`}>{isOfficial ? "Nilai resmi" : "Nilai sementara"}</span></div>
           {activeVersion && myAssignment && <div className="observer-completion">{myCompletion ? <><span>Penilaian ini sudah Anda tandai selesai.</span><form action={reopenObserverAssignment}><input type="hidden" name="eventId" value={selectedEvent.id}/><input type="hidden" name="versionId" value={activeVersion.id}/><button className="remove-button" type="submit">Buka kembali penilaian</button></form></> : <><span>Setelah seluruh peserta dan indikator ditinjau, tandai rubrik ini selesai.</span><form action={completeObserverAssignment}><input type="hidden" name="eventId" value={selectedEvent.id}/><input type="hidden" name="versionId" value={activeVersion.id}/><button className="rubric-activate" type="submit">Tandai penilaian ini selesai</button></form></>}</div>}
           {!activeVersion ? <p className="users-empty">Belum ada rubrik aktif untuk jenis penilaian ini. Hubungi Super Admin.</p> : selectedEvent.participants.map((participant) => {
             const scoringAspects = [...activeVersion.rubric_aspects] as ScoringAspect[];
@@ -100,7 +102,7 @@ export default async function ObservationsPage({ searchParams }: ObservationsPag
               <div className="score-summary"><strong>{calculated.value === null ? "Belum ada nilai teramati" : `${isOfficial ? "Nilai resmi" : "Nilai sementara"}: ${calculated.value.toFixed(2)} / 100`}</strong>{category && <span className={`score-category ${category.id}`}>{category.label}</span>}<small>{calculated.observedIndicators} indikator teramati · {calculated.includedAspects.length} aspek masuk perhitungan</small></div>
               {[...activeVersion.rubric_aspects].sort((a, b) => a.position - b.position).map((aspect) => <div className="observation-aspect" key={aspect.id}><h3>{aspect.name} <small>{Number(aspect.weight).toFixed(2)}%</small></h3>{[...aspect.rubric_indicators].sort((a, b) => a.position - b.position).map((indicator) => {
                 const saved = observationMap.get(`${participant.id}:${indicator.id}`);
-                return <div className="observation-indicator" key={indicator.id}><div><strong>{indicator.name}</strong>{indicator.target && <small>Target: {indicator.target}</small>}<small>Bobot {Number(indicator.weight).toFixed(2)}% dalam aspek</small></div><ObservationCell participantId={participant.id} indicatorId={indicator.id} score={saved?.score ?? null} note={saved?.note ?? ""} revision={saved?.revision ?? 0} updatedAt={saved?.updated_at ?? null} history={saved?.observation_revisions ?? []}/></div>;
+                return <div className="observation-indicator" key={indicator.id}><div><strong>{indicator.name}</strong>{indicator.target && <small>Target: {indicator.target}</small>}<small>Bobot {Number(indicator.weight).toFixed(2)}% dalam aspek</small></div><ObservationCell participantId={participant.id} indicatorId={indicator.id} score={saved?.score ?? null} note={saved?.note ?? ""} revision={saved?.revision ?? 0} updatedAt={saved?.updated_at ?? null} updatedByName={saved?.updated_by_name ?? null} history={saved?.observation_revisions ?? []}/></div>;
               })}</div>)}
             </details>;
           })}

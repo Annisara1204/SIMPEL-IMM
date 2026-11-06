@@ -12,7 +12,7 @@ async function staffClient(roles: string[]) {
   if (!userId) redirect("/login");
   const { data: profile } = await supabase.from("profiles").select("role").eq("id", userId).maybeSingle();
   if (!profile || !roles.includes(profile.role ?? "")) throw new Error("Akses ditolak.");
-  return { supabase, userId };
+  return { supabase, userId, role: profile.role };
 }
 
 export async function createRubricVersion(formData: FormData) {
@@ -234,8 +234,14 @@ export async function activateRubric(formData: FormData) {
 }
 
 export async function saveObservation(input: { participantId: string; indicatorId: string; score: number | null; note: string; expectedRevision: number }) {
-  const { supabase, userId } = await staffClient(["admin_system", "observer"]);
+  const { supabase, userId, role } = await staffClient(["admin_system", "observer", "instruktur"]);
   if (!/^[0-9a-f-]{36}$/i.test(input.participantId) || !/^[0-9a-f-]{36}$/i.test(input.indicatorId) || (input.score !== null && (!Number.isInteger(input.score) || input.score < 1 || input.score > 5)) || input.note.length > 2000 || !Number.isInteger(input.expectedRevision) || input.expectedRevision < 0) return { ok: false as const, message: "Isian tidak valid." };
+  if (role === "instruktur") {
+    const { data: participant } = await supabase.from("participants").select("event_id").eq("id", input.participantId).maybeSingle();
+    if (!participant) return { ok: false as const, message: "Peserta ini tidak ada dalam kegiatan yang bisa Anda nilai." };
+    const { data: assignment } = await supabase.from("instructor_event_assignments").select("id").eq("event_id", participant.event_id).eq("instructor_id", userId).limit(1).maybeSingle();
+    if (!assignment) return { ok: false as const, message: "Anda tidak ditugaskan pada kegiatan peserta ini." };
+  }
   const { data: current, error: readError } = await supabase.from("observations").select("id, revision").eq("participant_id", input.participantId).eq("indicator_id", input.indicatorId).maybeSingle();
   if (readError) return { ok: false as const, message: "Data belum dapat disimpan." };
   if ((current?.revision ?? 0) !== input.expectedRevision) return { ok: false as const, conflict: true as const, message: "Ada perubahan dari pengguna lain. Muat ulang untuk melihat nilai terbaru." };

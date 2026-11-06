@@ -27,6 +27,6 @@ export function InstructorDutyDashboard({ assignments }: { assignments: Instruct
       </form>)}</div>
       {!assignment.duties.length && <p className="users-empty">Belum ada tugas untuk subrole ini.</p>}
     </section>)}</div>}
-    <p className="privacy-note">Daftar tugas ini membantu koordinasi. Pencatatan tugas tidak menggantikan keputusan dan alur resmi kegiatan.</p>
+    <p className="privacy-note">Tugas checklist disediakan sebagai panduan operasional. Penugasan Instruktur juga memberi akses input penilaian hanya pada kegiatan tersebut; setiap perubahan skor/catatan mencatat nama akun dan waktunya.</p>
   </section>;
 }

@@ -3,11 +3,11 @@
 import { useState } from "react";
 import { DashboardAssessmentResults } from "./dashboard-assessment-results";
 import type { DashboardAssessmentData } from "@/lib/dashboard-results";
-import { InstructorDutyDashboard, type InstructorAssignment } from "./instructor-duty-dashboard";
+import { InstructorDutyDashboard, type InstructorAssignment, type InstructorParticipantEvent } from "./instructor-duty-dashboard";
 import { instructorPositionLabel } from "@/lib/instructor-roles";
 
 export type AppRole = "admin_system" | "bidang_kader" | "observer" | "instruktur" | "komisariat" | "peserta" | "public";
-type DashboardProps = { role: AppRole; displayName?: string; isPublic?: boolean; assessmentData?: DashboardAssessmentData | null; instructorAssignments?: InstructorAssignment[] };
+type DashboardProps = { role: AppRole; displayName?: string; isPublic?: boolean; assessmentData?: DashboardAssessmentData | null; instructorAssignments?: InstructorAssignment[]; instructorParticipantEvents?: InstructorParticipantEvent[] };
 type NavItem = { label: string; icon: string; group: string };
 
 const labels: Record<AppRole, string> = {
@@ -29,7 +29,7 @@ const menuByRole: Record<AppRole, NavItem[]> = {
     { label: "Dashboard", icon: "▦", group: "MENU UTAMA" }, { label: "Kegiatan DAD", icon: "▣", group: "MENU UTAMA" }, { label: "Peserta", icon: "♙", group: "MENU UTAMA" }, { label: "Observasi", icon: "◉", group: "PEMANTAUAN" }, { label: "Seleksi Komisariat", icon: "▤", group: "PEMANTAUAN" },
   ],
   instruktur: [
-    { label: "Dashboard", icon: "▦", group: "MENU UTAMA" }, { label: "Observasi", icon: "◉", group: "PENILAIAN" },
+    { label: "Dashboard", icon: "▦", group: "MENU UTAMA" }, { label: "Profil Peserta", icon: "♙", group: "MENU UTAMA" }, { label: "Profil Instruktur", icon: "♧", group: "MENU UTAMA" }, { label: "Observasi", icon: "◉", group: "PENILAIAN" },
   ],
   komisariat: [
     { label: "Dashboard", icon: "▦", group: "MENU UTAMA" }, { label: "Pengajuan Peserta", icon: "⇧", group: "MENU UTAMA" }, { label: "Analitik & Rekap", icon: "▥", group: "DATA & LAPORAN" },
@@ -85,17 +85,17 @@ function DashboardContent({ role, onNavigate, instructorAssignments = [] }: { ro
   </>;
 }
 
-export function RoleDashboard({ role, displayName, isPublic = false, assessmentData = null, instructorAssignments = [] }: DashboardProps) {
+export function RoleDashboard({ role, displayName, isPublic = false, assessmentData = null, instructorAssignments = [], instructorParticipantEvents = [] }: DashboardProps) {
   const [active, setActive] = useState("Dashboard");
   const [mobileOpen, setMobileOpen] = useState(false);
-  const items = menuByRole[role];
+  const items = role === "public" ? menuByRole[role] : [...menuByRole[role], ...(role === "instruktur" ? [] : [{ label: "Profil Instruktur", icon: "♧", group: "INFORMASI" }]), { label: "Profil saya", icon: "♙", group: "AKUN" }];
   const groups = [...new Set(items.map((item) => item.group))];
   const pageTitle: Record<AppRole, string> = { public: "Informasi DAD IMM Kota Bandung", admin_system: "Ringkasan sistem", bidang_kader: "Pantau proses kaderisasi.", observer: "Kegiatan dan jadwal observasi", instruktur: "Rekap hasil penilaian", komisariat: "Kegiatan komisariat Anda", peserta: "Perkembangan Anda" };
   return <main className="app-shell">
     <aside className={`sidebar ${mobileOpen ? "sidebar-open" : ""}`}>
       <div className="brand"><div className="brand-mark">i<span>•</span></div><div><strong>IMM Observer</strong><small>KOTA BANDUNG</small></div><button className="mobile-close" onClick={() => setMobileOpen(false)} aria-label="Tutup menu">×</button></div>
       <div className="event-switch"><span className="event-dot"/><div><small>{isPublic ? "PORTAL INFORMASI" : "KEGIATAN AKTIF"}</small><strong>{isPublic ? "Informasi DAD" : "DAD Simulasi 2026"}</strong></div><span className="chevron">⌄</span></div>
-      <nav aria-label="Navigasi utama">{groups.map((group) => <div className="nav-group" key={group}><p>{group}</p>{items.filter((item) => item.group === group).map((item) => (item.label === "Pengguna" && role === "admin_system") || (item.label === "Komisariat" && role === "admin_system") || (item.label === "Pengaturan Penilaian" && ["admin_system", "bidang_kader"].includes(role)) || (item.label === "Impor Hasil Tes" && role === "admin_system") || (item.label === "Pengajuan Peserta" && role === "komisariat") || (item.label === "Seleksi Komisariat" && ["admin_system", "observer"].includes(role)) || (["observer", "admin_system", "instruktur"].includes(role) && ["Kegiatan DAD", "Peserta", "Observasi"].includes(item.label)) ? <a key={item.label} className="nav-link" href={item.label === "Pengguna" ? "/dashboard/pengguna" : item.label === "Komisariat" ? "/dashboard/komisariat" : item.label === "Pengaturan Penilaian" ? "/dashboard/penilaian" : item.label === "Impor Hasil Tes" ? "/dashboard/impor-tes" : item.label === "Pengajuan Peserta" ? "/dashboard/pengajuan" : item.label === "Seleksi Komisariat" ? "/dashboard/seleksi-komisariat" : item.label === "Observasi" ? "/dashboard/observasi" : item.label === "Peserta" ? "/dashboard/peserta" : "/dashboard/kegiatan"}><span className="nav-icon">{item.icon}</span>{item.label}</a> : <button key={item.label} className={`nav-link ${active === item.label ? "active" : ""}`} onClick={() => { setActive(item.label); setMobileOpen(false); }}><span className="nav-icon">{item.icon}</span>{item.label}{item.label === "Observasi" && <span className="nav-count">3</span>}</button>)}</div>)}</nav>
+      <nav aria-label="Navigasi utama">{groups.map((group) => <div className="nav-group" key={group}><p>{group}</p>{items.filter((item) => item.group === group).map((item) => (item.label === "Pengguna" && role === "admin_system") || (item.label === "Komisariat" && role === "admin_system") || (item.label === "Pengaturan Penilaian" && ["admin_system", "bidang_kader"].includes(role)) || (item.label === "Impor Hasil Tes" && role === "admin_system") || (item.label === "Pengajuan Peserta" && role === "komisariat") || (item.label === "Seleksi Komisariat" && ["admin_system", "observer"].includes(role)) || (["observer", "admin_system", "instruktur"].includes(role) && ["Kegiatan DAD", "Peserta", "Observasi"].includes(item.label)) || (item.label === "Profil Peserta" && role === "instruktur") || (item.label === "Profil Instruktur" && role !== "public") || (item.label === "Profil saya" && role !== "public") ? <a key={item.label} className="nav-link" href={item.label === "Pengguna" ? "/dashboard/pengguna" : item.label === "Komisariat" ? "/dashboard/komisariat" : item.label === "Pengaturan Penilaian" ? "/dashboard/penilaian" : item.label === "Impor Hasil Tes" ? "/dashboard/impor-tes" : item.label === "Pengajuan Peserta" ? "/dashboard/pengajuan" : item.label === "Seleksi Komisariat" ? "/dashboard/seleksi-komisariat" : item.label === "Observasi" ? "/dashboard/observasi" : item.label === "Profil saya" ? "/dashboard/profil" : item.label === "Profil Peserta" ? "/dashboard/profil-peserta" : item.label === "Profil Instruktur" ? "/dashboard/profil-instruktur" : item.label === "Peserta" ? "/dashboard/peserta" : "/dashboard/kegiatan"}><span className="nav-icon">{item.icon}</span>{item.label}</a> : <button key={item.label} className={`nav-link ${active === item.label ? "active" : ""}`} onClick={() => { setActive(item.label); setMobileOpen(false); }}><span className="nav-icon">{item.icon}</span>{item.label}{item.label === "Observasi" && <span className="nav-count">3</span>}</button>)}</div>)}</nav>
       <div className="sidebar-bottom"><div className="help-icon">?</div><div><strong>Butuh bantuan?</strong><small>Panduan penggunaan</small></div><span className="arrow">↗</span></div>
     </aside>
     {mobileOpen && <button className="scrim" onClick={() => setMobileOpen(false)} aria-label="Tutup navigasi"/>}
@@ -104,8 +104,8 @@ export function RoleDashboard({ role, displayName, isPublic = false, assessmentD
       <div className="content"><div className="welcome-row"><div><div className="eyebrow"><span/> {isPublic ? "PORTAL PUBLIK" : "DASHBOARD KEGIATAN"}</div><h1>{active === "Dashboard" ? pageTitle[role] : active}</h1><p className="intro">{isPublic ? "Informasi publik Pelatihan Kader DAD IMM Kota Bandung." : `Ruang kerja ${labels[role]}.`}</p></div>{isPublic && <a className="period-button login-link" href="/login">Login pengguna <span>→</span></a>}</div>
         {active !== "Dashboard" && <div className="preview-banner"><span>ⓘ</span><div><strong>Pratinjau navigasi</strong><p>Halaman <b>{active}</b> akan tersedia pada tahap pengembangan berikutnya.</p></div></div>}
         <DashboardContent role={role} onNavigate={setActive} instructorAssignments={instructorAssignments}/>
-        {active === "Dashboard" && role === "instruktur" && <InstructorDutyDashboard assignments={instructorAssignments}/>}
-        {active === "Dashboard" && assessmentData && (role !== "instruktur" || instructorAssignments.some((item) => ["mot", "vice_mot", "master_observer", "vice_observer"].includes(item.position))) && <DashboardAssessmentResults data={assessmentData}/>}
+        {active === "Dashboard" && role === "instruktur" && <InstructorDutyDashboard assignments={instructorAssignments} participantEvents={instructorParticipantEvents}/>}
+        {active === "Dashboard" && assessmentData && <DashboardAssessmentResults data={assessmentData}/>}
         <footer className="page-footer"><span>IMM Observer <b>·</b> Tahap uji coba</span><span>Data simulasi untuk keperluan pengembangan</span></footer>
       </div>
     </section>

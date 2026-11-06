@@ -3,6 +3,35 @@
 **Terakhir diperbarui:** 6 November 2026  
 **Lokasi proyek:** `C:\Users\Lenovo\Documents\project`
 
+## Keputusan terbaru — pendaftaran akun Instruktur
+
+- Akun permanen untuk instruktur tetap: pendaftaran mandiri dengan email dan kata sandi.
+- Akun sementara untuk instruktur perbantuan: dibuat manual oleh Superadmin dengan username dan kata sandi.
+- Pemilik kedua jenis akun dapat mengedit profil sendiri.
+- Akun belum memiliki akses dashboard sampai Superadmin menetapkan role dan subrole.
+- Rancangan dan implementasi dicatat di `BLUEPRINT.md`; pembuatan akun sementara pada halaman Pengguna sudah dikonfirmasi berhasil oleh pengguna.
+
+## Implementasi pendaftaran akun
+
+- Halaman `/daftar` mendaftarkan instruktur tetap dengan email dan kata sandi. Akun tanpa role tertahan pada dashboard tanpa fitur sampai Admin Sistem menetapkan role; penugasan subrole/kegiatan tetap melalui Pengaturan Penilaian.
+- Halaman **Pengguna** membuat akun sementara instruktur perbantuan dengan username dan kata sandi; login memetakan username ke alamat internal Supabase di server. Pengguna sudah menyiapkan `SUPABASE_SERVICE_ROLE_KEY` dan melaporkan pembuatan akun berhasil.
+- `/dashboard/profil` mengizinkan pemilik mengubah nama tampilan. Kebijakan basis data menjaga role, tipe akun, username, dan tautan Komisariat tidak dapat diubah sendiri.
+- Migrasi baru: `20261106220000_instructor_registration_and_self_profile.sql` (jalankan setelah 2100). README, `.env.example`, login, dan dokumen rancangan telah diperbarui.
+- Pengguna melaporkan akun sementara bisa masuk ke dashboard tanpa pesan menunggu, dan menu Profil saya tidak terlihat. Perbaikan lokal: Dashboard Instruktur sekarang menahan akses sampai ada penugasan kegiatan/subrole; semua dashboard ber-role menampilkan tautan **Profil saya**. `npx.cmd tsc --noEmit` lulus. Perubahan ini belum dicoba pada browser/Supabase pengguna.
+- `npm.cmd run build` berhasil mengompilasi aplikasi dan TypeScript, tetapi prerender beberapa kali terhenti dengan `EPERM` saat worker Windows Next.js membuat subfolder `.next/server/app/_not-found.segments/_not-found`. Ini belum menunjukkan kesalahan kode, tetapi build lengkap belum terkonfirmasi pada percobaan akhir. Pembuatan akun sementara sudah diuji pengguna; login username, edit profil, pendaftaran mandiri email, dan otorisasi role masih perlu diperiksa manual.
+
+## Perluasan Profil saya
+
+- Pengguna menetapkan enam kolom wajib: nama lengkap, tempat lahir, tanggal lahir, jenis kelamin, nomor handphone, dan alamat domisili; foto terbaru opsional.
+- Formulir dan validasi server dibuat pada `/dashboard/profil`. Foto memakai JPG/PNG maksimal 5 MB dan bucket privat.
+- Data sensitif dipisahkan dalam tabel `account_personal_profiles` agar RLS baca profil rekan Instruktur tidak ikut membuka tanggal lahir, nomor telepon, atau alamat. Detail pribadi hanya dapat dibaca pemilik; nama lengkap/foto dibagikan melalui RPC terbatas kepada akun ber-role.
+- Migrasi `20261106230000_account_personal_profile_fields.sql` harus dijalankan setelah migrasi 2200. Migrasi, foto, dan penyimpanan profil belum diuji di Supabase pengguna.
+- Pengguna menetapkan jenis kelamin sebagai pilihan Laki-laki/Perempuan dan memutuskan nama lengkap/foto boleh dilihat semua role. Formulir kini memakai pilihan tetap; daftar `/dashboard/profil-instruktur` dibuka untuk semua akun ber-role dan menampilkan hanya nama lengkap/foto. Pengunjung publik tetap tertahan sampai ada keputusan/persetujuan khusus.
+- Migrasi `20261106240000_shared_instructor_name_photo.sql` menambahkan batas pilihan jenis kelamin, RPC terbatas yang hanya mengembalikan nama/foto Instruktur, dan izin baca foto untuk seluruh akun terautentikasi. Jalankan setelah migrasi 2300.
+- Migrasi `20261106250000_private_profile_owner_only.sql` memastikan detail pribadi tidak dapat dibaca Admin Sistem; nama/foto tetap dibagikan sesuai keputusan. Jalankan setelah 2400.
+- `npx.cmd tsc --noEmit` lulus setelah perubahan pilihan gender dan direktori nama/foto. Migrasi dan tampilan browser belum diuji pada Supabase pengguna.
+- Pengguna mengonfirmasi pilihan jenis kelamin dan tampilan nama/foto untuk akun ber-role sudah berfungsi setelah migrasi. Akses pengunjung publik tetap belum dibuka; persetujuan pemilik masih perlu ditentukan jika profil akan dipublikasikan.
+
 ## Baca sebelum melanjutkan
 
 - `AGENTS.md` — aturan kerja dan komunikasi.
@@ -62,6 +91,7 @@ Keputusan pengguna: scoring dapat berubah sesuai kesepakatan instruktur dan perl
 - Pengguna meminta dashboard hasil untuk Observer, Super Admin, dan Instruktur, serta kategori nilai. Keputusan pengguna: Instruktur adalah role baru, hanya menerima rekap untuk kegiatan yang ditugaskan tanpa nama peserta/catatan privat. Kategori disetujui: 0–<60 Perlu pengembangan; 60–<75 Cukup; 75–<90 Baik; 90–100 Sangat baik. Rencana Tindak Lanjut memakai rubrik/skor 1–5 seperti tahap lain. Implementasi lokal menambah ringkasan dashboard, assignment Instruktur oleh Super Admin di Pengaturan Penilaian, fungsi RPC Supabase yang hanya mengirim agregat ke Instruktur, dan konfigurasi/observasi untuk tahap Rencana Tindak Lanjut. Migrasi `20261106180000_dashboard_results_categories_instructor_role.sql` perlu dijalankan setelah 1700. `npx tsc --noEmit` lulus; Supabase/browser belum diperiksa. Uji manual berikutnya: jalankan migrasi, buat akun Instruktur dan tetapkan role, tugaskan ke kegiatan, pastikan dashboardnya hanya berisi rekap/kategori, lalu periksa dashboard Observer/Admin menampilkan hasil individu dan kategori di ketiga tahap.
 - Pengguna meminta subrole Instruktur MoT, Vice MoT, IoT, Vice IoT, Master of Observer, dan Vice Observer. Subrole dipilih **per kegiatan**, dan pengguna menegaskan role Observer yang sudah berjalan harus dipertahankan. Rujukan SPI IMM 2011 menjelaskan tugas MoT/Vice MoT/IoT/Observer/Koordinator Observer; uraian detail Vice IoT dan Master/Vice Observer diimplementasikan sebagai checklist operasional rancangan lokal. Perubahan menambah pilihan subrole saat penugasan, checklist tugas tersimpan per kegiatan, dan tampilan dashboard berdasarkan tugas; IoT/Vice IoT tidak melihat hasil penilaian, sementara MoT dan koordinator Observer melihat agregat yang relevan tanpa catatan privat. Migrasi baru `20261106190000_instructor_positions_and_duties.sql` harus dijalankan setelah 1800. `npx tsc --noEmit` lulus; migrasi dan tampilan browser belum diuji pada Supabase pengguna.
 - Perubahan terbaru pengguna: semua subrole Instruktur yang ditugaskan pada kegiatan boleh membuka Observasi dan menginput skor/catatan seperti Observer. Akses hanya dibuka pada kegiatan yang terkait assignment; perubahan rubrik, peserta, atau assignment tidak ikut diberikan. Riwayat baru mencatat nilai/catatan sebelum-sesudah, nama akun pelaku, serta waktu. Catatan lama sebelum migrasi tidak memiliki identitas pelaku yang dapat dipastikan dan diberi label riwayat lama. Migrasi `20261106200000_instructor_assessment_and_change_history.sql` dijalankan setelah 1900. Role Observer dan alur penyelesaiannya tetap ada. `npx tsc --noEmit` lulus; SQL dan browser belum diuji.
+- Pengguna meminta dashboard peserta, profil peserta, dan hasil penilaian pada setiap subrole Instruktur; menu utama juga memuat Profil Peserta dan Profil Instruktur. Daftar kegiatan di kedua halaman profil berasal hanya dari assignment akun itu. Implementasi lokal mengganti dashboard Instruktur dari ringkasan tanpa identitas menjadi daftar peserta dan skor/kategori individual, menyediakan halaman baca-saja Profil Peserta dan Profil Instruktur, serta mempertahankan tugas checklist setiap subrole. Migrasi `20261106210000_instructor_assigned_profiles.sql` menambah akses baca anggota tim dan foto privat yang tetap dibatasi per kegiatan. Semua subrole Instruktur sekarang melihat hasil di dashboard dan dapat memilih kegiatan pada halaman profil. `npx tsc --noEmit` lulus; migrasi, login, gambar privat, dan browser belum diuji pada Supabase pengguna.
 - Berkas wajib yang disebut pengguna: satu Surat Mandat Komisariat per pengajuan dan satu foto formal tiap peserta (jas IMM, latar putih).
 - Rancangan batas unggahan disetujui: Surat Mandat PDF maks. 10 MB; foto JPG/PNG maks. 5 MB per peserta. Foto akan tampil di halaman penilaian peserta dan rapor dengan akses sesuai role yang sudah disepakati.
 - Surat Mandat disimpan sampai hasil seleksi administrasi diterbitkan. Foto disimpan selama rapor peserta tersedia.
@@ -105,11 +135,11 @@ Pengguna melaporkan pemeriksaan manual terhadap proyek Supabase: Admin Uji berha
 
 ## Langkah berikutnya
 
-1. Pastikan migrasi 1800 dan 1900 sudah dijalankan; kemudian jalankan `20261106200000_instructor_assessment_and_change_history.sql` di Supabase SQL Editor.
-2. Di **Pengaturan Penilaian**, tugaskan akun Instruktur beserta subrole untuk kegiatan yang akan dinilai.
-3. Login sebagai Instruktur, buka **Observasi**, lalu input nilai. Uji perubahan dari dua akun yang berbeda dan periksa nama pelaku serta perbedaan sebelum/sesudah pada riwayat.
-4. Pastikan Observer tetap dapat input nilai, status resmi kembali sementara ketika nilai berubah, dan pengguna tanpa assignment ditolak pada kegiatan tersebut.
-5. Migrasi SQL dan browser belum diverifikasi pada proyek Supabase pengguna.
+1. Jalankan `20261106230000_account_personal_profile_fields.sql`, lalu `20261106240000_shared_instructor_name_photo.sql` di Supabase SQL Editor.
+2. Masuk ke **Profil saya**, isi semua kolom wajib dan simpan. Ulangi dengan foto JPG/PNG di bawah 5 MB, lalu pastikan foto tampil.
+3. Pastikan data pribadi hanya dapat dibaca pemilik dan Admin Sistem, sementara nama/foto Instruktur terlihat di daftar **Profil Instruktur** pada semua akun ber-role.
+4. Uji dashboard akun tanpa penugasan, lalu tetapkan role/subrole/kegiatan dan pastikan dashboard terbuka setelah ditugaskan.
+5. Akses pengunjung publik ke foto/nama masih menunggu keputusan privasi; aturan blueprint mensyaratkan persetujuan pemilik sebelum data profil nyata tampil publik.
 
 ## Menjalankan lokal (PowerShell)
 

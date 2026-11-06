@@ -13,8 +13,9 @@ export default function LoginPage() {
     const form = new FormData(event.currentTarget);
     try {
       const supabase = createClient();
+      const identity = String(form.get("email") ?? "").trim();
       const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: String(form.get("email") ?? "").trim(),
+        email: identity.includes("@") ? identity : `${identity.toLowerCase()}@login.imm-observer.invalid`,
         password: String(form.get("password") ?? ""),
       });
       if (signInError) throw signInError;
@@ -26,6 +27,6 @@ export default function LoginPage() {
     } finally { setLoading(false); }
   }
   return <main className="login-page"><a href="/" className="login-back">← Kembali ke informasi publik</a><section className="login-card"><div className="login-mark">i<span>•</span></div><p className="login-eyebrow">IMM OBSERVER · KOTA BANDUNG</p><h1>Masuk ke akun</h1><p className="login-description">Gunakan email dan kata sandi akun yang diberikan Admin.</p>
-    <form onSubmit={submit} className="login-form"><label>Email<input name="email" type="email" autoComplete="username" required placeholder="nama@email.com"/></label><label>Kata sandi<input name="password" type="password" autoComplete="current-password" required placeholder="Masukkan kata sandi"/></label>{error && <p className="login-error" role="alert">{error}</p>}<button disabled={loading}>{loading ? "Memeriksa…" : "Masuk"}</button></form>
-    <p className="login-footnote">Akun dibuat oleh Admin. Pendaftaran umum tidak tersedia.</p></section></main>;
+    <form onSubmit={submit} className="login-form"><label>Email atau username<input name="email" autoComplete="username" required placeholder="nama@email.com atau username"/></label><label>Kata sandi<input name="password" type="password" autoComplete="current-password" required placeholder="Masukkan kata sandi"/></label>{error && <p className="login-error" role="alert">{error}</p>}<button disabled={loading}>{loading ? "Memeriksa…" : "Masuk"}</button></form>
+    <p className="login-footnote">Instruktur tetap dapat <a href="/daftar">mendaftar dengan email</a>. Instruktur perbantuan memakai username yang diberikan Superadmin.</p></section></main>;
 }

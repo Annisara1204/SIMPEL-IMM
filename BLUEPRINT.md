@@ -104,11 +104,24 @@ Pengguna pemula; gunakan bahasa Indonesia sederhana dan jelaskan istilah teknis 
 2. Admin sistem: akun, role, konfigurasi.
 3. Bidang Kader: konfigurasi penilaian, penugasan, pemantauan dan laporan sesuai kewenangan. Impor pretest/posttest saat ini khusus Admin Sistem. Sesuai aturan terbaru pengguna, pengelolaan kegiatan dan peserta dilakukan Observer dan Super Admin.
 4. Observer: penilaian/catatan sesuai penugasan.
-5. Instruktur: subrole diberikan per kegiatan. Keenam subrole dapat menginput skor dan catatan hanya untuk kegiatan yang ditugaskan. Akses penilaian membuka identitas peserta dan riwayat perubahan untuk kegiatan itu; catatan tidak dapat diakses dari kegiatan lain. MoT/Vice MoT mendapat checklist koordinasi dan rekap; IoT/Vice IoT mendapat checklist agenda ruhiyah; Master of Observer/Vice Observer mendapat checklist koordinasi Observer dan rekap.
+5. Instruktur: subrole diberikan per kegiatan. Keenam subrole dapat menginput skor dan catatan hanya untuk kegiatan yang ditugaskan. Akses penilaian membuka identitas peserta dan riwayat perubahan untuk kegiatan itu; catatan tidak dapat diakses dari kegiatan lain. Semua subrole memiliki dashboard peserta dan hasil penilaian kegiatan yang ditugaskan. Menu Profil Peserta dan Profil Instruktur menyediakan pemilihan kegiatan sesuai penugasan akun. MoT/Vice MoT mendapat checklist koordinasi; IoT/Vice IoT mendapat checklist agenda ruhiyah; Master of Observer/Vice Observer mendapat checklist koordinasi Observer.
 6. Komisariat: informasi/laporan yang diizinkan.
 7. Peserta: kelak mengakses tes/rapor yang diizinkan melalui username/password sementara atau token dengan masa berlaku yang dapat diatur.
 
-Admin Sistem, Bidang Kader, Observer, Instruktur, dan Komisariat memakai login email + kata sandi. Akun/token peserta belum dibuat dan metode akses peserta masih terbuka.
+Admin Sistem, Bidang Kader, Observer, Instruktur tetap, dan Komisariat memakai login email + kata sandi. Instruktur perbantuan memakai username + kata sandi. Akun/token peserta belum dibuat dan metode akses peserta masih terbuka.
+
+### Pendaftaran akun Instruktur
+
+- Ada dua jenis akun Instruktur: **permanen** untuk instruktur tetap dan **sementara** untuk instruktur perbantuan.
+- Akun permanen mendaftar sendiri dengan email dan kata sandi.
+- Akun sementara dibuat secara manual oleh Superadmin menggunakan username dan kata sandi.
+- Kedua jenis akun dapat mengedit profil miliknya sendiri.
+- Profil berisi nama lengkap, tempat lahir, tanggal lahir, jenis kelamin, nomor handphone, dan alamat domisili sebagai kolom wajib; foto terbaru opsional.
+- Data pribadi profil disimpan terpisah dari ringkasan profil yang dapat dibaca role lain. Hanya pemilik dapat membaca dan mengubah detail pribadi; nama lengkap dan foto terlihat semua akun ber-role. Foto disimpan privat tetapi dapat dibaca akun ber-role. Foto memakai batas awal yang sama dengan foto peserta: JPG/PNG maksimal 5 MB.
+- Semua akun ber-role yang sudah login dapat melihat nama lengkap dan foto Instruktur melalui daftar Profil Instruktur; tidak mendapat tempat/tanggal lahir, jenis kelamin, nomor handphone, atau alamat. Pengunjung publik belum termasuk dalam akses ini; tampilan profil publik tetap menunggu persetujuan pemilik foto/profil sesuai aturan privasi publik.
+- Akun baru tidak mendapat akses dashboard sampai Superadmin menetapkan role dan subrole. Halaman dashboard sebelum penetapan boleh kosong/tidak berisi fitur berwenang.
+- Pemilihan kegiatan dan subrole Instruktur tetap mengikuti penugasan yang sudah ada per kegiatan.
+- Login username dipetakan di server ke alamat internal non-email pada Supabase Auth; profil menyimpan username terpisah. Pada versi awal, pemilik mengedit nama tampilan sendiri; kredensial, role, subrole, dan username tidak dapat diedit dari profil.
 
 ### Subrole Instruktur per kegiatan
 
@@ -152,7 +165,7 @@ Admin Sistem, Bidang Kader, Observer, Instruktur, dan Komisariat memakai login e
 Masukan pengguna yang sudah diterima:
 
 - **Observer:** bagian utama dashboard adalah daftar kegiatan yang ditugaskan dan jadwal kegiatan hari ini.
-- **Instruktur:** dashboard menampilkan rekap skor dan kategori per tahap untuk kegiatan yang ditugaskan, tanpa nama peserta atau catatan privat.
+- **Instruktur:** dashboard menampilkan tugas subrole, daftar peserta, hasil/kategori nilai, serta pilihan Profil Peserta dan Profil Instruktur untuk kegiatan yang ditugaskan. Semua subrole dapat membaca nama dan profil peserta; rincian catatan tetap tersedia melalui Observasi sesuai kegiatan.
 - **Bidang Kader:** bagian utama dashboard adalah daftar kegiatan DAD beserta statusnya, serta ringkasan jumlah peserta dan progres penilaian.
 - **Komisariat:** bagian utama dashboard adalah daftar kegiatan DAD yang berkaitan dengan komisariatnya dan rekap/laporan yang memang diizinkan untuk diakses.
 - **Peserta:** bagian utama dashboard adalah nilai sementara miliknya dalam bentuk ringkasan dan catatan pengembangan/perhatian. Tidak menampilkan nilai mentah Observer.

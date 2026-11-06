@@ -3,8 +3,45 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 const roles = ["admin_system", "bidang_kader", "observer", "instruktur", "komisariat", "peserta"] as const;
+
+export async function createTemporaryInstructor(formData: FormData) {
+  const supabase = await createClient();
+  const { data: claimsData } = await supabase.auth.getClaims();
+  const actorId = claimsData?.claims?.sub;
+  if (!actorId) redirect("/login");
+  const { data: actor } = await supabase.from("profiles").select("role").eq("id", actorId).maybeSingle();
+  if (actor?.role !== "admin_system") throw new Error("Akses ditolak.");
+
+  const username = String(formData.get("username") ?? "").trim().toLowerCase();
+  const password = String(formData.get("password") ?? "");
+  const displayName = String(formData.get("displayName") ?? "").trim();
+  if (!/^[a-z0-9][a-z0-9._-]{2,31}$/.test(username) || password.length < 10 || displayName.length < 2 || displayName.length > 100) {
+    redirect("/dashboard/pengguna?akun=invalid");
+  }
+
+  try {
+    const admin = createAdminClient();
+    const { data, error } = await admin.auth.admin.createUser({
+      email: `${username}@login.imm-observer.invalid`,
+      password,
+      email_confirm: true,
+      user_metadata: { display_name: displayName },
+    });
+    if (error || !data.user) redirect("/dashboard/pengguna?akun=failed");
+    const { error: profileError } = await admin.from("profiles").update({ account_type: "temporary", username, display_name: displayName }).eq("id", data.user.id);
+    if (profileError) {
+      await admin.auth.admin.deleteUser(data.user.id);
+      redirect("/dashboard/pengguna?akun=failed");
+    }
+  } catch (error) {
+    if (error instanceof Error && error.message.includes("belum dikonfigurasi")) redirect("/dashboard/pengguna?akun=setup");
+    throw error;
+  }
+  revalidatePath("/dashboard/pengguna");
+}
 
 export async function updateUserRole(formData: FormData) {
   const supabase = await createClient();

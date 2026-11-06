@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { calculateWeightedScore, categorizeScore, type ScoringAspect } from "./scoring";
 
 export type DashboardScoreRow = {
+  participantId: string;
   participantName: string;
   score: number | null;
   categoryLabel: string | null;
@@ -39,31 +40,7 @@ const stageLabels: Record<string, string> = {
 const emptyCounts = () => ({ development: 0, adequate: 0, good: 0, excellent: 0 });
 
 export async function loadDashboardAssessmentData(supabase: SupabaseClient, role: string): Promise<DashboardAssessmentData | null> {
-  if (role === "instruktur") {
-    const { data, error } = await supabase.rpc("get_instructor_dashboard_results");
-    const results: DashboardAssessmentResult[] = (data ?? []).map((row: {
-      event_id: string; event_name: string; stage: string; material_name: string | null; assessment_type_name: string;
-      rubric_version: number; participant_count: number; scored_count: number; average_score: number | null;
-      category_development: number; category_adequate: number; category_good: number; category_excellent: number;
-      is_official: boolean;
-    }) => ({
-      eventId: row.event_id,
-      eventName: row.event_name,
-      stage: row.stage,
-      stageLabel: stageLabels[row.stage] ?? row.stage,
-      materialName: row.material_name,
-      typeName: row.assessment_type_name,
-      version: row.rubric_version,
-      participantCount: row.participant_count,
-      scoredCount: row.scored_count,
-      averageScore: row.average_score === null ? null : Number(row.average_score),
-      isOfficial: row.is_official,
-      categoryCounts: { development: row.category_development, adequate: row.category_adequate, good: row.category_good, excellent: row.category_excellent },
-    }));
-    return { mode: "summary", error: Boolean(error), results };
-  }
-
-  if (role !== "admin_system" && role !== "observer") return null;
+  if (role !== "admin_system" && role !== "observer" && role !== "instruktur") return null;
 
   const [eventsResponse, versionsResponse, typesResponse, materialsResponse, observationsResponse, assignmentsResponse, completionsResponse] = await Promise.all([
     supabase.from("events").select("id, name, participants(id, display_name)").order("starts_on", { ascending: false }),
@@ -92,7 +69,7 @@ export async function loadDashboardAssessmentData(supabase: SupabaseClient, role
       const scoreMap = new Map(saved.map((item) => [item.indicator_id, { score: item.score }]));
       const calculated = calculateWeightedScore(versionAspects, scoreMap);
       const category = categorizeScore(calculated.value);
-      return { participantName: participant.display_name, score: calculated.value, categoryLabel: category?.label ?? null, categoryId: category?.id ?? null };
+      return { participantId: participant.id, participantName: participant.display_name, score: calculated.value, categoryLabel: category?.label ?? null, categoryId: category?.id ?? null };
     });
     const scored = participantScores.filter((item) => item.score !== null);
     const eventAssignments = assignments.filter((assignment) => assignment.event_id === event.id);

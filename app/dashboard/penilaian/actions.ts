@@ -19,13 +19,20 @@ export async function createRubricVersion(formData: FormData) {
   const eventId = String(formData.get("eventId") ?? "");
   const stage = String(formData.get("stage") ?? "");
   const assessmentTypeId = String(formData.get("assessmentTypeId") ?? "");
-  if (!/^[0-9a-f-]{36}$/i.test(eventId) || !["screening", "training"].includes(stage) || !/^[0-9a-f-]{36}$/i.test(assessmentTypeId)) throw new Error("Kegiatan, tahap, atau jenis penilaian tidak valid.");
+  const materialId = String(formData.get("materialId") ?? "");
+  if (!/^[0-9a-f-]{36}$/i.test(eventId) || !["screening", "training"].includes(stage) || !/^[0-9a-f-]{36}$/i.test(assessmentTypeId) || (stage === "training" && !/^[0-9a-f-]{36}$/i.test(materialId)) || (stage === "screening" && materialId)) throw new Error("Kegiatan, tahap, materi, atau jenis penilaian tidak valid.");
   const { data: type } = await supabase.from("rubric_assessment_types").select("id").eq("id", assessmentTypeId).eq("event_id", eventId).eq("stage", stage).maybeSingle();
   if (!type) throw new Error("Jenis penilaian tidak ditemukan pada tahap ini.");
-  const { data: versions, error: readError } = await supabase.from("rubric_versions").select("id, version, status, rubric_aspects(id, name, weight, position, rubric_indicators(name, weight, target, position))").eq("event_id", eventId).eq("stage", stage).eq("assessment_type_id", assessmentTypeId).order("version", { ascending: false }).limit(1);
+  if (stage === "training") {
+    const { data: material } = await supabase.from("rubric_materials").select("id").eq("id", materialId).eq("event_id", eventId).maybeSingle();
+    if (!material) throw new Error("Materi tidak ditemukan pada kegiatan ini.");
+  }
+  let versionQuery = supabase.from("rubric_versions").select("id, version, status, rubric_aspects(id, name, weight, position, rubric_indicators(name, weight, target, position))").eq("event_id", eventId).eq("stage", stage).eq("assessment_type_id", assessmentTypeId);
+  versionQuery = stage === "training" ? versionQuery.eq("material_id", materialId) : versionQuery.is("material_id", null);
+  const { data: versions, error: readError } = await versionQuery.order("version", { ascending: false }).limit(1);
   if (readError) throw new Error("Versi rubrik belum dapat dibaca. Jalankan migrasi Tahap 4.");
   if (versions?.[0]?.status === "draft") throw new Error("Selesaikan atau hapus draf yang sedang berjalan terlebih dahulu.");
-  const { data: created, error } = await supabase.from("rubric_versions").insert({ event_id: eventId, stage, assessment_type_id: assessmentTypeId, version: (versions?.[0]?.version ?? 0) + 1, status: "draft", created_by: userId }).select("id").single();
+  const { data: created, error } = await supabase.from("rubric_versions").insert({ event_id: eventId, stage, material_id: stage === "training" ? materialId : null, assessment_type_id: assessmentTypeId, version: (versions?.[0]?.version ?? 0) + 1, status: "draft", created_by: userId }).select("id").single();
   if (error) throw new Error("Versi baru gagal dibuat.");
   for (const aspect of versions?.[0]?.rubric_aspects ?? []) {
     const { data: copiedAspect, error: aspectError } = await supabase.from("rubric_aspects").insert({ rubric_version_id: created.id, name: aspect.name, weight: aspect.weight, position: aspect.position }).select("id").single();
@@ -36,6 +43,18 @@ export async function createRubricVersion(formData: FormData) {
     }
   }
   revalidatePath("/dashboard/penilaian");
+}
+
+export async function createTrainingMaterial(formData: FormData) {
+  const { supabase } = await staffClient(["admin_system"]);
+  const eventId = String(formData.get("eventId") ?? "");
+  const name = String(formData.get("name") ?? "").trim();
+  if (!/^[0-9a-f-]{36}$/i.test(eventId) || name.length < 2 || name.length > 120) throw new Error("Nama materi tidak valid.");
+  const { data: previous } = await supabase.from("rubric_materials").select("position").eq("event_id", eventId).order("position", { ascending: false }).limit(1);
+  const { error } = await supabase.from("rubric_materials").insert({ event_id: eventId, name, position: (previous?.[0]?.position ?? -1) + 1 });
+  if (error) throw new Error("Materi gagal ditambahkan. Pastikan namanya belum digunakan pada kegiatan ini.");
+  revalidatePath("/dashboard/penilaian");
+  revalidatePath("/dashboard/observasi");
 }
 
 export async function createAssessmentType(formData: FormData) {
@@ -129,13 +148,13 @@ export async function removeObserverAssignment(formData: FormData) {
 export async function completeObserverAssignment(formData: FormData) {
   const { supabase, userId } = await staffClient(["observer"]);
   const eventId = String(formData.get("eventId") ?? "");
-  const assessmentTypeId = String(formData.get("assessmentTypeId") ?? "");
-  if (!/^[0-9a-f-]{36}$/i.test(eventId) || !/^[0-9a-f-]{36}$/i.test(assessmentTypeId)) throw new Error("Kegiatan atau jenis penilaian tidak valid.");
+  const versionId = String(formData.get("versionId") ?? "");
+  if (!/^[0-9a-f-]{36}$/i.test(eventId) || !/^[0-9a-f-]{36}$/i.test(versionId)) throw new Error("Kegiatan atau rubrik tidak valid.");
   const { data: assignment, error: assignmentError } = await supabase.from("observer_assignments").select("id").eq("event_id", eventId).eq("observer_id", userId).maybeSingle();
   if (assignmentError || !assignment) throw new Error("Anda tidak ditugaskan pada kegiatan ini.");
-  const { data: activeType } = await supabase.from("rubric_versions").select("id").eq("event_id", eventId).eq("assessment_type_id", assessmentTypeId).eq("status", "active").maybeSingle();
-  if (!activeType) throw new Error("Jenis penilaian ini belum memiliki rubrik aktif.");
-  const { error } = await supabase.from("observer_rubric_completions").upsert({ assignment_id: assignment.id, assessment_type_id: assessmentTypeId, completed_by: userId, completed_at: new Date().toISOString() }, { onConflict: "assignment_id,assessment_type_id" });
+  const { data: activeVersion } = await supabase.from("rubric_versions").select("id").eq("id", versionId).eq("event_id", eventId).eq("status", "active").maybeSingle();
+  if (!activeVersion) throw new Error("Rubrik ini tidak aktif untuk kegiatan tersebut.");
+  const { error } = await supabase.from("observer_rubric_version_completions").upsert({ assignment_id: assignment.id, rubric_version_id: versionId, completed_by: userId, completed_at: new Date().toISOString() }, { onConflict: "assignment_id,rubric_version_id" });
   if (error) throw new Error("Status selesai gagal disimpan. Pastikan migrasi Tahap 4 terbaru sudah dijalankan.");
   revalidatePath("/dashboard/observasi");
 }
@@ -143,11 +162,11 @@ export async function completeObserverAssignment(formData: FormData) {
 export async function reopenObserverAssignment(formData: FormData) {
   const { supabase, userId } = await staffClient(["observer"]);
   const eventId = String(formData.get("eventId") ?? "");
-  const assessmentTypeId = String(formData.get("assessmentTypeId") ?? "");
-  if (!/^[0-9a-f-]{36}$/i.test(eventId) || !/^[0-9a-f-]{36}$/i.test(assessmentTypeId)) throw new Error("Kegiatan atau jenis penilaian tidak valid.");
+  const versionId = String(formData.get("versionId") ?? "");
+  if (!/^[0-9a-f-]{36}$/i.test(eventId) || !/^[0-9a-f-]{36}$/i.test(versionId)) throw new Error("Kegiatan atau rubrik tidak valid.");
   const { data: assignment } = await supabase.from("observer_assignments").select("id").eq("event_id", eventId).eq("observer_id", userId).maybeSingle();
   if (!assignment) throw new Error("Anda tidak ditugaskan pada kegiatan ini.");
-  const { error } = await supabase.from("observer_rubric_completions").delete().eq("assignment_id", assignment.id).eq("assessment_type_id", assessmentTypeId);
+  const { error } = await supabase.from("observer_rubric_version_completions").delete().eq("assignment_id", assignment.id).eq("rubric_version_id", versionId);
   if (error) throw new Error("Status selesai gagal dibuka kembali.");
   revalidatePath("/dashboard/observasi");
 }
@@ -159,9 +178,11 @@ export async function activateRubric(formData: FormData) {
   if (error || !aspects?.length) throw new Error("Tambahkan aspek dan indikator sebelum mengaktifkan rubrik.");
   const close = (n: number) => Math.abs(n - 100) < 0.001;
   if (!close(aspects.reduce((sum, aspect) => sum + Number(aspect.weight), 0)) || aspects.some((aspect) => !aspect.rubric_indicators.length || !close(aspect.rubric_indicators.reduce((sum, indicator) => sum + Number(indicator.weight), 0)))) throw new Error("Bobot antar-aspek dan bobot indikator di setiap aspek masing-masing harus berjumlah 100%.");
-  const { data: version } = await supabase.from("rubric_versions").select("event_id, stage, assessment_type_id").eq("id", versionId).eq("status", "draft").maybeSingle();
+  const { data: version } = await supabase.from("rubric_versions").select("event_id, stage, material_id, assessment_type_id").eq("id", versionId).eq("status", "draft").maybeSingle();
   if (!version) throw new Error("Versi draf tidak ditemukan.");
-  const { error: archiveError } = await supabase.from("rubric_versions").update({ status: "archived" }).eq("event_id", version.event_id).eq("stage", version.stage).eq("assessment_type_id", version.assessment_type_id).eq("status", "active");
+  let activeQuery = supabase.from("rubric_versions").update({ status: "archived" }).eq("event_id", version.event_id).eq("stage", version.stage).eq("assessment_type_id", version.assessment_type_id).eq("status", "active");
+  activeQuery = version.stage === "training" ? activeQuery.eq("material_id", version.material_id) : activeQuery.is("material_id", null);
+  const { error: archiveError } = await activeQuery;
   if (archiveError) throw new Error("Versi aktif sebelumnya gagal diarsipkan.");
   const { error: activateError } = await supabase.from("rubric_versions").update({ status: "active" }).eq("id", versionId);
   if (activateError) throw new Error("Rubrik gagal diaktifkan.");

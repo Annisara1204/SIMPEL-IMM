@@ -23,7 +23,7 @@ Pengguna pemula; gunakan bahasa Indonesia sederhana dan jelaskan istilah teknis 
 - Gambar yang diberikan pengguna adalah referensi struktur (KPI/aspek/indikator, bobot/target, dan lembar Observer); angka dan bobot dalam gambar hanya contoh, bukan ketentuan final.
 - Perlu halaman **Pengaturan Penilaian** untuk mengatur skala, aspek/indikator, bobot, target dan aturan sesuai kesepakatan instruktur.
 - Pengaturan rubrik dipisah menurut kegiatan, tahap, dan jenis penilaian. Tahap yang disiapkan dahulu adalah Screening dan Pelatihan; Rencana Tindak Lanjut menunggu. Super Admin dapat menambahkan jenis penilaian pada setiap tahap, dan masing-masing jenis memiliki rubrik berversi sendiri.
-- Pada uji coba satu pengaturan berlaku untuk seluruh kegiatan, bukan berbeda per materi.
+- Pada tahap Pelatihan, setiap materi memiliki rubrik dan status penilaian sendiri. Screening tidak memakai materi.
 - Konfigurasi disimpan sebagai versi pada kegiatan; perubahan baru tidak boleh mengubah hasil lama.
 - Skor akhir memakai rata-rata berbobot dan rumus harus ditampilkan. Validasi bobot/rentang wajib dilakukan sebelum konfigurasi dipakai.
 - Skala indikator yang disepakati: 1–5 dengan label 1 = Belum terlihat, 2 = Mulai berkembang, 3 = Cukup, 4 = Baik, 5 = Sangat baik.

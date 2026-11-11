@@ -26,8 +26,19 @@ Pengguna pemula; gunakan bahasa Indonesia sederhana dan jelaskan istilah teknis 
 - Pada tahap Pelatihan, setiap materi memiliki rubrik dan status penilaian sendiri. Screening tidak memakai materi.
 - Rencana Tindak Lanjut memakai rubrik dan skor bulat 1–5 seperti Screening; tahap ini tidak memakai materi.
 - Konfigurasi disimpan sebagai versi pada kegiatan; perubahan baru tidak boleh mengubah hasil lama.
+- Skor tiap peserta-indikator merupakan satu nilai bersama yang bisa diperbarui Observer atau Instruktur yang ditugaskan; sistem menyimpan pelaku, waktu, dan nilai sebelum/sesudah serta menolak perubahan dengan versi lama. Saat konflik, pengguna memilih memakai nilai terbaru atau menerapkan ulang nilai yang sedang dikirim setelah melihat konflik.
+- Catatan observasi dipisah per penulis dan kategori (observasi/bukti, kekuatan, pengembangan, khusus); perubahan catatan seorang penulis tidak menimpa catatan penulis lain. Catatan privat tidak otomatis masuk rapor.
+- Satu indikator boleh dipetakan ke lebih dari satu aspek. Bobot indikator ditetapkan untuk setiap pemetaan dan total bobot pemetaan dalam tiap aspek harus 100%; bobot aspek dalam satu rubrik juga harus 100%.
+- Rubrik tidak memakai alur review/approval di aplikasi untuk saat ini. Super Admin mengaktifkan versi; hasil dapat ditinjau manual setelahnya.
+- Setiap indikator memiliki uraian perilaku untuk skor bulat 1–5. Label skala uji terbaru: 1 Sangat Kurang, 2 Kurang, 3 Cukup, 4 Baik, 5 Sangat Baik. Rubrik aktif baru wajib mengisi uraian spesifik tiap skor; rubrik historis tetap dibaca tanpa perubahan.
+- Sinkronisasi antarperangkat menggunakan Supabase Realtime bila tersedia. Konflik tidak diselesaikan diam-diam: nilai terbaru dipertahankan sampai pengguna memilih tindakan eksplisit.
+- Bobot enam aspek dan indikator contoh hanya starter/configuration draft, bukan standar resmi; tidak diaktifkan sebagai ketentuan final tanpa keputusan instruktur.
 - Skor akhir memakai rata-rata berbobot dan rumus harus ditampilkan. Validasi bobot/rentang wajib dilakukan sebelum konfigurasi dipakai.
-- Skala indikator yang disepakati: 1–5 dengan label 1 = Belum terlihat, 2 = Mulai berkembang, 3 = Cukup, 4 = Baik, 5 = Sangat baik.
+- Skala indikator uji terbaru: 1 = Sangat Kurang, 2 = Kurang, 3 = Cukup, 4 = Baik, 5 = Sangat Baik. Label ini tidak mengubah batas kategori agregat 0–100.
+- Kerangka awal DAD akan diuji dengan enam aspek berbobot dan 27 indikator dari prompt 11 November 2026. Ini rancangan trial, bukan standar resmi IMM; aspek, indikator, bobot, rubrik, dan pemetaan materi perlu divalidasi Koordinator Instruktur terhadap silabus.
+- Kerangka trial mula-mula menjadi template tetap yang disimpan berversi di basis data, lalu disalin ke rubrik per kegiatan/materi. Fase berikutnya boleh menyediakan opsi custom aspek, indikator, bobot, rubrik, dan pemetaan materi; perubahan memakai versi baru agar hasil historis tetap.
+- Phase 2 menambahkan master `competency_frameworks`, `competency_framework_versions`, `competency_aspects`, `competency_indicators`, dan `competency_indicator_aspects`; rubrik per kegiatan tetap menjadi snapshot dan dapat merujuk ke master asal.
+- Catatan tetap ditulis per Observer dan tidak digabung otomatis. Penggabungan dengan atribusi nama penulis dapat dipertimbangkan setelah ada alur pengiriman/submission yang disepakati; review/finalisasi aplikasi belum termasuk trial.
 - Skor Observer berupa bilangan bulat saja, tanpa pecahan.
 - Bobot indikator di dalam setiap aspek harus berjumlah 100%.
 - Bobot antar-aspek pada satu konfigurasi juga harus berjumlah 100%.
@@ -40,8 +51,8 @@ Pengguna pemula; gunakan bahasa Indonesia sederhana dan jelaskan istilah teknis 
 
 ### Akses dan privasi
 
-- **Observer yang ditugaskan** dapat melihat penilaian mentah dan catatan observasi sesuai penugasan.
-- **Bidang Kader berwenang** dapat melihat rekap dan nilai untuk pemantauan/penyusunan laporan; catatan observasi rinci tetap hanya untuk Observer yang ditugaskan.
+- **Observer dan Instruktur yang ditugaskan** dapat melihat nilai bersama, riwayat perubahan, dan catatan per penulis untuk kegiatan tugasnya.
+- **Bidang Kader berwenang** dapat melihat rekap dan nilai untuk pemantauan/penyusunan laporan; catatan observasi rinci tetap privat bagi Observer/Instruktur yang ditugaskan dan Admin Sistem.
 - **Peserta** dapat melihat hanya miliknya: nilai sementara dalam bentuk ringkasan (bukan data mentah Observer) dan catatan pengembangan/perhatian. Tampilkan penanda bahwa nilai masih sementara.
 - **Publik** hanya melihat agregat yang aman: tanpa nama peserta, nilai individual, atau catatan privat. Tinjau ambang minimum agregat agar orang tidak bisa dikenali dari kelompok kecil.
 - **Komisariat** hanya mendapat informasi/laporan yang diizinkan; cakupan tepatnya belum diputuskan.
@@ -61,7 +72,7 @@ Pengguna pemula; gunakan bahasa Indonesia sederhana dan jelaskan istilah teknis 
 - Komisariat mengajukan peserta melalui formulir web pada kegiatan terkait, bukan template Excel. Formulir memuat profil peserta dan unggahan berkas untuk seleksi administrasi.
 - Satu pengajuan dapat memuat beberapa peserta sekaligus, memakai satu Surat Mandat Komisariat untuk pengajuan dan satu foto untuk tiap peserta.
 - Belum ada batas jumlah peserta tetap per pengajuan untuk satu kegiatan.
-- Berkas seleksi administrasi yang ditetapkan pengguna: satu Surat Mandat Komisariat untuk seluruh pengajuan dan satu foto formal per peserta (memakai jas IMM dengan latar putih).
+- Berkas seleksi administrasi: satu Surat Mandat Komisariat untuk seluruh pengajuan. Foto peserta dan instruktur bersifat opsional; bila diunggah, foto peserta formal (jas IMM, latar putih) dan mengikuti batas/akses privat yang ditetapkan.
 - Batas unggahan yang disetujui sebagai rancangan: Surat Mandat PDF maksimal 10 MB; foto JPG/PNG maksimal 5 MB per peserta.
 - Surat Mandat digunakan untuk validasi seleksi administrasi dan disimpan sampai hasil seleksi administrasi diterbitkan. Foto dibutuhkan untuk halaman penilaian dan rapor, lalu disimpan selama rapor peserta masih tersedia.
 - Foto formal ditampilkan pada halaman penilaian peserta dan rapor dengan akses terbatas sesuai daftar role yang ditetapkan di bawah.
@@ -84,7 +95,7 @@ Pengguna pemula; gunakan bahasa Indonesia sederhana dan jelaskan istilah teknis 
 - File hasil untuk seleksi administrasi dan screening memuat profil (nama, Komisariat, jurusan/program studi, tahun angkatan, jabatan), status, dan alasan bila diisi. Foto dan Surat Mandat tidak disertakan.
 - Saat screening, Observer boleh menambahkan peserta baru dan menetapkan hasil screening peserta tersebut sebagai `Lolos` atau `Tidak Lolos`.
 - Asal Komisariat untuk peserta baru saat screening dipilih dari daftar Komisariat resmi.
-- Peserta tambahan saat screening tetap memerlukan profil wajib lengkap dan foto formal.
+- Peserta tambahan saat screening tetap memerlukan profil wajib lengkap; foto opsional.
 - Jika peserta tambahan belum tercantum dalam Surat Mandat awal, diperlukan Surat Mandat tambahan.
 - Komisariat dapat mengirim Surat Mandat tambahan melalui aksi khusus pada halaman status, tanpa membuka kembali daftar peserta yang telah ditinjau.
 - Saat Komisariat mengisi formulir web, nama lengkap dan komisariat yang sama pada satu kegiatan memicu peringatan kemungkinan duplikat. Komisariat boleh tetap mengajukan keduanya jika memang orang berbeda; duplikat tidak otomatis dihapus atau ditolak.
@@ -103,8 +114,8 @@ Pengguna pemula; gunakan bahasa Indonesia sederhana dan jelaskan istilah teknis 
 1. Pengunjung publik: dashboard agregat aman.
 2. Admin sistem: akun, role, konfigurasi.
 3. Bidang Kader: konfigurasi penilaian, penugasan, pemantauan dan laporan sesuai kewenangan. Impor pretest/posttest saat ini khusus Admin Sistem. Sesuai aturan terbaru pengguna, pengelolaan kegiatan dan peserta dilakukan Observer dan Super Admin.
-4. Observer: penilaian/catatan sesuai penugasan.
-5. Instruktur: subrole diberikan per kegiatan. Keenam subrole dapat menginput skor dan catatan hanya untuk kegiatan yang ditugaskan. Akses penilaian membuka identitas peserta dan riwayat perubahan untuk kegiatan itu; catatan tidak dapat diakses dari kegiatan lain. Semua subrole memiliki dashboard peserta dan hasil penilaian kegiatan yang ditugaskan. Menu Profil Peserta dan Profil Instruktur menyediakan pemilihan kegiatan sesuai penugasan akun. MoT/Vice MoT mendapat checklist koordinasi; IoT/Vice IoT mendapat checklist agenda ruhiyah; Master of Observer/Vice Observer mendapat checklist koordinasi Observer.
+4. Observer: penilaian bersama dan catatan per penulis sesuai penugasan.
+5. Instruktur: subrole diberikan per kegiatan. Keenam subrole dapat mengubah skor bersama dan membuat catatan masing-masing hanya untuk kegiatan yang ditugaskan. Akses penilaian membuka identitas peserta dan riwayat perubahan untuk kegiatan itu; catatan tidak dapat diakses dari kegiatan lain. Semua subrole memiliki dashboard peserta dan hasil penilaian kegiatan yang ditugaskan. Menu Profil Peserta dan Profil Instruktur menyediakan pemilihan kegiatan sesuai penugasan akun. MoT/Vice MoT mendapat checklist koordinasi; IoT/Vice IoT mendapat checklist agenda ruhiyah; Master of Observer/Vice Observer mendapat checklist koordinasi Observer.
 6. Komisariat: informasi/laporan yang diizinkan.
 7. Peserta: kelak mengakses tes/rapor yang diizinkan melalui username/password sementara atau token dengan masa berlaku yang dapat diatur.
 
@@ -256,7 +267,7 @@ Nama tabel masih konsep dan dapat disesuaikan saat implementasi data dimulai:
 - Tahap 4 mulai dikerjakan pada 29 Oktober 2026 atas permintaan pengguna. Aturan yang sebelumnya terbuka sudah diputuskan: jika semua indikator dalam satu aspek belum diamati, aspek dikeluarkan dari nilai keseluruhan dan bobot aspek lain dinormalisasi ulang.
 - Aturan resmi/sementara diputuskan pengguna pada 29 Oktober 2026: nilai resmi setelah semua Observer yang ditugaskan menyelesaikan penilaian; bila ada tugas yang belum selesai, nilai tetap sementara. Status selesai harus dibuka kembali otomatis bila skor/catatan berubah.
 - Nilai agregat pengguna putuskan ditampilkan 0–100 menggunakan `(rata-rata berbobot 1–5 − 1) ÷ 4 × 100`, sehingga skor rata-rata 1 menjadi 0 dan 5 menjadi 100. Perhitungan disimpan tanpa pembulatan; tampilan memakai dua angka desimal.
-- Migrasi `20261029070000_rubrics_observations.sql` menambahkan versi rubrik, aspek/indikator, penugasan Observer, skor/catatan observasi, riwayat revisi, dan RLS. Skala tersimpan sebagai skor bulat 1–5; konfigurasi baru hanya dapat aktif bila bobot aspek dan bobot indikator tiap aspek masing-masing 100%.
+- Migrasi `20261029070000_rubrics_observations.sql` menambahkan versi rubrik, aspek/indikator, penugasan Observer, skor/catatan observasi, riwayat revisi, dan RLS. Perluasan `20261111100000_dynamic_rubric_mappings_and_observer_notes.sql` menambah pemetaan indikator multi-aspek, uraian skor, catatan per penulis dan Realtime. Konfigurasi baru hanya dapat aktif bila bobot aspek dan bobot pemetaan indikator tiap aspek masing-masing 100%.
 - Halaman `/dashboard/penilaian` memungkinkan Admin Sistem menyusun aspek/indikator, mengaktifkan versi dan membuat versi lanjutan; Admin Sistem/Bidang Kader dapat menugaskan Observer ke kegiatan. Versi aktif dan arsip tidak dapat diedit melalui kebijakan RLS.
 - Halaman `/dashboard/observasi` menampilkan peserta dan catatan hanya bagi Admin Sistem atau Observer yang ditugaskan pada kegiatan. Skor/catatan disimpan otomatis, perubahan bersaing menggunakan nomor revisi untuk deteksi konflik, dan riwayat revisi dapat dilihat. RLS basis data membatasi akses ke peserta yang ditugaskan. Rata-rata berbobot dihitung dengan normalisasi bobot indikator/aspek sesuai data diamati; semua Observer harus menyelesaikan sebelum nilai ditandai resmi. Perubahan skor/catatan otomatis membuka kembali semua status selesai kegiatan.
 - `npx tsc --noEmit` berhasil setelah perubahan Tahap 4. Belum menjalankan migrasi baru di Supabase milik pengguna dan belum meminta pemeriksaan manual. Build produksi dan uji tampilan/perilaku browser belum dilakukan.
@@ -273,6 +284,8 @@ Nama tabel masih konsep dan dapat disesuaikan saat implementasi data dimulai:
 - Pengaturan tautan akun Komisariat ditambahkan ke Pengguna Admin Sistem. Menu Komisariat dan Observer menampilkan masing-masing Pengajuan Peserta dan Seleksi Komisariat.
 - Tahap ini belum diperiksa di Supabase pengguna atau browser. Unduhan Excel/PDF serta tahap screening (termasuk tambahan peserta dan mandat tambahan) masih belum dibuat; implementasi saat ini mencakup pengajuan dan seleksi administrasi pertama.
 - Uji coba tetap harus memakai data simulasi. Jangan publikasi atau masukkan data pribadi sebelum pemeriksaan keamanan, privasi, backup dan biaya.
+- Status Phase 2 framework DAD: master v1 berisi enam aspek dan 27 indikator telah diterapkan di Supabase menurut konfirmasi pengguna; pemeriksaan SQL regression tersendiri belum dikonfirmasi.
+- Status Phase 3 rubric engine: migration lokal menyiapkan tujuh materi, 14 relasi materi-aspek, 36 relasi materi-indikator, 27 rubrik, dan 135 anchor perilaku; preview baca-saja ada di `/dashboard/kerangka`. Migrations Phase 3 dan SQL regression masih menunggu dijalankan di Supabase serta pemeriksaan browser. Review/approval aplikasi tetap ditunda sesuai keputusan pengguna.
 
 ### Berkas penting
 

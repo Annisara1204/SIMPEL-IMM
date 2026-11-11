@@ -44,7 +44,7 @@ export async function loadDashboardAssessmentData(supabase: SupabaseClient, role
 
   const [eventsResponse, versionsResponse, typesResponse, materialsResponse, observationsResponse, assignmentsResponse, completionsResponse] = await Promise.all([
     supabase.from("events").select("id, name, participants(id, display_name)").order("starts_on", { ascending: false }),
-    supabase.from("rubric_versions").select("id, event_id, stage, material_id, assessment_type_id, version, rubric_aspects(id, name, weight, position, rubric_indicators(id, name, weight, target, position))").eq("status", "active"),
+    supabase.from("rubric_versions").select("id, event_id, stage, material_id, assessment_type_id, version, rubric_aspects(id, name, weight, position, rubric_indicator_aspects(weight, rubric_indicators(id, name, target, position, score_descriptors)))").eq("status", "active"),
     supabase.from("rubric_assessment_types").select("id, name"),
     supabase.from("rubric_materials").select("id, name"),
     supabase.from("observations").select("participant_id, indicator_id, score"),
@@ -63,7 +63,7 @@ export async function loadDashboardAssessmentData(supabase: SupabaseClient, role
   for (const version of versionsResponse.data ?? []) {
     const event = events.find((item) => item.id === version.event_id);
     if (!event) continue;
-    const versionAspects = [...(version.rubric_aspects ?? [])].sort((a, b) => a.position - b.position) as ScoringAspect[];
+    const versionAspects = [...(version.rubric_aspects ?? [])].sort((a, b) => a.position - b.position).map((aspect) => ({ id: aspect.id, weight: aspect.weight, rubric_indicators: (aspect.rubric_indicator_aspects ?? []).flatMap((mapping) => { const indicator = mapping.rubric_indicators?.[0]; return indicator ? [{ id: indicator.id, weight: mapping.weight }] : []; }) })) as ScoringAspect[];
     const participantScores = event.participants.map((participant) => {
       const saved = observations.filter((item) => item.participant_id === participant.id && versionAspects.some((aspect) => aspect.rubric_indicators.some((indicator) => indicator.id === item.indicator_id)));
       const scoreMap = new Map(saved.map((item) => [item.indicator_id, { score: item.score }]));

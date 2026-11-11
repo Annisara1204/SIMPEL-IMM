@@ -1,9 +1,61 @@
 # Handover — IMM Observer
 
-**Terakhir diperbarui:** 6 November 2026  
+**Terakhir diperbarui:** 11 November 2026
 **Lokasi proyek:** `C:\Users\Lenovo\Documents\project`
 
+## Audit dan rencana implementasi (11 November 2026)
+
+- Repository memakai Next.js 16.4.3, React 19.2, TypeScript, npm, dan Supabase. Fitur dasar Auth/RLS, kegiatan/peserta, rubrik/observasi, pengajuan Komisariat, dan profil Instruktur telah tersedia dalam berbagai tingkat penyelesaian.
+- Rencana tahapan dan dependensi kini dirangkum di `IMPLEMENTATION_PLAN.md`; `BLUEPRINT.md` tetap menjadi acuan keputusan produk.
+- Perubahan foto peserta opsional lolos `npx.cmd tsc --noEmit` dan pengguna mengonfirmasi migrasi `20261111090000_optional_participant_photos.sql` berhasil di Supabase. Uji alur di browser masih menunggu.
+
+## Perbaikan form unggah Server Action (11 November 2026)
+
+- Menghapus atribut `encType="multipart/form-data"` dari form berbasis Server Action di halaman Profil, Peserta, dan Pengajuan. React mengatur encoding form tersebut sendiri; atribut manual memicu peringatan console.
+- Kolom file tetap dikirim lewat `FormData` ke Server Action. `npx.cmd tsc --noEmit` lulus dan tidak ada lagi `encType` di direktori `app/`.
+- Pengguna mengonfirmasi profil berhasil disimpan dan peserta dapat ditambahkan tanpa mengunggah foto setelah perbaikan. Unggah foto, edit peserta, serta form Pengajuan Komisariat belum dikonfirmasi ulang di browser.
+
+## Penyempurnaan Form Penilaian dan Rubrik (11 November 2026)
+
+- Pengguna mengonfirmasi pola: satu skor bersama per peserta/indikator; catatan dipisah per penulis dan kategori; label skor mengikuti blueprint; indikator dapat dipetakan ke beberapa aspek dengan bobot per pemetaan; tidak ada tahap review/approval aplikasi; AI ditunda.
+- Konflik skor/catatan menggunakan versi optimistis: simpanan yang versinya usang ditolak; UI menampilkan nilai terbaru dan pilihan eksplisit untuk memakai nilai terbaru atau menerapkan ulang isian setelah konflik terlihat.
+- `app/dashboard/penilaian` kini mengatur bobot per pemetaan indikator-aspek dan uraian perilaku untuk skor 1–5; aktivasi versi memerlukan bobot aspek/pemetaan 100% serta lima uraian skor.
+- `app/dashboard/observasi` menampilkan satu kontrol skor per indikator, catatan privat per penulis (observasi/bukti, kekuatan, pengembangan, khusus), uraian skor, riwayat dan status koneksi Realtime. `lib/scoring.ts` dan `lib/dashboard-results.ts` menghitung indikator multi-aspek dari satu nilai bersama.
+- Migrasi `20261111100000_dynamic_rubric_mappings_and_observer_notes.sql` menambah relasi many-to-many berbobot, uraian skor, tabel catatan dan riwayat per penulis, validasi RLS/aktivasi, pemindahan catatan lama, dan publikasi Realtime. Jalankan setelah `20261111090000_optional_participant_photos.sql`.
+- `npx.cmd tsc --noEmit` dan `git diff --check` lulus setelah perubahan kode. Pengguna mengonfirmasi migrasi `20261111100000_dynamic_rubric_mappings_and_observer_notes.sql` berhasil dijalankan di Supabase. Alur UI masih perlu uji manual: aktivasi rubrik, indikator multi-aspek, konflik skor dua akun, catatan dari dua penulis, dan pembaruan Realtime. Starter library indikator dan bantuan AI belum dibuat.
+
+## Kerangka Kompetensi Trial DAD (11 November 2026)
+
+- Keputusan pengguna: satu skor bersama per indikator; label skala baru 1 Sangat Kurang, 2 Kurang, 3 Cukup, 4 Baik, 5 Sangat Baik; belum ada review/finalisasi aplikasi; catatan ditulis masing-masing Observer. Ringkasan gabungan dengan atribusi nama penulis dapat dipertimbangkan setelah pola submit disepakati.
+- Pengguna meminta aspek, 27 indikator, rubrik perilaku, dan pemetaan materi disiapkan untuk trial. Bobot aspek mengikuti prompt dan ditandai sebagai usulan, bukan standar resmi; bobot indikator untuk uji dibagi rata pada indikator terpilih di suatu aspek.
+- Spesifikasi awal dan 135 behavioral anchors ditulis di `TRIAL_DAD_COMPETENCY_FRAMEWORK.md`. Pemetaan indikator per materi di dokumen adalah usulan yang menghindari pemaksaan seluruh indikator pada semua materi.
+- Migration Phase 2 `20261111110000_dad_competency_framework_v1.sql` membuat framework dan versi, aspek, bank indikator, relasi indikator-aspek, serta FK opsional dari snapshot rubrik ke master. Seed DAD v1 berstatus `trial`, nonresmi, read-only untuk pengguna aplikasi, dan idempotent dengan `ON CONFLICT DO NOTHING`. Pengguna mengonfirmasi Phase 2 berhasil di Supabase setelah migration diterapkan.
+- Seed memuat 6 aspek berbobot total 100 dan 27 indikator dengan deskripsi, tujuan pengukuran, perilaku teramati, metode ukur, panduan bukti, dan relasi aspek. Migration memiliki pemeriksaan SQL untuk jumlah, bobot, dan relasi. File pemeriksaan database yang dapat dijalankan setelah migration: `supabase/tests/competency_framework_phase2.sql`.
+- Label pada form dan panduan skor lokal sudah disesuaikan dengan skala baru. TypeScript dan `git diff --check` berhasil; pemeriksaan statis menemukan 6 baris seed aspek dan 27 baris seed indikator. Migration berhasil menurut pengguna. File `supabase/tests/competency_framework_phase2.sql` tersedia untuk pemeriksaan regression database; hasil spesifik file itu belum dikonfirmasi terpisah. Tidak ada UI kustomisasi atau Phase 3 dalam lingkup ini.
+
+## Phase 3 — Pemetaan Materi dan Rubric Engine (11 November 2026)
+
+- Prompt Phase 3 baru meminta 27 rubrik indikator, masing-masing lima anchor perilaku, pilihan N/O nonnumerik, validasi, dan preview. Permintaan approval workflow pada prompt bertentangan dengan keputusan sebelumnya; status review/approval tidak ditambahkan. Master trial diberi status published agar dapat dipratinjau, bukan sebagai pengesahan resmi.
+- Migration `20261111120000_dad_training_material_mapping_v1.sql` membuat master 7 materi Pelatihan, 14 pemetaan aspek, dan 36 pemetaan indikator relevan. FK komposit memastikan materi, aspek, dan indikator berada dalam framework version yang sama. Tabel materi master berbeda dari materi aktual per kegiatan.
+- Migration `20261111130000_dad_indicator_rubric_engine_v1.sql` membuat rubrik master per indikator, versi rubrik, serta 135 anchor (5 untuk setiap 27 indikator) dengan label Sangat Kurang, Kurang, Cukup, Baik, Sangat Baik. Constraint mencegah skor 0; N/O tidak menjadi anchor. FK pada `rubric_indicators` dapat menyimpan pasangan indikator dan versi rubrik master yang digunakan.
+- Preview baca-saja tersedia di `/dashboard/kerangka` untuk Admin Sistem, Bidang Kader, Observer, dan Instruktur; menu **Kerangka DAD** ditambahkan. Halaman menampilkan bobot aspek, pemetaan materi, tujuan indikator, anchor, panduan bukti, dan N/O. Tidak ada UI edit master atau form asesmen baru.
+- Regression SQL tersedia di `supabase/tests/competency_framework_phase3.sql`. TypeScript dan `git diff --check` lulus; pemeriksaan statis menghitung 135 anchor, 135 deskripsi berbeda, dan tepat 5 anchor per indikator. Review isi dilakukan terhadap progression dan fairness pada dokumen trial. Kedua migration Phase 3 dan test SQL belum dijalankan di Supabase; preview belum diperiksa di browser.
+- Percobaan awal migration pemetaan materi gagal pada target `ON CONFLICT` yang tidak sesuai constraint unik tiga kolom. File `20261111120000_dad_training_material_mapping_v1.sql` diperbaiki memakai target `(material_id, indicator_id, aspect_id)`. Pengguna mengonfirmasi migration pemetaan materi berhasil.
+- Percobaan migration rubric engine menemukan alias SQL pada query seed anchor bertabrakan (`indicator` dan `rubric`). Query diperbaiki dan constraint/policy dibuat aman diulang. Pengguna mengonfirmasi `20261111130000_dad_indicator_rubric_engine_v1.sql` berhasil dijalankan.
+- Pengguna mengonfirmasi `supabase/tests/competency_framework_phase3.sql` berhasil dijalankan. Pemeriksaan tampilan `/dashboard/kerangka` di browser belum dikonfirmasi; tunggu pemeriksaan/penerimaan preview sebelum menyatakan Phase 3 selesai atau mulai Phase 4.
+- Error preview `link.competency_aspects.map is not a function` berasal dari asumsi relasi Supabase selalu berbentuk array. Halaman `/dashboard/kerangka` kini menormalisasi relasi objek maupun array sebelum menampilkan aspek. `npx.cmd tsc --noEmit` dan `git diff --check` lulus setelah perbaikan; server lokal tidak sedang berjalan, jadi tampilan belum diuji ulang di browser.
+- Langkah Phase 3 yang tersisa: jalankan migration 1200 lalu 1300 di SQL Editor, kemudian `supabase/tests/competency_framework_phase3.sql`. Jangan lanjut ke Phase 4 sampai hasil Phase 3 dilaporkan dan diterima.
+
 ## Keputusan terbaru — pendaftaran akun Instruktur
+
+## Perubahan terbaru — foto peserta dan instruktur opsional (11 November 2026)
+
+- Pengguna meminta unggah foto peserta dan instruktur menjadi opsional. Foto Profil saya Instruktur sebelumnya sudah opsional; form peserta Observer/Admin Sistem dan form pengajuan Komisariat kini juga menerima profil tanpa foto.
+- Foto tetap dapat diunggah, diganti, ditampilkan privat, dan dibatasi JPG/PNG maksimal 5 MB. Foto yang tidak tersedia menampilkan placeholder.
+- Action server untuk tambah/edit peserta tidak lagi menuntut foto. Data peserta pengajuan memakai `photo_path` nullable; migrasi `20261111090000_optional_participant_photos.sql` berhasil dijalankan di Supabase menurut konfirmasi pengguna.
+- Surat Mandat tetap wajib untuk mengirim pengajuan. Satu atau lebih profil peserta tetap wajib; foto bukan syarat.
+- `npx.cmd tsc --noEmit` lulus pada 11 November 2026 setelah perubahan ini.
+- Tampilan dan alur tambah/edit peserta tanpa foto masih perlu diuji manual di browser menggunakan data simulasi.
 
 - Akun permanen untuk instruktur tetap: pendaftaran mandiri dengan email dan kata sandi.
 - Akun sementara untuk instruktur perbantuan: dibuat manual oleh Superadmin dengan username dan kata sandi.
@@ -116,7 +168,7 @@ Keputusan pengguna: scoring dapat berubah sesuai kesepakatan instruktur dan perl
 - Berkas hasil mencakup lima kolom profil peserta, status seleksi, dan alasan bila tersedia; tidak menyertakan foto atau Surat Mandat.
 - Saat screening Observer dapat menambahkan peserta dan langsung menetapkan hasil Lolos/Tidak Lolos.
 - Asal Komisariat peserta baru saat screening dipilih dari master data Komisariat.
-- Peserta yang ditambahkan Observer pada screening tetap harus memiliki profil lengkap dan foto formal.
+- Peserta yang ditambahkan Observer pada screening tetap harus memiliki profil lengkap; foto opsional.
 - Peserta tambahan yang belum tercantum pada Surat Mandat awal memerlukan Surat Mandat tambahan.
 - Komisariat dapat mengirim Surat Mandat tambahan lewat halaman status tanpa mengedit/membuka kembali daftar peserta yang terkunci.
 - Preview unggahan Komisariat harus memperingatkan nama lengkap dan komisariat yang sama dalam satu kegiatan. Jika memang orang berbeda, Komisariat boleh mengunggah kedua baris tanpa menghapus salah satunya.
@@ -135,7 +187,11 @@ Pengguna melaporkan pemeriksaan manual terhadap proyek Supabase: Admin Uji berha
 
 ## Langkah berikutnya
 
-1. Jalankan `20261106230000_account_personal_profile_fields.sql`, lalu `20261106240000_shared_instructor_name_photo.sql` di Supabase SQL Editor.
+1. Untuk penilaian, masuk dengan dua akun yang ditugaskan pada kegiatan simulasi. Aktifkan rubrik dengan satu indikator pada dua aspek, bobot aspek berjumlah 100%, total bobot pemetaan tiap aspek 100%, dan uraian skor 1–5.
+2. Buka peserta/indikator yang sama dari kedua akun. Ubah skor hampir bersamaan, pastikan muncul peringatan konflik dan pilihan penyelesaian.
+3. Isi catatan kategori yang sama dari kedua akun; pastikan catatan masing-masing penulis tetap tersimpan dan perubahan tersinkron.
+4. Periksa ringkasan/dashboard dan pastikan indikator multi-aspek memakai satu skor bersama.
+5. Langkah profil lama yang masih menunggu: jalankan `20261106230000_account_personal_profile_fields.sql`, lalu `20261106240000_shared_instructor_name_photo.sql` di Supabase SQL Editor.
 2. Masuk ke **Profil saya**, isi semua kolom wajib dan simpan. Ulangi dengan foto JPG/PNG di bawah 5 MB, lalu pastikan foto tampil.
 3. Pastikan data pribadi hanya dapat dibaca pemilik dan Admin Sistem, sementara nama/foto Instruktur terlihat di daftar **Profil Instruktur** pada semua akun ber-role.
 4. Uji dashboard akun tanpa penugasan, lalu tetapkan role/subrole/kegiatan dan pastikan dashboard terbuka setelah ditugaskan.

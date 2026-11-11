@@ -29,7 +29,7 @@ async function validatePdf(file: FormDataEntryValue | null) {
 }
 
 async function validatePhoto(file: FormDataEntryValue | null) {
-  if (!(file instanceof File) || file.size < 1) throw new Error("Pilih foto formal JPG atau PNG.");
+  if (!(file instanceof File) || file.size < 1) return null;
   if (file.size > maxPhotoSize) throw new Error("Ukuran foto maksimal 5 MB.");
   const signature = new Uint8Array(await file.slice(0, 8).arrayBuffer());
   const jpeg = file.type === "image/jpeg" && signature[0] === 0xff && signature[1] === 0xd8 && signature[2] === 0xff;
@@ -85,11 +85,13 @@ export async function addApplicant(formData: FormData) {
   const fields = participantFields(formData);
   const image = await validatePhoto(formData.get("photo"));
   const participantId = crypto.randomUUID();
-  const path = `${submission.event_id}/${commissariatId}/${submission.id}/${participantId}/${crypto.randomUUID()}.${image.extension}`;
-  const { error: uploadError } = await supabase.storage.from(photoBucket).upload(path, image.file, { contentType: image.mimeType, cacheControl: "3600", upsert: false });
-  if (uploadError) throw new Error("Foto peserta gagal diunggah. Pastikan migrasi pengajuan Komisariat sudah dijalankan.");
+  const path = image ? `${submission.event_id}/${commissariatId}/${submission.id}/${participantId}/${crypto.randomUUID()}.${image.extension}` : null;
+  if (image && path) {
+    const { error: uploadError } = await supabase.storage.from(photoBucket).upload(path, image.file, { contentType: image.mimeType, cacheControl: "3600", upsert: false });
+    if (uploadError) throw new Error("Foto peserta gagal diunggah. Pastikan migrasi pengajuan Komisariat sudah dijalankan.");
+  }
   const { error } = await supabase.from("commissariat_submission_participants").insert({ id: participantId, submission_id: submission.id, ...fields, photo_path: path, created_by: userId });
-  if (error) { await supabase.storage.from(photoBucket).remove([path]); throw new Error("Profil peserta gagal disimpan."); }
+  if (error) { if (path) await supabase.storage.from(photoBucket).remove([path]); throw new Error("Profil peserta gagal disimpan."); }
   revalidatePath("/dashboard/pengajuan");
 }
 
@@ -114,7 +116,7 @@ export async function editApplicant(formData: FormData) {
   }
   const { error } = await supabase.from("commissariat_submission_participants").update({ ...fields, photo_path: photoPath, updated_at: new Date().toISOString() }).eq("id", participantId);
   if (error) { if (image) await supabase.storage.from(photoBucket).remove([photoPath]); throw new Error("Perubahan profil peserta gagal disimpan."); }
-  if (image) await supabase.storage.from(photoBucket).remove([current.photo_path]);
+  if (image && current.photo_path) await supabase.storage.from(photoBucket).remove([current.photo_path]);
   revalidatePath("/dashboard/pengajuan");
 }
 
@@ -127,7 +129,7 @@ export async function removeApplicant(formData: FormData) {
   await getDraftSubmission(supabase, current.submission_id, commissariatId);
   const { error } = await supabase.from("commissariat_submission_participants").delete().eq("id", participantId);
   if (error) throw new Error("Peserta gagal dihapus dari draf.");
-  await supabase.storage.from(photoBucket).remove([current.photo_path]);
+  if (current.photo_path) await supabase.storage.from(photoBucket).remove([current.photo_path]);
   revalidatePath("/dashboard/pengajuan");
 }
 

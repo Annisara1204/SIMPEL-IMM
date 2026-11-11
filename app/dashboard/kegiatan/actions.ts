@@ -19,6 +19,7 @@ async function validatePhoto(file: FormDataEntryValue | null) {
 }
 
 async function uploadParticipantPhoto(supabase: Awaited<ReturnType<typeof createClient>>, file: FormDataEntryValue | null, eventId: string, participantId: string) {
+  if (!(file instanceof File) || file.size === 0) return null;
   const image = await validatePhoto(file);
   const path = `${eventId}/${participantId}/${crypto.randomUUID()}.${image.extension}`;
   const { error } = await supabase.storage.from(photoBucket).upload(path, file as File, { contentType: image.mimeType, cacheControl: "3600", upsert: false });
@@ -96,7 +97,7 @@ export async function addParticipant(formData: FormData) {
   const photoPath = await uploadParticipantPhoto(supabase, photo, eventId, participantId);
   const { error } = await supabase.from("participants").insert({ id: participantId, event_id: eventId, display_name: displayName, commissariat: commissariat.name, commissariat_id: commissariatId, major, entry_year: entryYear, position: position || null, photo_path: photoPath });
   if (error) {
-    await supabase.storage.from(photoBucket).remove([photoPath]);
+    if (photoPath) await supabase.storage.from(photoBucket).remove([photoPath]);
     throw new Error("Peserta gagal disimpan. Pastikan migrasi profil peserta sudah dijalankan.");
   }
   revalidatePath("/dashboard/kegiatan");
@@ -118,11 +119,10 @@ export async function editParticipant(formData: FormData) {
   const { data: current, error: currentError } = await supabase.from("participants").select("id, event_id, photo_path").eq("id", participantId).maybeSingle();
   if (currentError || !current) throw new Error("Peserta tidak ditemukan atau akses ditolak.");
   const newPhoto = photo instanceof File && photo.size > 0;
-  if (!newPhoto && !current.photo_path) throw new Error("Unggah foto formal untuk peserta ini.");
   const newPhotoPath = newPhoto ? await uploadParticipantPhoto(supabase, photo, current.event_id, participantId) : current.photo_path;
   const { error } = await supabase.from("participants").update({ display_name: displayName, commissariat: commissariat.name, commissariat_id: commissariatId, major, entry_year: entryYear, position: position || null, photo_path: newPhotoPath }).eq("id", participantId);
   if (error) {
-    if (newPhoto) await supabase.storage.from(photoBucket).remove([newPhotoPath]);
+    if (newPhoto && newPhotoPath) await supabase.storage.from(photoBucket).remove([newPhotoPath]);
     throw new Error("Perubahan profil peserta gagal disimpan.");
   }
   if (newPhoto && current.photo_path) await supabase.storage.from(photoBucket).remove([current.photo_path]);

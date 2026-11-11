@@ -17,7 +17,7 @@ export function categorizeScore(score: number | null) {
 export function calculateWeightedScore(aspects: ScoringAspect[], observations: Map<string, ScoringObservation>) {
   let weightedAspects = 0;
   let observedAspectWeight = 0;
-  let observedIndicators = 0;
+  const observedIndicatorIds = new Set<string>();
   const includedAspects: string[] = [];
 
   for (const aspect of aspects) {
@@ -28,7 +28,7 @@ export function calculateWeightedScore(aspects: ScoringAspect[], observations: M
       if (score === null || score === undefined) continue;
       weightedIndicators += score * Number(indicator.weight);
       observedIndicatorWeight += Number(indicator.weight);
-      observedIndicators += 1;
+      observedIndicatorIds.add(indicator.id);
     }
     if (!observedIndicatorWeight) continue;
     const aspectAverage = weightedIndicators / observedIndicatorWeight;
@@ -40,5 +40,5 @@ export function calculateWeightedScore(aspects: ScoringAspect[], observations: M
   if (!observedAspectWeight) return { value: null, observedIndicators: 0, includedAspects };
   const averageOnFivePointScale = weightedAspects / observedAspectWeight;
   const value = ((averageOnFivePointScale - 1) / 4) * 100;
-  return { value, observedIndicators, includedAspects };
+  return { value, observedIndicators: observedIndicatorIds.size, includedAspects };
 }

@@ -15,6 +15,12 @@ async function staffClient(roles: string[]) {
   return { supabase, userId, role: profile.role };
 }
 
+function readScoreDescriptors(formData: FormData) {
+  const entries = [1, 2, 3, 4, 5].map((score) => [String(score), String(formData.get(`descriptor${score}`) ?? "").trim()] as const);
+  if (entries.some(([, description]) => description.length < 3 || description.length > 500)) return null;
+  return Object.fromEntries(entries);
+}
+
 export async function createRubricVersion(formData: FormData) {
   const { supabase, userId } = await staffClient(["admin_system"]);
   const eventId = String(formData.get("eventId") ?? "");
@@ -28,19 +34,39 @@ export async function createRubricVersion(formData: FormData) {
     const { data: material } = await supabase.from("rubric_materials").select("id").eq("id", materialId).eq("event_id", eventId).maybeSingle();
     if (!material) throw new Error("Materi tidak ditemukan pada kegiatan ini.");
   }
-  let versionQuery = supabase.from("rubric_versions").select("id, version, status, rubric_aspects(id, name, weight, position, rubric_indicators(name, weight, target, position))").eq("event_id", eventId).eq("stage", stage).eq("assessment_type_id", assessmentTypeId);
+  let versionQuery = supabase.from("rubric_versions").select("id, version, status, rubric_aspects(id, name, weight, position, rubric_indicator_aspects(weight, rubric_indicators(id, name, target, position, score_descriptors)))").eq("event_id", eventId).eq("stage", stage).eq("assessment_type_id", assessmentTypeId);
   versionQuery = stage === "training" ? versionQuery.eq("material_id", materialId) : versionQuery.is("material_id", null);
   const { data: versions, error: readError } = await versionQuery.order("version", { ascending: false }).limit(1);
   if (readError) throw new Error("Versi rubrik belum dapat dibaca. Jalankan migrasi Tahap 4.");
   if (versions?.[0]?.status === "draft") throw new Error("Selesaikan atau hapus draf yang sedang berjalan terlebih dahulu.");
   const { data: created, error } = await supabase.from("rubric_versions").insert({ event_id: eventId, stage, material_id: stage === "training" ? materialId : null, assessment_type_id: assessmentTypeId, version: (versions?.[0]?.version ?? 0) + 1, status: "draft", created_by: userId }).select("id").single();
   if (error) throw new Error("Versi baru gagal dibuat.");
+  const aspectIds = new Map<string, string>();
   for (const aspect of versions?.[0]?.rubric_aspects ?? []) {
     const { data: copiedAspect, error: aspectError } = await supabase.from("rubric_aspects").insert({ rubric_version_id: created.id, name: aspect.name, weight: aspect.weight, position: aspect.position }).select("id").single();
     if (aspectError) { await supabase.from("rubric_versions").delete().eq("id", created.id); throw new Error("Aspek versi sebelumnya gagal disalin ke draf baru."); }
-    if (aspect.rubric_indicators.length) {
-      const { error: indicatorsError } = await supabase.from("rubric_indicators").insert(aspect.rubric_indicators.map((indicator) => ({ aspect_id: copiedAspect.id, name: indicator.name, weight: indicator.weight, target: indicator.target, position: indicator.position })));
-      if (indicatorsError) { await supabase.from("rubric_versions").delete().eq("id", created.id); throw new Error("Indikator versi sebelumnya gagal disalin ke draf baru."); }
+    aspectIds.set(aspect.id, copiedAspect.id);
+  }
+  const copiedIndicators = new Map<string, string>();
+  for (const aspect of versions?.[0]?.rubric_aspects ?? []) {
+    for (const mapping of aspect.rubric_indicator_aspects ?? []) {
+      const original = Array.isArray(mapping.rubric_indicators) ? mapping.rubric_indicators[0] : mapping.rubric_indicators;
+      if (!original || copiedIndicators.has(original.id)) continue;
+      const { data: copied, error: indicatorError } = await supabase.from("rubric_indicators").insert({ aspect_id: aspectIds.get(aspect.id)!, name: original.name, weight: mapping.weight, target: original.target, position: original.position, score_descriptors: original.score_descriptors }).select("id").single();
+      if (indicatorError || !copied) { await supabase.from("rubric_versions").delete().eq("id", created.id); throw new Error("Indikator versi sebelumnya gagal disalin ke draf baru."); }
+      copiedIndicators.set(original.id, copied.id);
+    }
+  }
+  for (const aspect of versions?.[0]?.rubric_aspects ?? []) {
+    const rows = (aspect.rubric_indicator_aspects ?? []).flatMap((mapping) => {
+      const originalId = (Array.isArray(mapping.rubric_indicators) ? mapping.rubric_indicators[0] : mapping.rubric_indicators)?.id;
+      const indicatorId = originalId ? copiedIndicators.get(originalId) : null;
+      const targetAspectId = aspectIds.get(aspect.id);
+      return indicatorId && targetAspectId ? [{ indicator_id: indicatorId, aspect_id: targetAspectId, weight: mapping.weight }] : [];
+    });
+    if (rows.length) {
+      const { error: mappingsError } = await supabase.from("rubric_indicator_aspects").insert(rows);
+      if (mappingsError) { await supabase.from("rubric_versions").delete().eq("id", created.id); throw new Error("Pemetaan indikator-aspek gagal disalin ke draf baru."); }
     }
   }
   revalidatePath("/dashboard/penilaian");
@@ -99,22 +125,51 @@ export async function addIndicator(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
   const target = String(formData.get("target") ?? "").trim();
   const weight = Number(formData.get("weight"));
-  if (!/^[0-9a-f-]{36}$/i.test(aspectId) || name.length < 2 || name.length > 200 || target.length > 300 || !Number.isFinite(weight) || weight <= 0 || weight > 100) throw new Error("Nama, target, atau bobot indikator tidak valid.");
+  const scoreDescriptors = readScoreDescriptors(formData);
+  if (!/^[0-9a-f-]{36}$/i.test(aspectId) || name.length < 2 || name.length > 200 || target.length > 300 || !Number.isFinite(weight) || weight <= 0 || weight > 100 || !scoreDescriptors) throw new Error("Isi nama, bobot, target, dan uraian perilaku skor 1–5 dengan benar.");
   const { data: indicators } = await supabase.from("rubric_indicators").select("position").eq("aspect_id", aspectId).order("position", { ascending: false }).limit(1);
-  const { error } = await supabase.from("rubric_indicators").insert({ aspect_id: aspectId, name, target: target || null, weight, position: (indicators?.[0]?.position ?? -1) + 1 });
-  if (error) throw new Error("Indikator gagal ditambahkan. Pastikan versinya masih draf dan nama tidak duplikat.");
+  const { data: indicator, error } = await supabase.from("rubric_indicators").insert({ aspect_id: aspectId, name, target: target || null, weight, position: (indicators?.[0]?.position ?? -1) + 1, score_descriptors: scoreDescriptors }).select("id").single();
+  if (error || !indicator) throw new Error("Indikator gagal ditambahkan. Pastikan versinya masih draf dan nama tidak duplikat.");
+  const { error: mappingError } = await supabase.from("rubric_indicator_aspects").insert({ indicator_id: indicator.id, aspect_id: aspectId, weight });
+  if (mappingError) { await supabase.from("rubric_indicators").delete().eq("id", indicator.id); throw new Error("Pemetaan indikator ke aspek gagal disimpan."); }
   revalidatePath("/dashboard/penilaian");
 }
 
 export async function editIndicator(formData: FormData) {
   const { supabase } = await staffClient(["admin_system"]);
   const id = String(formData.get("indicatorId") ?? "");
+  const mappingId = String(formData.get("mappingId") ?? "");
   const name = String(formData.get("name") ?? "").trim();
   const target = String(formData.get("target") ?? "").trim();
   const weight = Number(formData.get("weight"));
-  if (!/^[0-9a-f-]{36}$/i.test(id) || name.length < 2 || name.length > 200 || target.length > 300 || !Number.isFinite(weight) || weight <= 0 || weight > 100) throw new Error("Nama, target, atau bobot indikator tidak valid.");
-  const { error } = await supabase.from("rubric_indicators").update({ name, target: target || null, weight }).eq("id", id);
-  if (error) throw new Error("Perubahan indikator gagal disimpan. Versi harus masih berupa draf.");
+  const scoreDescriptors = readScoreDescriptors(formData);
+  if (!/^[0-9a-f-]{36}$/i.test(id) || !/^[0-9a-f-]{36}$/i.test(mappingId) || name.length < 2 || name.length > 200 || target.length > 300 || !Number.isFinite(weight) || weight <= 0 || weight > 100 || !scoreDescriptors) throw new Error("Periksa nama, target, bobot pemetaan, dan uraian skor 1–5.");
+  const { error } = await supabase.from("rubric_indicators").update({ name, target: target || null, score_descriptors: scoreDescriptors }).eq("id", id);
+  const { error: mappingError } = await supabase.from("rubric_indicator_aspects").update({ weight }).eq("id", mappingId).eq("indicator_id", id);
+  if (error || mappingError) throw new Error("Perubahan indikator gagal disimpan. Versi harus masih berupa draf.");
+  revalidatePath("/dashboard/penilaian");
+}
+
+export async function linkIndicatorToAspect(formData: FormData) {
+  const { supabase } = await staffClient(["admin_system"]);
+  const indicatorId = String(formData.get("indicatorId") ?? "");
+  const aspectId = String(formData.get("aspectId") ?? "");
+  const weight = Number(formData.get("weight"));
+  if (!/^[0-9a-f-]{36}$/i.test(indicatorId) || !/^[0-9a-f-]{36}$/i.test(aspectId) || !Number.isFinite(weight) || weight <= 0 || weight > 100) throw new Error("Aspek atau bobot pemetaan tidak valid.");
+  const { error } = await supabase.from("rubric_indicator_aspects").insert({ indicator_id: indicatorId, aspect_id: aspectId, weight });
+  if (error) throw new Error("Pemetaan gagal. Pastikan indikator dan aspek berada pada versi draf yang sama dan belum dipetakan.");
+  revalidatePath("/dashboard/penilaian");
+}
+
+export async function unlinkIndicatorFromAspect(formData: FormData) {
+  const { supabase } = await staffClient(["admin_system"]);
+  const mappingId = String(formData.get("mappingId") ?? "");
+  const indicatorId = String(formData.get("indicatorId") ?? "");
+  if (!/^[0-9a-f-]{36}$/i.test(mappingId) || !/^[0-9a-f-]{36}$/i.test(indicatorId)) throw new Error("Pemetaan indikator tidak valid.");
+  const { data: mappings, error: readError } = await supabase.from("rubric_indicator_aspects").select("id").eq("indicator_id", indicatorId);
+  if (readError || !mappings || mappings.length <= 1 || !mappings.some((mapping) => mapping.id === mappingId)) throw new Error("Setiap indikator harus tetap terhubung ke sedikitnya satu aspek.");
+  const { error } = await supabase.from("rubric_indicator_aspects").delete().eq("id", mappingId).eq("indicator_id", indicatorId);
+  if (error) throw new Error("Pemetaan indikator gagal dilepas. Pastikan rubrik masih berupa draf.");
   revalidatePath("/dashboard/penilaian");
 }
 
@@ -218,10 +273,14 @@ export async function reopenObserverAssignment(formData: FormData) {
 export async function activateRubric(formData: FormData) {
   const { supabase } = await staffClient(["admin_system"]);
   const versionId = String(formData.get("versionId") ?? "");
-  const { data: aspects, error } = await supabase.from("rubric_aspects").select("id, weight, rubric_indicators(id, weight)").eq("rubric_version_id", versionId);
+  const { data: aspects, error } = await supabase.from("rubric_aspects").select("id, weight, rubric_indicator_aspects(id, weight, rubric_indicators(id, score_descriptors))").eq("rubric_version_id", versionId);
   if (error || !aspects?.length) throw new Error("Tambahkan aspek dan indikator sebelum mengaktifkan rubrik.");
   const close = (n: number) => Math.abs(n - 100) < 0.001;
-  if (!close(aspects.reduce((sum, aspect) => sum + Number(aspect.weight), 0)) || aspects.some((aspect) => !aspect.rubric_indicators.length || !close(aspect.rubric_indicators.reduce((sum, indicator) => sum + Number(indicator.weight), 0)))) throw new Error("Bobot antar-aspek dan bobot indikator di setiap aspek masing-masing harus berjumlah 100%.");
+  if (!close(aspects.reduce((sum, aspect) => sum + Number(aspect.weight), 0)) || aspects.some((aspect) => !aspect.rubric_indicator_aspects.length || !close(aspect.rubric_indicator_aspects.reduce((sum, mapping) => sum + Number(mapping.weight), 0)))) throw new Error("Bobot antar-aspek dan bobot pemetaan indikator pada setiap aspek masing-masing harus berjumlah 100%.");
+  if (aspects.some((aspect) => aspect.rubric_indicator_aspects.some((mapping) => {
+    const indicator = Array.isArray(mapping.rubric_indicators) ? mapping.rubric_indicators[0] : mapping.rubric_indicators;
+    return [1, 2, 3, 4, 5].some((score) => String(indicator?.score_descriptors?.[String(score)] ?? "").trim().length < 3);
+  }))) throw new Error("Lengkapi uraian perilaku untuk skor 1 sampai 5 pada setiap indikator.");
   const { data: version } = await supabase.from("rubric_versions").select("event_id, stage, material_id, assessment_type_id").eq("id", versionId).eq("status", "draft").maybeSingle();
   if (!version) throw new Error("Versi draf tidak ditemukan.");
   let activeQuery = supabase.from("rubric_versions").update({ status: "archived" }).eq("event_id", version.event_id).eq("stage", version.stage).eq("assessment_type_id", version.assessment_type_id).eq("status", "active");
@@ -233,25 +292,74 @@ export async function activateRubric(formData: FormData) {
   revalidatePath("/dashboard/penilaian");
 }
 
-export async function saveObservation(input: { participantId: string; indicatorId: string; score: number | null; note: string; expectedRevision: number }) {
+export async function saveObservation(input: { participantId: string; indicatorId: string; score: number | null; expectedRevision: number }) {
   const { supabase, userId, role } = await staffClient(["admin_system", "observer", "instruktur"]);
-  if (!/^[0-9a-f-]{36}$/i.test(input.participantId) || !/^[0-9a-f-]{36}$/i.test(input.indicatorId) || (input.score !== null && (!Number.isInteger(input.score) || input.score < 1 || input.score > 5)) || input.note.length > 2000 || !Number.isInteger(input.expectedRevision) || input.expectedRevision < 0) return { ok: false as const, message: "Isian tidak valid." };
-  if (role === "instruktur") {
-    const { data: participant } = await supabase.from("participants").select("event_id").eq("id", input.participantId).maybeSingle();
-    if (!participant) return { ok: false as const, message: "Peserta ini tidak ada dalam kegiatan yang bisa Anda nilai." };
-    const { data: assignment } = await supabase.from("instructor_event_assignments").select("id").eq("event_id", participant.event_id).eq("instructor_id", userId).limit(1).maybeSingle();
-    if (!assignment) return { ok: false as const, message: "Anda tidak ditugaskan pada kegiatan peserta ini." };
+  if (!/^[0-9a-f-]{36}$/i.test(input.participantId) || !/^[0-9a-f-]{36}$/i.test(input.indicatorId) || (input.score !== null && (!Number.isInteger(input.score) || input.score < 1 || input.score > 5)) || !Number.isInteger(input.expectedRevision) || input.expectedRevision < 0) return { ok: false as const, message: "Isian tidak valid." };
+  const { data: participant } = await supabase.from("participants").select("event_id").eq("id", input.participantId).maybeSingle();
+  const { data: indicator } = await supabase.from("rubric_indicators").select("aspect_id").eq("id", input.indicatorId).maybeSingle();
+  const { data: aspect } = indicator ? await supabase.from("rubric_aspects").select("rubric_version_id").eq("id", indicator.aspect_id).maybeSingle() : { data: null };
+  const { data: version } = aspect ? await supabase.from("rubric_versions").select("id, event_id, status").eq("id", aspect.rubric_version_id).maybeSingle() : { data: null };
+  if (!participant || !version || version.event_id !== participant.event_id || version.status !== "active") return { ok: false as const, message: "Peserta dan indikator tidak berada pada rubrik aktif yang sama." };
+  if (role === "observer") {
+    const { data: assignment } = await supabase.from("observer_assignments").select("id").eq("event_id", participant.event_id).eq("observer_id", userId).maybeSingle();
+    if (!assignment) return { ok: false as const, message: "Anda tidak ditugaskan pada kegiatan ini." };
   }
-  const { data: current, error: readError } = await supabase.from("observations").select("id, revision").eq("participant_id", input.participantId).eq("indicator_id", input.indicatorId).maybeSingle();
+  if (role === "instruktur") {
+    const { data: assignment } = await supabase.from("instructor_event_assignments").select("id").eq("event_id", participant.event_id).eq("instructor_id", userId).limit(1).maybeSingle();
+    if (!assignment) return { ok: false as const, message: "Anda tidak ditugaskan pada kegiatan ini." };
+  }
+  const readLatest = async () => {
+    const { data } = await supabase.from("observations").select("id, score, revision, updated_at, updated_by_name, updated_by").eq("participant_id", input.participantId).eq("indicator_id", input.indicatorId).maybeSingle();
+    return data ?? { id: null, score: null, revision: 0, updated_at: null, updated_by_name: null, updated_by: null };
+  };
+  const { data: current, error: readError } = await supabase.from("observations").select("id, score, revision, updated_at, updated_by_name, updated_by").eq("participant_id", input.participantId).eq("indicator_id", input.indicatorId).maybeSingle();
   if (readError) return { ok: false as const, message: "Data belum dapat disimpan." };
-  if ((current?.revision ?? 0) !== input.expectedRevision) return { ok: false as const, conflict: true as const, message: "Ada perubahan dari pengguna lain. Muat ulang untuk melihat nilai terbaru." };
-  const values = { score: input.score, note: input.note.trim() || null, updated_by: userId };
+  const latest = current ?? { id: null, score: null, revision: 0, updated_at: null, updated_by_name: null, updated_by: null };
+  if (latest.revision !== input.expectedRevision) return { ok: false as const, conflict: true as const, latest, message: "Nilai berubah di perangkat lain. Pilih nilai terbaru atau terapkan ulang pilihan Anda." };
+  const values = { score: input.score, updated_by: userId };
   if (!current) {
     const { error } = await supabase.from("observations").insert({ ...values, participant_id: input.participantId, indicator_id: input.indicatorId });
-    if (error) return { ok: false as const, conflict: error.code === "23505", message: error.code === "23505" ? "Pengguna lain baru saja mengisi indikator ini. Muat ulang." : "Data belum dapat disimpan." };
+    if (error) return error.code === "23505" ? { ok: false as const, conflict: true as const, latest: await readLatest(), message: "Nilai berubah di perangkat lain. Pilih nilai terbaru atau terapkan ulang pilihan Anda." } : { ok: false as const, message: "Data belum dapat disimpan." };
     return { ok: true as const, revision: 1 };
   }
   const { data: updated, error } = await supabase.from("observations").update(values).eq("id", current.id).eq("revision", input.expectedRevision).select("revision").maybeSingle();
-  if (error || !updated) return { ok: false as const, conflict: true as const, message: "Ada perubahan dari pengguna lain. Muat ulang untuk melihat nilai terbaru." };
+  if (error || !updated) return { ok: false as const, conflict: true as const, latest: await readLatest(), message: "Nilai berubah di perangkat lain. Pilih nilai terbaru atau terapkan ulang pilihan Anda." };
   return { ok: true as const, revision: updated.revision as number };
+}
+
+export async function saveObserverNote(input: { participantId: string; rubricVersionId: string; noteType: "observation" | "strength" | "development" | "special"; content: string; expectedRevision: number }) {
+  const { supabase, userId, role } = await staffClient(["admin_system", "observer", "instruktur"]);
+  if (!/^[0-9a-f-]{36}$/i.test(input.participantId) || !/^[0-9a-f-]{36}$/i.test(input.rubricVersionId) || !["observation", "strength", "development", "special"].includes(input.noteType) || input.content.length > 3000 || !Number.isInteger(input.expectedRevision) || input.expectedRevision < 0) return { ok: false as const, message: "Isian catatan tidak valid." };
+  const { data: participant } = await supabase.from("participants").select("event_id").eq("id", input.participantId).maybeSingle();
+  const { data: version } = await supabase.from("rubric_versions").select("id, event_id, status").eq("id", input.rubricVersionId).maybeSingle();
+  if (!participant || !version || version.event_id !== participant.event_id || version.status !== "active") return { ok: false as const, message: "Catatan hanya dapat ditulis pada rubrik aktif untuk kegiatan peserta ini." };
+  if (role === "observer") {
+    const { data: assignment } = await supabase.from("observer_assignments").select("id").eq("event_id", participant.event_id).eq("observer_id", userId).maybeSingle();
+    if (!assignment) return { ok: false as const, message: "Anda tidak ditugaskan pada kegiatan ini." };
+  }
+  if (role === "instruktur") {
+    const { data: assignment } = await supabase.from("instructor_event_assignments").select("id").eq("event_id", participant.event_id).eq("instructor_id", userId).limit(1).maybeSingle();
+    if (!assignment) return { ok: false as const, message: "Anda tidak ditugaskan pada kegiatan ini." };
+  }
+  const queryLatest = () => supabase.from("observer_notes").select("id, participant_id, rubric_version_id, author_id, author_name, note_type, content, revision, updated_at").eq("participant_id", input.participantId).eq("rubric_version_id", input.rubricVersionId).eq("author_id", userId).eq("note_type", input.noteType).is("indicator_id", null).maybeSingle();
+  const { data: current, error: readError } = await queryLatest();
+  if (readError) return { ok: false as const, message: "Catatan belum dapat dibaca." };
+  const latest = current ?? { id: null, participant_id: input.participantId, rubric_version_id: input.rubricVersionId, author_id: userId, author_name: "Anda", note_type: input.noteType, content: "", revision: 0, updated_at: null };
+  if (latest.revision !== input.expectedRevision) return { ok: false as const, conflict: true as const, latest, message: "Catatan Anda berubah di perangkat lain. Pilih versi terbaru atau terapkan ulang tulisan Anda." };
+  const content = input.content.trim();
+  if (!current && !content) return { ok: true as const, record: latest };
+  if (!current) {
+    const { data: inserted, error } = await supabase.from("observer_notes").insert({ participant_id: input.participantId, rubric_version_id: input.rubricVersionId, author_id: userId, note_type: input.noteType, content }).select("id, participant_id, rubric_version_id, author_id, author_name, note_type, content, revision, updated_at").single();
+    if (error || !inserted) {
+      const { data: raced } = await queryLatest();
+      return raced ? { ok: false as const, conflict: true as const, latest: raced, message: "Catatan Anda baru saja berubah. Pilih versi terbaru atau terapkan ulang tulisan Anda." } : { ok: false as const, message: "Catatan gagal disimpan." };
+    }
+    return { ok: true as const, record: inserted };
+  }
+  const { data: updated, error } = await supabase.from("observer_notes").update({ content }).eq("id", current.id).eq("revision", input.expectedRevision).select("id, participant_id, rubric_version_id, author_id, author_name, note_type, content, revision, updated_at").maybeSingle();
+  if (error || !updated) {
+    const { data: raced } = await queryLatest();
+    return { ok: false as const, conflict: true as const, latest: raced ?? latest, message: "Catatan Anda berubah di perangkat lain. Pilih versi terbaru atau terapkan ulang tulisan Anda." };
+  }
+  return { ok: true as const, record: updated };
 }

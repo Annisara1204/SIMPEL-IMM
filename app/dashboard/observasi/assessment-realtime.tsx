@@ -9,6 +9,8 @@ export function AssessmentRealtime({ versionId }: { versionId: string }) {
   const [status, setStatus] = useState("Menghubungkan Realtime…");
   useEffect(() => {
     const client = createClient();
+    let channel: ReturnType<typeof client.channel> | null = null;
+    let cancelled = false;
     const emit = (
       table: string,
       payload: { new?: Record<string, unknown>; old?: Record<string, unknown> },
@@ -23,60 +25,76 @@ export function AssessmentRealtime({ versionId }: { versionId: string }) {
         }),
       );
     };
-    const channel = client
-      .channel(`assessment-version-${versionId}`)
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "observations" },
-        (payload) => emit("observations", payload),
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "assessment_ratings",
-          filter: `rubric_version_id=eq.${versionId}`,
-        },
-        (payload) => {
-          emit("assessment_ratings", payload);
-          router.refresh();
-        },
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "assessment_submissions",
-          filter: `rubric_version_id=eq.${versionId}`,
-        },
-        (payload) => {
-          emit("assessment_submissions", payload);
-          router.refresh();
-        },
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "observer_notes",
-          filter: `rubric_version_id=eq.${versionId}`,
-        },
-        (payload) => emit("observer_notes", payload),
-      )
-      .subscribe((nextStatus) => {
-        setStatus(
-          nextStatus === "SUBSCRIBED"
-            ? "Realtime tersambung"
-            : nextStatus === "CHANNEL_ERROR" || nextStatus === "TIMED_OUT"
-              ? "Realtime terputus · simpan otomatis tetap aktif"
-              : "Menghubungkan Realtime…",
-        );
+    const subscribe = (accessToken: string | null) => {
+      if (cancelled) return;
+      if (accessToken) client.realtime.setAuth(accessToken);
+      channel = client
+        .channel(`assessment-version-${versionId}`)
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "observations" },
+          (payload) => emit("observations", payload),
+        )
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "assessment_ratings",
+            filter: `rubric_version_id=eq.${versionId}`,
+          },
+          (payload) => {
+            emit("assessment_ratings", payload);
+            router.refresh();
+          },
+        )
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "assessment_submissions",
+            filter: `rubric_version_id=eq.${versionId}`,
+          },
+          (payload) => {
+            emit("assessment_submissions", payload);
+            router.refresh();
+          },
+        )
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "observer_notes",
+            filter: `rubric_version_id=eq.${versionId}`,
+          },
+          (payload) => emit("observer_notes", payload),
+        )
+        .subscribe((nextStatus) => {
+          setStatus(
+            nextStatus === "SUBSCRIBED"
+              ? "Realtime tersambung"
+              : nextStatus === "CHANNEL_ERROR" || nextStatus === "TIMED_OUT"
+                ? "Realtime terputus · simpan otomatis tetap aktif"
+                : "Menghubungkan Realtime…",
+          );
+        });
+    };
+    // Attach the user's session token to the realtime client BEFORE joining the
+    // channel; joining anonymously receives nothing on projects with Realtime
+    // Authorization enabled.
+    client.auth
+      .getSession()
+      .then(({ data: { session } }) => {
+        subscribe(session?.access_token ?? null);
+      })
+      .catch(() => {
+        subscribe(null);
       });
     return () => {
-      void client.removeChannel(channel);
+      cancelled = true;
+      if (channel) void client.removeChannel(channel);
     };
   }, [versionId, router]);
   return (

@@ -40,17 +40,18 @@ export function AssessmentRatingCell(props: Props) {
     revision: 0,
     updated_at: null,
   };
-  const [value, setValue] = useState(initial);
-  const [saved, setSaved] = useState(initial);
-  const [conflict, setConflict] = useState<Value | null>(null);
-  const [status, setStatus] = useState("Belum ada perubahan");
-  const [pending, startTransition] = useTransition();
-  const [online, setOnline] = useState(true);
   const storageKey = `dad-assessment:${props.rubricVersionId}:${props.participantId}:${props.indicatorId}`;
-
-  useEffect(() => {
+  // Restore any unsynced local draft on mount via a lazy initializer instead of
+  // an effect, so the first paint already reflects the local draft when present.
+  const [initialDraft] = useState(() => {
+    const fallback = {
+      value: initial,
+      conflict: null as Value | null,
+      status: "Belum ada perubahan",
+    };
+    if (typeof window === "undefined") return fallback;
     const stored = localStorage.getItem(storageKey);
-    if (!stored) return;
+    if (!stored) return fallback;
     try {
       const draft = JSON.parse(stored) as {
         value: Value;
@@ -60,23 +61,36 @@ export function AssessmentRatingCell(props: Props) {
         draft.savedRevision === initial.revision &&
         JSON.stringify(draft.value) !== JSON.stringify(initial)
       ) {
-        setValue(draft.value);
-        setStatus(
-          navigator.onLine
+        return {
+          value: draft.value,
+          conflict: null,
+          status: navigator.onLine
             ? "Draf lokal belum tersinkron"
             : "Offline · draf disimpan di perangkat ini",
-        );
-      } else if (draft.savedRevision !== initial.revision) {
-        setValue(draft.value);
-        setConflict(initial);
-        setStatus(
-          "Konflik draf lokal dengan versi server. Pilih salah satu sebelum melanjutkan.",
-        );
+        };
       }
+      if (draft.savedRevision !== initial.revision) {
+        return {
+          value: draft.value,
+          conflict: initial,
+          status:
+            "Konflik draf lokal dengan versi server. Pilih salah satu sebelum melanjutkan.",
+        };
+      }
+      return fallback;
     } catch {
       localStorage.removeItem(storageKey);
+      return fallback;
     }
-  }, [storageKey]);
+  });
+  const [value, setValue] = useState(initialDraft.value);
+  const [saved, setSaved] = useState(initial);
+  const [conflict, setConflict] = useState<Value | null>(initialDraft.conflict);
+  const [status, setStatus] = useState(initialDraft.status);
+  const [pending, startTransition] = useTransition();
+  const [online, setOnline] = useState(
+    () => typeof navigator === "undefined" || navigator.onLine,
+  );
 
   useEffect(() => {
     const onOnline = () => {
@@ -87,7 +101,6 @@ export function AssessmentRatingCell(props: Props) {
       setOnline(false);
       setStatus("Offline · perubahan disimpan di perangkat ini");
     };
-    setOnline(navigator.onLine);
     window.addEventListener("online", onOnline);
     window.addEventListener("offline", onOffline);
     return () => {
@@ -139,8 +152,11 @@ export function AssessmentRatingCell(props: Props) {
       JSON.stringify({ value, savedRevision: saved.revision }),
     );
     if (!online) {
-      setStatus("Offline · perubahan disimpan di perangkat ini");
-      return;
+      const timer = window.setTimeout(
+        () => setStatus("Offline · perubahan disimpan di perangkat ini"),
+        0,
+      );
+      return () => window.clearTimeout(timer);
     }
     const timer = window.setTimeout(() => {
       setStatus("Menyimpan…");
@@ -198,6 +214,7 @@ export function AssessmentRatingCell(props: Props) {
     setValue(conflict);
     setSaved(conflict);
     setConflict(null);
+    localStorage.removeItem(storageKey);
     setStatus("Memakai data terbaru");
   };
   const applyMine = () => {

@@ -5,3 +5,5 @@ out/
 !.env.example
 tsconfig.tsbuildinfo
 npm-debug.log*
+.vercel
+coverage/

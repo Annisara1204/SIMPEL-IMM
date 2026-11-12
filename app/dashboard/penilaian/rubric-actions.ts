@@ -1,4 +1,5 @@
 "use server";
+import { uuidPattern } from "@/lib/validation";
 
 import { revalidatePath } from "next/cache";
 import { firstRelated, type Relation } from "@/lib/relations";
@@ -67,10 +68,10 @@ export async function createRubricVersion(formData: FormData) {
   const assessmentTypeId = String(formData.get("assessmentTypeId") ?? "");
   const materialId = String(formData.get("materialId") ?? "");
   if (
-    !/^[0-9a-f-]{36}$/i.test(eventId) ||
+    !uuidPattern.test(eventId) ||
     !["screening", "training", "follow_up"].includes(stage) ||
-    !/^[0-9a-f-]{36}$/i.test(assessmentTypeId) ||
-    (stage === "training" && !/^[0-9a-f-]{36}$/i.test(materialId)) ||
+    !uuidPattern.test(assessmentTypeId) ||
+    (stage === "training" && !uuidPattern.test(materialId)) ||
     (stage !== "training" && materialId)
   )
     throw new Error(
@@ -347,9 +348,9 @@ export async function createTrainingMaterial(formData: FormData) {
   const competencyMaterialId = String(
     formData.get("competencyMaterialId") ?? "",
   );
-  if (!/^[0-9a-f-]{36}$/i.test(eventId) || name.length < 2 || name.length > 120)
+  if (!uuidPattern.test(eventId) || name.length < 2 || name.length > 120)
     throw new Error("Nama materi tidak valid.");
-  if (competencyMaterialId && !/^[0-9a-f-]{36}$/i.test(competencyMaterialId))
+  if (competencyMaterialId && !uuidPattern.test(competencyMaterialId))
     throw new Error("Konteks kerangka tidak valid.");
   if (competencyMaterialId) {
     const { data: frameworkMaterial } = await supabase
@@ -387,8 +388,8 @@ export async function setTrainingMaterialFramework(formData: FormData) {
     formData.get("competencyMaterialId") ?? "",
   );
   if (
-    !/^[0-9a-f-]{36}$/i.test(materialId) ||
-    !/^[0-9a-f-]{36}$/i.test(competencyMaterialId)
+    !uuidPattern.test(materialId) ||
+    !uuidPattern.test(competencyMaterialId)
   )
     throw new Error("Materi atau konteks kerangka tidak valid.");
   const { data: source } = await supabase
@@ -442,12 +443,12 @@ export async function applyFrameworkRubricSelection(formData: FormData) {
     ...new Set(selectedPairs.map((pair) => pair.indicatorId)),
   ];
   if (
-    !/^[0-9a-f-]{36}$/i.test(versionId) ||
+    !uuidPattern.test(versionId) ||
     [
       ...selectedAspectIds,
       ...selectedIndicatorIds,
       ...selectedPairs.map((pair) => pair.aspectId),
-    ].some((id) => !/^[0-9a-f-]{36}$/i.test(id))
+    ].some((id) => !uuidPattern.test(id))
   )
     throw new Error("Pilihan aspek atau indikator tidak valid.");
   if (!selectedAspectIds.length || !selectedPairs.length)
@@ -855,7 +856,7 @@ export async function createAssessmentType(formData: FormData) {
   const stage = String(formData.get("stage") ?? "");
   const name = String(formData.get("name") ?? "").trim();
   if (
-    !/^[0-9a-f-]{36}$/i.test(eventId) ||
+    !uuidPattern.test(eventId) ||
     !["screening", "training", "follow_up"].includes(stage) ||
     name.length < 2 ||
     name.length > 80
@@ -887,7 +888,7 @@ export async function addAspect(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
   const weight = Number(formData.get("weight"));
   if (
-    !/^[0-9a-f-]{36}$/i.test(versionId) ||
+    !uuidPattern.test(versionId) ||
     name.length < 2 ||
     name.length > 120 ||
     !Number.isFinite(weight) ||
@@ -920,7 +921,7 @@ export async function editAspect(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
   const weight = Number(formData.get("weight"));
   if (
-    !/^[0-9a-f-]{36}$/i.test(id) ||
+    !uuidPattern.test(id) ||
     name.length < 2 ||
     name.length > 120 ||
     !Number.isFinite(weight) ||
@@ -947,7 +948,7 @@ export async function addIndicator(formData: FormData) {
   const weight = Number(formData.get("weight"));
   const scoreDescriptors = readScoreDescriptors(formData);
   if (
-    !/^[0-9a-f-]{36}$/i.test(aspectId) ||
+    !uuidPattern.test(aspectId) ||
     name.length < 2 ||
     name.length > 200 ||
     target.length > 300 ||
@@ -1000,8 +1001,8 @@ export async function editIndicator(formData: FormData) {
   const weight = Number(formData.get("weight"));
   const scoreDescriptors = readScoreDescriptors(formData);
   if (
-    !/^[0-9a-f-]{36}$/i.test(id) ||
-    !/^[0-9a-f-]{36}$/i.test(mappingId) ||
+    !uuidPattern.test(id) ||
+    !uuidPattern.test(mappingId) ||
     name.length < 2 ||
     name.length > 200 ||
     target.length > 300 ||
@@ -1039,8 +1040,8 @@ export async function linkIndicatorToAspect(formData: FormData) {
   const aspectId = String(formData.get("aspectId") ?? "");
   const weight = Number(formData.get("weight"));
   if (
-    !/^[0-9a-f-]{36}$/i.test(indicatorId) ||
-    !/^[0-9a-f-]{36}$/i.test(aspectId) ||
+    !uuidPattern.test(indicatorId) ||
+    !uuidPattern.test(aspectId) ||
     !Number.isFinite(weight) ||
     weight <= 0 ||
     weight > 100
@@ -1061,8 +1062,8 @@ export async function unlinkIndicatorFromAspect(formData: FormData) {
   const mappingId = String(formData.get("mappingId") ?? "");
   const indicatorId = String(formData.get("indicatorId") ?? "");
   if (
-    !/^[0-9a-f-]{36}$/i.test(mappingId) ||
-    !/^[0-9a-f-]{36}$/i.test(indicatorId)
+    !uuidPattern.test(mappingId) ||
+    !uuidPattern.test(indicatorId)
   )
     throw new Error("Pemetaan indikator tidak valid.");
   const { data: mappings, error: readError } = await supabase
@@ -1095,8 +1096,8 @@ export async function removeDraftIndicatorMapping(formData: FormData) {
   const mappingId = String(formData.get("mappingId") ?? "");
   const indicatorId = String(formData.get("indicatorId") ?? "");
   if (
-    !/^[0-9a-f-]{36}$/i.test(mappingId) ||
-    !/^[0-9a-f-]{36}$/i.test(indicatorId)
+    !uuidPattern.test(mappingId) ||
+    !uuidPattern.test(indicatorId)
   )
     throw new Error("Pemetaan indikator tidak valid.");
   const { data: mapping } = await supabase
@@ -1153,7 +1154,7 @@ export async function removeDraftIndicatorMapping(formData: FormData) {
 export async function removeDraftAspect(formData: FormData) {
   const { supabase } = await staffClient(["admin_system"]);
   const aspectId = String(formData.get("aspectId") ?? "");
-  if (!/^[0-9a-f-]{36}$/i.test(aspectId)) throw new Error("Aspek tidak valid.");
+  if (!uuidPattern.test(aspectId)) throw new Error("Aspek tidak valid.");
   const { data: aspect } = await supabase
     .from("rubric_aspects")
     .select("id,rubric_version_id")

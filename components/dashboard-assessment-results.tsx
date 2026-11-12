@@ -1,14 +1,9 @@
 import { scoreCategories } from "@/lib/scoring";
+import { stageCards } from "@/lib/stage-labels";
 import type {
   DashboardAssessmentData,
   DashboardAssessmentResult,
 } from "@/lib/dashboard-results";
-
-const stages = [
-  { id: "screening", label: "Screening" },
-  { id: "training", label: "Pelatihan" },
-  { id: "follow_up", label: "Rencana Tindak Lanjut" },
-];
 
 function CategoryCounts({ result }: { result: DashboardAssessmentResult }) {
   return (
@@ -50,7 +45,7 @@ export function DashboardAssessmentResults({
         </p>
       )}
       <div className="dashboard-stage-grid">
-        {stages.map((stage) => {
+        {stageCards.map((stage) => {
           const groups = data.results.filter(
             (result) => result.stage === stage.id,
           );

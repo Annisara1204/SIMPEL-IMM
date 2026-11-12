@@ -6,6 +6,16 @@ export type ScoringAspect = {
 };
 export type ScoringObservation = { score: number | null };
 
+/** Skala indikator 1–5, indeks 0 sengaja kosong. */
+export const SCORE_SCALE_LABELS = [
+  "",
+  "Sangat Kurang",
+  "Kurang",
+  "Cukup",
+  "Baik",
+  "Sangat Baik",
+] as const;
+
 export const scoreCategories = [
   {
     id: "development",

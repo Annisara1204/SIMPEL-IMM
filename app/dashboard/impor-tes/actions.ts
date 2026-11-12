@@ -1,4 +1,5 @@
 "use server";
+import { uuidPattern } from "@/lib/validation";
 
 import * as XLSX from "xlsx";
 import { revalidatePath } from "next/cache";
@@ -122,7 +123,7 @@ export async function matchImportedRows(input: {
   if (
     !input ||
     typeof input !== "object" ||
-    !/^[0-9a-f-]{36}$/i.test(input.eventId) ||
+    !uuidPattern.test(input.eventId) ||
     !["pretest", "posttest"].includes(input.testType) ||
     !Array.isArray(input.rows) ||
     input.rows.length < 1 ||
@@ -224,7 +225,7 @@ export async function commitImport(input: {
   if (
     !input ||
     typeof input !== "object" ||
-    !/^[0-9a-f-]{36}$/i.test(input.eventId) ||
+    !uuidPattern.test(input.eventId) ||
     !["pretest", "posttest"].includes(input.testType) ||
     typeof input.filename !== "string" ||
     !input.filename.toLowerCase().endsWith(".xlsx") ||
@@ -240,7 +241,7 @@ export async function commitImport(input: {
       (row) =>
         !row ||
         typeof row.participantId !== "string" ||
-        !/^[0-9a-f-]{36}$/i.test(row.participantId) ||
+        !uuidPattern.test(row.participantId) ||
         !Number.isInteger(row.rowNumber) ||
         row.rowNumber < 2 ||
         typeof row.name !== "string" ||

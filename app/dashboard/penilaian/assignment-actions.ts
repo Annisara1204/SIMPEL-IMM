@@ -1,4 +1,5 @@
 "use server";
+import { uuidPattern } from "@/lib/validation";
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -16,7 +17,7 @@ export async function assignObserver(formData: FormData) {
   ]);
   const eventId = String(formData.get("eventId") ?? "");
   const observerId = String(formData.get("observerId") ?? "");
-  if (!/^[0-9a-f-]{36}$/i.test(eventId) || !/^[0-9a-f-]{36}$/i.test(observerId))
+  if (!uuidPattern.test(eventId) || !uuidPattern.test(observerId))
     throw new Error("Kegiatan atau akun Observer tidak valid.");
   const { data: observer } = await supabase
     .from("profiles")
@@ -62,7 +63,7 @@ export async function assignObserver(formData: FormData) {
 export async function removeObserverAssignment(formData: FormData) {
   const { supabase } = await staffClient(["admin_system", "bidang_kader"]);
   const assignmentId = String(formData.get("assignmentId") ?? "");
-  if (!/^[0-9a-f-]{36}$/i.test(assignmentId))
+  if (!uuidPattern.test(assignmentId))
     throw new Error("Penugasan tidak valid.");
   const { error } = await supabase
     .from("observer_assignments")
@@ -79,8 +80,8 @@ export async function assignInstructorEvent(formData: FormData) {
   const instructorId = String(formData.get("instructorId") ?? "");
   const position = String(formData.get("position") ?? "") as InstructorPosition;
   if (
-    !/^[0-9a-f-]{36}$/i.test(eventId) ||
-    !/^[0-9a-f-]{36}$/i.test(instructorId) ||
+    !uuidPattern.test(eventId) ||
+    !uuidPattern.test(instructorId) ||
     !instructorPositions.some((item) => item.id === position)
   )
     throw new Error("Kegiatan, akun, atau subrole Instruktur tidak valid.");
@@ -131,7 +132,7 @@ export async function assignInstructorEvent(formData: FormData) {
 export async function removeInstructorEventAssignment(formData: FormData) {
   const { supabase } = await staffClient(["admin_system"]);
   const assignmentId = String(formData.get("assignmentId") ?? "");
-  if (!/^[0-9a-f-]{36}$/i.test(assignmentId))
+  if (!uuidPattern.test(assignmentId))
     throw new Error("Penugasan tidak valid.");
   const { error } = await supabase
     .from("instructor_event_assignments")
@@ -148,8 +149,8 @@ export async function updateInstructorDutyItem(formData: FormData) {
   const dutyItemId = String(formData.get("dutyItemId") ?? "");
   const isDone = formData.get("isDone") === "on";
   if (
-    !/^[0-9a-f-]{36}$/i.test(assignmentId) ||
-    !/^[0-9a-f-]{36}$/i.test(dutyItemId)
+    !uuidPattern.test(assignmentId) ||
+    !uuidPattern.test(dutyItemId)
   )
     throw new Error("Tugas tidak valid.");
   const { data: assignment } = await supabase
@@ -176,7 +177,7 @@ export async function completeObserverAssignment(formData: FormData) {
   const { supabase, userId } = await staffClient(["observer"]);
   const eventId = String(formData.get("eventId") ?? "");
   const versionId = String(formData.get("versionId") ?? "");
-  if (!/^[0-9a-f-]{36}$/i.test(eventId) || !/^[0-9a-f-]{36}$/i.test(versionId))
+  if (!uuidPattern.test(eventId) || !uuidPattern.test(versionId))
     throw new Error("Kegiatan atau rubrik tidak valid.");
   const { data: assignment, error: assignmentError } = await supabase
     .from("observer_assignments")
@@ -217,7 +218,7 @@ export async function reopenObserverAssignment(formData: FormData) {
   const { supabase, userId } = await staffClient(["observer"]);
   const eventId = String(formData.get("eventId") ?? "");
   const versionId = String(formData.get("versionId") ?? "");
-  if (!/^[0-9a-f-]{36}$/i.test(eventId) || !/^[0-9a-f-]{36}$/i.test(versionId))
+  if (!uuidPattern.test(eventId) || !uuidPattern.test(versionId))
     throw new Error("Kegiatan atau rubrik tidak valid.");
   const { data: assignment } = await supabase
     .from("observer_assignments")

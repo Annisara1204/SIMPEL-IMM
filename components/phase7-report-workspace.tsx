@@ -15,6 +15,8 @@ import type {
   PrivateSourcePayload,
   ReportSnapshotData,
 } from "@/lib/supabase-rows";
+import { categorizeScore } from "@/lib/scoring";
+import { decisionLabel } from "@/lib/decision-labels";
 
 type ReportRow = {
   participant_id: string;
@@ -63,11 +65,6 @@ type Props = {
   assignAction?: Action;
 };
 
-const decisions: Record<string, string> = {
-  pass: "Lulus",
-  not_pass: "Tidak Lulus",
-  further_discussion: "Perlu pembahasan lanjutan",
-};
 const aspects = (data?: ReportSnapshotData | null) =>
   Array.isArray(data?.aspects) ? data.aspects : [];
 const indicators = (data?: ReportSnapshotData | null) =>
@@ -75,15 +72,7 @@ const indicators = (data?: ReportSnapshotData | null) =>
 const decisionOf = (row: ReportRow) =>
   row.snapshot_data?.collective?.decision ?? "";
 const category = (score: number | null) =>
-  score === null
-    ? "—"
-    : score < 60
-      ? "Perlu pengembangan"
-      : score < 75
-        ? "Cukup"
-        : score < 90
-          ? "Baik"
-          : "Sangat baik";
+  categorizeScore(score)?.label ?? "—";
 const scoreOf = (row: ReportRow) =>
   typeof row.snapshot_data?.overall?.score === "number"
     ? Number(row.snapshot_data.overall.score)
@@ -384,7 +373,7 @@ export function Phase7ReportWorkspace(props: Props) {
           ),
           "Skor Akhir": scoreOf(row) ?? "",
           "Coverage (%)": coverageOf(row) ?? "",
-          "Status Keputusan": decisions[decisionOf(row)] ?? "Belum finalized",
+          "Status Keputusan": decisionLabel(decisionOf(row)),
           "Status Rapor": row.published_at
             ? "Published"
             : row.snapshot_id
@@ -423,7 +412,7 @@ export function Phase7ReportWorkspace(props: Props) {
             Nama: row.display_name,
             Kelompok: row.group_name ?? "",
             Skor_Akhir: scoreOf(row) ?? "",
-            Keputusan: decisions[decisionOf(row)] ?? "",
+            Keputusan: decisionLabel(decisionOf(row)),
             Kekuatan: row.snapshot_data?.collective?.strengths ?? "",
             Area_pengembangan:
               row.snapshot_data?.collective?.developmentAreas ?? "",
@@ -810,7 +799,7 @@ export function Phase7ReportWorkspace(props: Props) {
                           );
                         })}
                         <td>{scoreOf(row)?.toFixed(1) ?? "—"}</td>
-                        <td>{decisions[decisionOf(row)] ?? "—"}</td>
+                        <td>{decisionLabel(decisionOf(row))}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -1027,7 +1016,7 @@ export function Phase7ReportWorkspace(props: Props) {
                               : `Coverage ${coverageOf(row)!.toFixed(1)}%`}
                           </small>
                         </td>
-                        <td>{decisions[decisionOf(row)] ?? "—"}</td>
+                        <td>{decisionLabel(decisionOf(row))}</td>
                         <td>
                           <span
                             className={`agenda-status ${status.toLowerCase()}`}
@@ -1331,7 +1320,7 @@ function ReportPreview({ report }: { report: ReportFileData }) {
       )}
       <h3>Keputusan</h3>
       <p>
-        {decisions[data.collective?.decision ?? ""] ?? "Belum ditetapkan"} ·{" "}
+        {decisionLabel(data.collective?.decision)} ·{" "}
         {data.collective?.decisionRationale ?? ""}
       </p>
       <p className="privacy-note">

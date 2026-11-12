@@ -1,10 +1,10 @@
 "use server";
+import { uuidPattern } from "@/lib/validation";
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
-const uuidPattern = /^[0-9a-f-]{36}$/i;
 
 async function currentUser() {
   const supabase = await createClient();

@@ -34,6 +34,7 @@ import type { Phase7Home } from "@/lib/phase7-home";
 import { DashboardContent } from "./simulated-panels";
 
 import type { AppRole } from "@/lib/roles";
+import { decisionLabel } from "@/lib/decision-labels";
 export type { AppRole };
 type DashboardProps = {
   role: AppRole;
@@ -691,11 +692,7 @@ function Phase7DashboardHome({ data }: { data: Phase7Home }) {
           <article>
             <small>Keputusan</small>
             <strong>
-              {report.snapshot_data?.collective?.decision === "pass"
-                ? "Lulus"
-                : report.snapshot_data?.collective?.decision === "not_pass"
-                  ? "Tidak lulus"
-                  : "Perlu pembahasan"}
+{decisionLabel(report.snapshot_data?.collective?.decision)}
             </strong>
           </article>
           <article>

@@ -3,6 +3,7 @@
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { saveAssessmentRating } from "../penilaian/assessment-actions";
+import { SCORE_SCALE_LABELS } from "@/lib/scoring";
 
 type ResponseStatus = "unrated" | "scored" | "not_observed";
 type Value = {
@@ -243,16 +244,7 @@ export function AssessmentRatingCell(props: Props) {
             <option key={n} value={n}>
               {n} ·{" "}
               {
-                (
-                  [
-                    "",
-                    "Sangat Kurang",
-                    "Kurang",
-                    "Cukup",
-                    "Baik",
-                    "Sangat Baik",
-                  ] as string[]
-                )[n]
+                SCORE_SCALE_LABELS[n]
               }
             </option>
           ))}
@@ -271,16 +263,7 @@ export function AssessmentRatingCell(props: Props) {
             <strong>
               {n} ·{" "}
               {
-                (
-                  [
-                    "",
-                    "Sangat Kurang",
-                    "Kurang",
-                    "Cukup",
-                    "Baik",
-                    "Sangat Baik",
-                  ] as string[]
-                )[n]
+                SCORE_SCALE_LABELS[n]
               }
               :
             </strong>{" "}

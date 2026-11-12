@@ -1,4 +1,6 @@
 import type { ReportSnapshotData } from "./supabase-rows";
+import { categorizeScore } from "./scoring";
+import { decisionLabel } from "./decision-labels";
 
 export type ReportFileData = {
   participant: {
@@ -56,15 +58,7 @@ const wrap = (text: string, limit = 88) => {
 const moneyDate = (value?: string | null) =>
   value ? new Date(value).toLocaleDateString("id-ID") : "Belum diisi";
 const category = (value: number | null) =>
-  value === null
-    ? "Belum tersedia"
-    : value < 60
-      ? "Perlu pengembangan"
-      : value < 75
-        ? "Cukup"
-        : value < 90
-          ? "Baik"
-          : "Sangat baik";
+  value === null ? "Belum tersedia" : (categorizeScore(value)?.label ?? "Belum tersedia");
 
 function reportPages(report: ReportFileData) {
   const data = report.snapshotData ?? {};
@@ -73,11 +67,6 @@ function reportPages(report: ReportFileData) {
   const collective = data.collective ?? {};
   const overallScore =
     typeof data.overall?.score === "number" ? data.overall.score : null;
-  const decisionLabels: Record<string, string> = {
-    pass: "Lulus",
-    not_pass: "Tidak Lulus",
-    further_discussion: "Perlu Pembahasan Lanjutan",
-  };
   const rows: {
     text: string;
     size?: number;
@@ -148,7 +137,7 @@ function reportPages(report: ReportFileData) {
       ? []
       : [
           {
-            text: `Keputusan: ${decisionLabels[collective.decision ?? ""] ?? collective.decision ?? "Belum ditetapkan"}`,
+            text: `Keputusan: ${decisionLabel(collective.decision)}`,
             bold: true,
           },
         ]),

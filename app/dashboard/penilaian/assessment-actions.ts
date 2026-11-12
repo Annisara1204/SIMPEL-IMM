@@ -1,4 +1,5 @@
 "use server";
+import { uuidPattern } from "@/lib/validation";
 
 import { staffClient } from "./internal";
 
@@ -14,8 +15,8 @@ export async function saveObservation(input: {
     "instruktur",
   ]);
   if (
-    !/^[0-9a-f-]{36}$/i.test(input.participantId) ||
-    !/^[0-9a-f-]{36}$/i.test(input.indicatorId) ||
+    !uuidPattern.test(input.participantId) ||
+    !uuidPattern.test(input.indicatorId) ||
     (input.score !== null &&
       (!Number.isInteger(input.score) || input.score < 1 || input.score > 5)) ||
     !Number.isInteger(input.expectedRevision) ||
@@ -178,9 +179,9 @@ export async function saveAssessmentRating(input: {
     "instruktur",
   ]);
   if (
-    !/^[0-9a-f-]{36}$/i.test(input.participantId) ||
-    !/^[0-9a-f-]{36}$/i.test(input.rubricVersionId) ||
-    !/^[0-9a-f-]{36}$/i.test(input.indicatorId) ||
+    !uuidPattern.test(input.participantId) ||
+    !uuidPattern.test(input.rubricVersionId) ||
+    !uuidPattern.test(input.indicatorId) ||
     input.evidence.length > 3000 ||
     !Number.isInteger(input.expectedRevision) ||
     input.expectedRevision < 0 ||
@@ -360,8 +361,8 @@ export async function setAssessmentSubmissionStatus(input: {
     "instruktur",
   ]);
   if (
-    !/^[0-9a-f-]{36}$/i.test(input.participantId) ||
-    !/^[0-9a-f-]{36}$/i.test(input.rubricVersionId)
+    !uuidPattern.test(input.participantId) ||
+    !uuidPattern.test(input.rubricVersionId)
   )
     return { ok: false as const, message: "Sesi tidak valid." };
   const { data: participant } = await supabase
@@ -500,8 +501,8 @@ export async function saveObserverNote(input: {
     "instruktur",
   ]);
   if (
-    !/^[0-9a-f-]{36}$/i.test(input.participantId) ||
-    !/^[0-9a-f-]{36}$/i.test(input.rubricVersionId) ||
+    !uuidPattern.test(input.participantId) ||
+    !uuidPattern.test(input.rubricVersionId) ||
     !["observation", "strength", "development", "special"].includes(
       input.noteType,
     ) ||

@@ -1,4 +1,5 @@
 "use server";
+import { uuidPattern } from "@/lib/validation";
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -42,7 +43,7 @@ export async function editCommissariat(formData: FormData) {
   const supabase = await requireAdmin();
   const id = String(formData.get("id") ?? "");
   const name = String(formData.get("name") ?? "").trim();
-  if (!/^[0-9a-f-]{36}$/i.test(id) || !validName(name))
+  if (!uuidPattern.test(id) || !validName(name))
     throw new Error("Data Komisariat tidak valid.");
   const { error } = await supabase
     .from("commissariats")
@@ -62,7 +63,7 @@ export async function setCommissariatActive(formData: FormData) {
   const supabase = await requireAdmin();
   const id = String(formData.get("id") ?? "");
   const active = String(formData.get("active") ?? "") === "true";
-  if (!/^[0-9a-f-]{36}$/i.test(id))
+  if (!uuidPattern.test(id))
     throw new Error("ID Komisariat tidak valid.");
   const { error } = await supabase
     .from("commissariats")

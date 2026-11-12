@@ -1,4 +1,5 @@
 "use server";
+import { uuidPattern } from "@/lib/validation";
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -84,7 +85,7 @@ export async function updateUserRole(formData: FormData) {
 
   const targetId = String(formData.get("userId") ?? "");
   const selectedRole = String(formData.get("role") ?? "");
-  if (!/^[0-9a-f-]{36}$/i.test(targetId))
+  if (!uuidPattern.test(targetId))
     throw new Error("ID pengguna tidak valid.");
   if (targetId === userId)
     throw new Error(
@@ -130,8 +131,8 @@ export async function assignUserCommissariat(formData: FormData) {
   const targetId = String(formData.get("userId") ?? "");
   const commissariatId = String(formData.get("commissariatId") ?? "");
   if (
-    !/^[0-9a-f-]{36}$/i.test(targetId) ||
-    !/^[0-9a-f-]{36}$/i.test(commissariatId)
+    !uuidPattern.test(targetId) ||
+    !uuidPattern.test(commissariatId)
   )
     throw new Error("Pilih akun dan Komisariat yang valid.");
   const [{ data: target }, { data: commissariat }] = await Promise.all([

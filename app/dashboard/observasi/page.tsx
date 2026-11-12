@@ -5,6 +5,7 @@ import { AssessmentRatingCell } from "./assessment-rating-cell";
 import { ObserverNotes, type NoteRecord } from "./observer-notes";
 import { AssessmentRealtime } from "./assessment-realtime";
 import { SubmissionControls } from "./submission-controls";
+import { stageOrder } from "@/lib/stage-labels";
 import {
   calculateWeightedScore,
   categorizeScore,
@@ -19,12 +20,6 @@ type ObservationsPageProps = {
     typeId?: string | string[];
   }>;
 };
-
-const stages = [
-  { id: "screening", label: "1. Screening" },
-  { id: "training", label: "2. Pelatihan" },
-  { id: "follow_up", label: "3. Rencana Tindak Lanjut" },
-] as const;
 
 export default async function ObservationsPage({
   searchParams,
@@ -117,7 +112,7 @@ export default async function ObservationsPage({
   ]);
   const selectedEvent =
     events?.find((event) => event.id === requestedEventId) ?? null;
-  const selectedPhaseIsValid = stages.some(
+  const selectedPhaseIsValid = stageOrder.some(
     (stage) => stage.id === selectedStage,
   );
   const eventMaterials = (materials ?? []).filter(
@@ -204,7 +199,7 @@ export default async function ObservationsPage({
       .filter((item) => item.observer_id === userId)
       .map((item) => [item.participant_id, item]),
   );
-  const stageLabel = stages.find((stage) => stage.id === selectedStage)?.label;
+  const stageLabel = stageOrder.find((stage) => stage.id === selectedStage)?.label;
 
   return (
     <main className="users-page">
@@ -294,7 +289,7 @@ export default async function ObservationsPage({
                 </div>
               </div>
               <div className="assessment-event-list">
-                {stages.map((stage) => (
+                {stageOrder.map((stage) => (
                   <a
                     className="assessment-event-option"
                     key={stage.id}

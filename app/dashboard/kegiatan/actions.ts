@@ -1,10 +1,10 @@
 "use server";
+import { uuidPattern } from "@/lib/validation";
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
-const uuidPattern = /^[0-9a-f-]{36}$/i;
 const photoBucket = "participant-photos";
 const maxPhotoSize = 5 * 1024 * 1024;
 
@@ -90,7 +90,7 @@ export async function updateEvent(formData: FormData) {
   const endsOn = String(formData.get("endsOn") ?? "");
   const status = String(formData.get("status") ?? "");
   if (
-    !/^[0-9a-f-]{36}$/i.test(id) ||
+    !uuidPattern.test(id) ||
     (role === "admin_system" && (name.length < 3 || name.length > 120)) ||
     commissariat.length < 2 ||
     commissariat.length > 120 ||

@@ -8,6 +8,7 @@ import {
 } from "@/lib/phase6-scoring";
 import { firstRelated, relatedRows } from "@/lib/relations";
 import { stageLabel } from "@/lib/stage-labels";
+import { isModeratorPosition } from "@/lib/phase7-home";
 import type {
   AssessmentSummaryRow,
   RubricVersionJoined,
@@ -82,17 +83,13 @@ export default async function CollectiveEvaluationPage({
   const isModerator =
     profile.role === "admin_system" ||
     !!assignments?.some((assignment) =>
-      ["mot", "vice_mot", "master_observer", "vice_observer"].includes(
-        assignment.position,
-      ),
+      isModeratorPosition(assignment.position),
     );
   if (
     profile.role === "instruktur" &&
     eventId &&
     !assignments?.some((assignment) =>
-      ["mot", "vice_mot", "master_observer", "vice_observer"].includes(
-        assignment.position,
-      ),
+      isModeratorPosition(assignment.position),
     )
   )
     redirect("/dashboard");

@@ -1,4 +1,5 @@
 "use server";
+import { uuidPattern } from "@/lib/validation";
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -32,7 +33,6 @@ async function requireModerator(eventId: string) {
   return { supabase, userId };
 }
 
-const uuidPattern = /^[0-9a-f-]{36}$/i;
 
 /**
  * Filter rekap indikator ke satu jenis penilaian (satu rubrik versi aktif

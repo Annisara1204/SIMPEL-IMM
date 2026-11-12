@@ -27,6 +27,7 @@ import {
   instructorPositionLabel,
 } from "@/lib/instructor-roles";
 import { FrameworkRubricPicker } from "./framework-rubric-picker";
+import { SCORE_SCALE_LABELS } from "@/lib/scoring";
 
 type AssessmentSettingsPageProps = {
   searchParams: Promise<{
@@ -1168,18 +1169,7 @@ export default async function AssessmentSettingsPage({
                                                   (score) => (
                                                     <label key={score}>
                                                       Uraian skor {score} ·{" "}
-                                                      {
-                                                        (
-                                                          [
-                                                            "",
-                                                            "Sangat Kurang",
-                                                            "Kurang",
-                                                            "Cukup",
-                                                            "Baik",
-                                                            "Sangat Baik",
-                                                          ] as string[]
-                                                        )[score]
-                                                      }
+{SCORE_SCALE_LABELS[score]}
                                                       <textarea
                                                         required
                                                         minLength={3}
@@ -1341,18 +1331,7 @@ export default async function AssessmentSettingsPage({
                                       {[1, 2, 3, 4, 5].map((score) => (
                                         <label key={score}>
                                           Uraian skor {score} ·{" "}
-                                          {
-                                            (
-                                              [
-                                                "",
-                                                "Sangat Kurang",
-                                                "Kurang",
-                                                "Cukup",
-                                                "Baik",
-                                                "Sangat Baik",
-                                              ] as string[]
-                                            )[score]
-                                          }
+{SCORE_SCALE_LABELS[score]}
                                           <textarea
                                             required
                                             minLength={3}

@@ -1,4 +1,5 @@
 "use server";
+import { uuidPattern } from "@/lib/validation";
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -8,7 +9,6 @@ const mandateBucket = "commissariat-mandates";
 const photoBucket = "submission-photos";
 const maxMandateSize = 10 * 1024 * 1024;
 const maxPhotoSize = 5 * 1024 * 1024;
-const uuidPattern = /^[0-9a-f-]{36}$/i;
 
 async function commissariatClient() {
   const supabase = await createClient();

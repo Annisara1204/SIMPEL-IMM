@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { DashboardAssessmentResults } from "@/components/dashboard-assessment-results";
 import { createClient } from "@/lib/supabase/server";
+import { signMany } from "@/lib/signed-urls";
 import { loadDashboardAssessmentData } from "@/lib/dashboard-results";
 import { PrivateImg } from "@/components/private-img";
 
@@ -56,18 +57,18 @@ export default async function InstructorParticipantProfilesPage({
         ),
       }
     : null;
-  const people = await Promise.all(
-    (selected?.participants ?? []).map(async (person) => {
-      const photoUrl = person.photo_path
-        ? ((
-            await supabase.storage
-              .from("participant-photos")
-              .createSignedUrl(person.photo_path, 1800)
-          ).data?.signedUrl ?? null)
-        : null;
-      return { ...person, photoUrl };
-    }),
+  const participantPhotoUrls = await signMany(
+    supabase,
+    "participant-photos",
+    (selected?.participants ?? []).map((person) => person.photo_path),
+    1800,
   );
+  const people = (selected?.participants ?? []).map((person) => ({
+    ...person,
+    photoUrl: person.photo_path
+      ? (participantPhotoUrls.get(person.photo_path) ?? null)
+      : null,
+  }));
 
   return (
     <main className="users-page">

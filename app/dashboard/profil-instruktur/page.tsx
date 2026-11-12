@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { signMany } from "@/lib/signed-urls";
 import { PrivateImg } from "@/components/private-img";
 
 export default async function InstructorProfilesPage() {
@@ -27,18 +28,19 @@ export default async function InstructorProfilesPage() {
     full_name: string;
     photo_path: string | null;
   }[];
-  const instructors = await Promise.all(
-    publicIdentities.map(async (person, index) => {
-      const photoUrl = person.photo_path
-        ? ((
-            await supabase.storage
-              .from("account-profile-photos")
-              .createSignedUrl(person.photo_path, 1800)
-          ).data?.signedUrl ?? null)
-        : null;
-      return { id: index, fullName: person.full_name, photoUrl };
-    }),
+  const instructorPhotoUrls = await signMany(
+    supabase,
+    "account-profile-photos",
+    publicIdentities.map((person) => person.photo_path),
+    1800,
   );
+  const instructors = publicIdentities.map((person, index) => ({
+    id: index,
+    fullName: person.full_name,
+    photoUrl: person.photo_path
+      ? (instructorPhotoUrls.get(person.photo_path) ?? null)
+      : null,
+  }));
 
   return (
     <main className="users-page">

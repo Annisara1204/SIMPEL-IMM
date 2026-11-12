@@ -3184,3 +3184,17 @@ summary:focus-visible,
   border-color: var(--color-primary-dark);
   color: #fff;
 }
+
+/* Peta kompetensi: skala panas sel sesuai nilai aspek (1–5). */
+.heat-none {
+  background: #f5f3f4;
+}
+.heat-low {
+  background: #fce7e7;
+}
+.heat-mid {
+  background: #fff3d8;
+}
+.heat-high {
+  background: #e7f4ec;
+}

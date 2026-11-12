@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { signMany } from "@/lib/signed-urls";
 import {
   publishAdministrativeResults,
   saveAdministrativeDecision,
@@ -57,30 +58,34 @@ export default async function CommissariatReviewPage() {
     supabase.from("events").select("id, name"),
   ]);
 
-  const rows = await Promise.all(
-    (submissions ?? []).map(async (submission) => {
-      const mandateUrl = submission.mandate_path
-        ? ((
-            await supabase.storage
-              .from("commissariat-mandates")
-              .createSignedUrl(submission.mandate_path, 1800)
-          ).data?.signedUrl ?? null)
-        : null;
-      const participants = await Promise.all(
-        submission.participants.map(async (person) => ({
-          ...person,
-          photoUrl: person.photo_path
-            ? ((
-                await supabase.storage
-                  .from("submission-photos")
-                  .createSignedUrl(person.photo_path, 1800)
-              ).data?.signedUrl ?? null)
-            : null,
-        })),
-      );
-      return { ...submission, mandateUrl, participants };
-    }),
-  );
+  const [mandateUrls, submissionPhotoUrls] = await Promise.all([
+    signMany(
+      supabase,
+      "commissariat-mandates",
+      (submissions ?? []).map((submission) => submission.mandate_path),
+      1800,
+    ),
+    signMany(
+      supabase,
+      "submission-photos",
+      (submissions ?? []).flatMap((submission) =>
+        submission.participants.map((person) => person.photo_path),
+      ),
+      1800,
+    ),
+  ]);
+  const rows = (submissions ?? []).map((submission) => ({
+    ...submission,
+    mandateUrl: submission.mandate_path
+      ? (mandateUrls.get(submission.mandate_path) ?? null)
+      : null,
+    participants: submission.participants.map((person) => ({
+      ...person,
+      photoUrl: person.photo_path
+        ? (submissionPhotoUrls.get(person.photo_path) ?? null)
+        : null,
+    })),
+  }));
 
   return (
     <main className="users-page">

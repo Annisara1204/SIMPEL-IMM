@@ -126,35 +126,47 @@ export function Phase7ReportWorkspace(props: Props) {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
 
-  const allGroups = [
-    ...new Set(
-      rows
-        .map((row) => row.group_name)
-        .filter((value): value is string => !!value),
-    ),
-  ].sort();
-  const allScopes = [
-    ...new Set(
-      rows
-        .flatMap((row) =>
-          indicators(row.snapshot_data).map(
-            (item) => item.scopeKey ?? item.scope ?? "",
+  const allGroups = useMemo(
+    () =>
+      [
+        ...new Set(
+          rows
+            .map((row) => row.group_name)
+            .filter((value): value is string => !!value),
+        ),
+      ].sort(),
+    [rows],
+  );
+  const allScopes = useMemo(
+    () =>
+      [
+        ...new Set(
+          rows
+            .flatMap((row) =>
+              indicators(row.snapshot_data).map(
+                (item) => item.scopeKey ?? item.scope ?? "",
+              ),
+            )
+            .filter(Boolean),
+        ),
+      ].sort(),
+    [rows],
+  );
+  const observerNames = useMemo(
+    () =>
+      [
+        ...new Set(
+          privateSources.flatMap((source) =>
+            Array.isArray(source.private_payload?.ratings)
+              ? source.private_payload.ratings
+                  .map((rating) => rating.observer_name)
+                  .filter((name): name is string => !!name)
+              : [],
           ),
-        )
-        .filter(Boolean),
-    ),
-  ].sort();
-  const observerNames = [
-    ...new Set(
-      privateSources.flatMap((source) =>
-        Array.isArray(source.private_payload?.ratings)
-          ? source.private_payload.ratings
-              .map((rating) => rating.observer_name)
-              .filter((name): name is string => !!name)
-          : [],
-      ),
-    ),
-  ].sort();
+        ),
+      ].sort(),
+    [privateSources],
+  );
   const filteredRows = useMemo(
     () =>
       rows.filter((row) => {
@@ -170,12 +182,18 @@ export function Phase7ReportWorkspace(props: Props) {
       }),
     [rows, groupFilter, statusFilter],
   );
-  const publishedRows = filteredRows.filter(
-    (row) => !!row.published_at && !!row.snapshot_data,
+  const publishedRows = useMemo(
+    () =>
+      filteredRows.filter((row) => !!row.published_at && !!row.snapshot_data),
+    [filteredRows],
   );
-  const selectedPublishedRows = publishedRows.filter(
-    (row) =>
-      row.snapshot_id !== null && selectedBulkIds.includes(row.snapshot_id),
+  const selectedPublishedRows = useMemo(
+    () =>
+      publishedRows.filter(
+        (row) =>
+          row.snapshot_id !== null && selectedBulkIds.includes(row.snapshot_id),
+      ),
+    [publishedRows, selectedBulkIds],
   );
   const bulkRows = selectedPublishedRows.length
     ? selectedPublishedRows
@@ -183,72 +201,99 @@ export function Phase7ReportWorkspace(props: Props) {
   const selectedRow = participantId
     ? rows.find((row) => row.participant_id === participantId)
     : null;
-  const currentPreview = selectedRow?.snapshot_id
-    ? toReport(
-        selectedRow,
-        event,
-        indicatorNames,
-        versionInfoBySnapshot[selectedRow.snapshot_id] ?? [],
-      )
-    : null;
-  const finalized = filteredRows.filter((row) => row.snapshot_id);
+  const currentPreview = useMemo(
+    () =>
+      selectedRow?.snapshot_id
+        ? toReport(
+            selectedRow,
+            event,
+            indicatorNames,
+            versionInfoBySnapshot[selectedRow.snapshot_id] ?? [],
+          )
+        : null,
+    [selectedRow, event, indicatorNames, versionInfoBySnapshot],
+  );
+  const finalized = useMemo(
+    () => filteredRows.filter((row) => row.snapshot_id),
+    [filteredRows],
+  );
   const provisionalCount = filteredRows.length - finalized.length;
-  const decisionsCount = {
-    pass: finalized.filter((row) => decisionOf(row) === "pass").length,
-    not_pass: finalized.filter((row) => decisionOf(row) === "not_pass").length,
-    further: finalized.filter((row) => decisionOf(row) === "further_discussion")
-      .length,
-  };
-  const avgScore = finalized
-    .map(scoreOf)
-    .filter((score): score is number => score !== null);
-  const averageOverall = avgScore.length
-    ? avgScore.reduce((sum, score) => sum + score, 0) / avgScore.length
-    : null;
-  const aspectStats = new Map<
-    string,
-    { name: string; weight: number; sum: number; count: number }
-  >();
-  for (const row of finalized)
-    for (const aspect of aspects(row.snapshot_data)) {
-      if (typeof aspect.score !== "number") continue;
-      const key = String(
-        aspect.aspectId ?? aspect.aspect_id ?? aspect.aspectName,
-      );
-      const entry = aspectStats.get(key) ?? {
-        name: String(aspect.aspectName ?? aspect.aspect_name ?? "Aspek"),
-        weight: Number(aspect.weight ?? 0),
-        sum: 0,
-        count: 0,
-      };
-      entry.sum += Number(aspect.score);
-      entry.count++;
-      aspectStats.set(key, entry);
-    }
-  const aspectSummary = [...aspectStats.values()].map((item) => ({
-    ...item,
-    average: item.sum / item.count,
-  }));
-  const aspectColumns: { id: string; name: string }[] = aspects(
-    finalized[0]?.snapshot_data,
-  ).map((aspect) => ({
-    id: String(aspect.aspectId ?? aspect.aspect_id ?? aspect.aspectName),
-    name: String(aspect.aspectName ?? aspect.aspect_name ?? "Aspek"),
-  }));
-  const attentionRows = filteredRows
-    .flatMap((row) =>
-      indicators(row.snapshot_data)
-        .filter((item) => item.reviewStatus === "needs_review")
-        .map((item) => ({
-          participant: row.display_name,
-          indicator:
-            indicatorNames[item.indicatorId ?? ""] ?? item.indicatorId ?? "",
-          average: item.average,
-          range: item.range,
-          status: row.snapshot_id ? "Snapshot final" : "Provisional",
+  const decisionsCount = useMemo(
+    () => ({
+      pass: finalized.filter((row) => decisionOf(row) === "pass").length,
+      not_pass: finalized.filter((row) => decisionOf(row) === "not_pass")
+        .length,
+      further: finalized.filter(
+        (row) => decisionOf(row) === "further_discussion",
+      ).length,
+    }),
+    [finalized],
+  );
+  const averageOverall = useMemo(() => {
+    const avgScore = finalized
+      .map(scoreOf)
+      .filter((score): score is number => score !== null);
+    return avgScore.length
+      ? avgScore.reduce((sum, score) => sum + score, 0) / avgScore.length
+      : null;
+  }, [finalized]);
+  const aspectSummary = useMemo(() => {
+    const aspectStats = new Map<
+      string,
+      { name: string; weight: number; sum: number; count: number }
+    >();
+    for (const row of finalized)
+      for (const aspect of aspects(row.snapshot_data)) {
+        if (typeof aspect.score !== "number") continue;
+        const key = String(
+          aspect.aspectId ?? aspect.aspect_id ?? aspect.aspectName,
+        );
+        const entry = aspectStats.get(key) ?? {
+          name: String(aspect.aspectName ?? aspect.aspect_name ?? "Aspek"),
+          weight: Number(aspect.weight ?? 0),
+          sum: 0,
+          count: 0,
+        };
+        entry.sum += Number(aspect.score);
+        entry.count++;
+        aspectStats.set(key, entry);
+      }
+    return [...aspectStats.values()].map((item) => ({
+      ...item,
+      average: item.sum / item.count,
+    }));
+  }, [finalized]);
+  const aspectColumns: { id: string; name: string; weight: number | null }[] =
+    useMemo(
+      () =>
+        aspects(finalized[0]?.snapshot_data).map((aspect) => ({
+          id: String(aspect.aspectId ?? aspect.aspect_id ?? aspect.aspectName),
+          name: String(aspect.aspectName ?? aspect.aspect_name ?? "Aspek"),
+          weight:
+            typeof aspect.weight === "number" ? Number(aspect.weight) : null,
         })),
-    )
-    .slice(0, 30);
+      [finalized],
+    );
+  const attentionRows = useMemo(
+    () =>
+      filteredRows
+        .flatMap((row) =>
+          indicators(row.snapshot_data)
+            .filter((item) => item.reviewStatus === "needs_review")
+            .map((item) => ({
+              participant: row.display_name,
+              indicator:
+                indicatorNames[item.indicatorId ?? ""] ??
+                item.indicatorId ??
+                "",
+              average: item.average,
+              range: item.range,
+              status: row.snapshot_id ? "Snapshot final" : "Provisional",
+            })),
+        )
+        .slice(0, 30),
+    [filteredRows, indicatorNames],
+  );
 
   const eventHref = (eventId: string) =>
     `/dashboard/laporan?eventId=${encodeURIComponent(eventId)}`;
@@ -264,16 +309,17 @@ export function Phase7ReportWorkspace(props: Props) {
     if (!event) throw new Error("Pilih kegiatan terlebih dahulu.");
     await auditReportExport({ eventId: event.id, exportType, filters });
   };
-  const reportFiles = bulkRows
-    .map((row) =>
-      toReport(
-        row,
-        event,
-        indicatorNames,
-        versionInfoBySnapshot[row.snapshot_id ?? ""] ?? [],
-      ),
-    )
-    .filter((item): item is ReportFileData => !!item);
+  const buildReportFiles = () =>
+    bulkRows
+      .map((row) =>
+        toReport(
+          row,
+          event,
+          indicatorNames,
+          versionInfoBySnapshot[row.snapshot_id ?? ""] ?? [],
+        ),
+      )
+      .filter((item): item is ReportFileData => !!item);
 
   async function exportIndividual(report: ReportFileData) {
     setBusy(true);
@@ -293,6 +339,7 @@ export function Phase7ReportWorkspace(props: Props) {
     }
   }
   async function exportBulk() {
+    const reportFiles = buildReportFiles();
     setBusy(true);
     setProgress({ done: 0, total: reportFiles.length });
     setMessage("");
@@ -743,65 +790,56 @@ export function Phase7ReportWorkspace(props: Props) {
                   <thead>
                     <tr>
                       <th scope="col">Peserta</th>
-                      {aspectColumns.map((aspect) => {
-                        const item = aspects(finalized[0].snapshot_data).find(
-                          (value) =>
-                            String(
-                              value.aspectId ??
-                                value.aspect_id ??
-                                value.aspectName,
-                            ) === aspect.id,
-                        );
-                        return (
-                          <th key={aspect.id} scope="col">
-                            {aspect.name}
-                            <small>Bobot {item?.weight ?? "—"}%</small>
-                          </th>
-                        );
-                      })}
+                      {aspectColumns.map((aspect) => (
+                        <th key={aspect.id} scope="col">
+                          {aspect.name}
+                          <small>Bobot {aspect.weight ?? "—"}%</small>
+                        </th>
+                      ))}
                       <th scope="col">Nilai akhir</th>
                       <th scope="col">Keputusan</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {finalized.map((row) => (
-                      <tr key={row.snapshot_id ?? row.participant_id}>
-                        <th scope="row">{row.display_name}</th>
-                        {aspectColumns.map((column) => {
-                          const aspect = aspects(row.snapshot_data).find(
-                            (value) =>
-                              String(
-                                value.aspectId ??
-                                  value.aspect_id ??
-                                  value.aspectName,
-                              ) === column.id,
-                          );
-                          const score =
-                            typeof aspect?.score === "number"
-                              ? Number(aspect.score)
-                              : null;
-                          return (
-                            <td
-                              key={column.id}
-                              style={{
-                                background:
-                                  score === null
-                                    ? "#f5f3f4"
-                                    : score < 2
-                                      ? "#fce7e7"
-                                      : score < 3
-                                        ? "#fff3d8"
-                                        : "#e7f4ec",
-                              }}
-                            >
-                              {score === null ? "—" : score.toFixed(2)}
-                            </td>
-                          );
-                        })}
-                        <td>{scoreOf(row)?.toFixed(1) ?? "—"}</td>
-                        <td>{decisionLabel(decisionOf(row))}</td>
-                      </tr>
-                    ))}
+                    {finalized.map((row) => {
+                      const aspectsById = new Map(
+                        aspects(row.snapshot_data).map((value) => [
+                          String(
+                            value.aspectId ??
+                              value.aspect_id ??
+                              value.aspectName,
+                          ),
+                          value,
+                        ]),
+                      );
+                      return (
+                        <tr key={row.snapshot_id ?? row.participant_id}>
+                          <th scope="row">{row.display_name}</th>
+                          {aspectColumns.map((column) => {
+                            const aspect = aspectsById.get(column.id);
+                            const score =
+                              typeof aspect?.score === "number"
+                                ? Number(aspect.score)
+                                : null;
+                            const heatClass =
+                              score === null
+                                ? "heat-none"
+                                : score < 2
+                                  ? "heat-low"
+                                  : score < 3
+                                    ? "heat-mid"
+                                    : "heat-high";
+                            return (
+                              <td key={column.id} className={heatClass}>
+                                {score === null ? "—" : score.toFixed(2)}
+                              </td>
+                            );
+                          })}
+                          <td>{scoreOf(row)?.toFixed(1) ?? "—"}</td>
+                          <td>{decisionLabel(decisionOf(row))}</td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>

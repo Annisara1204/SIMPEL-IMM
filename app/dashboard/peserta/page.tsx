@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { signMany } from "@/lib/signed-urls";
 import {
   addParticipant,
   editParticipant,
@@ -65,20 +66,23 @@ export default async function ParticipantsPage() {
       .eq("is_active", true)
       .order("name"),
   ]);
-  const eventsWithPhotos = await Promise.all(
-    (events ?? []).map(async (event) => ({
-      ...event,
-      participants: await Promise.all(
-        event.participants.map(async (person) => {
-          if (!person.photo_path) return { ...person, photoUrl: null };
-          const { data } = await supabase.storage
-            .from("participant-photos")
-            .createSignedUrl(person.photo_path, 3600);
-          return { ...person, photoUrl: data?.signedUrl ?? null };
-        }),
-      ),
-    })),
+  const photoUrls = await signMany(
+    supabase,
+    "participant-photos",
+    (events ?? []).flatMap((event) =>
+      event.participants.map((person) => person.photo_path),
+    ),
+    3600,
   );
+  const eventsWithPhotos = (events ?? []).map((event) => ({
+    ...event,
+    participants: event.participants.map((person) => ({
+      ...person,
+      photoUrl: person.photo_path
+        ? (photoUrls.get(person.photo_path) ?? null)
+        : null,
+    })),
+  }));
   return (
     <main className="users-page">
       <Link className="users-back" href="/dashboard">

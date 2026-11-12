@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { signMany } from "@/lib/signed-urls";
 import {
   addApplicant,
   cancelSubmission,
@@ -82,30 +83,34 @@ export default async function CommissariatApplicationsPage() {
       .eq("commissariat_id", profile.commissariat_id)
       .order("created_at", { ascending: false }),
   ]);
-  const submissionsWithFiles = await Promise.all(
-    (submissions ?? []).map(async (submission) => {
-      const mandate = submission.mandate_path
-        ? ((
-            await supabase.storage
-              .from("commissariat-mandates")
-              .createSignedUrl(submission.mandate_path, 3600)
-          ).data?.signedUrl ?? null)
-        : null;
-      const participants = await Promise.all(
-        submission.participants.map(async (person) => ({
-          ...person,
-          photoUrl: person.photo_path
-            ? ((
-                await supabase.storage
-                  .from("submission-photos")
-                  .createSignedUrl(person.photo_path, 3600)
-              ).data?.signedUrl ?? null)
-            : null,
-        })),
-      );
-      return { ...submission, mandateUrl: mandate, participants };
-    }),
-  );
+  const [mandateUrls, submissionPhotoUrls] = await Promise.all([
+    signMany(
+      supabase,
+      "commissariat-mandates",
+      (submissions ?? []).map((submission) => submission.mandate_path),
+      3600,
+    ),
+    signMany(
+      supabase,
+      "submission-photos",
+      (submissions ?? []).flatMap((submission) =>
+        submission.participants.map((person) => person.photo_path),
+      ),
+      3600,
+    ),
+  ]);
+  const submissionsWithFiles = (submissions ?? []).map((submission) => ({
+    ...submission,
+    mandateUrl: submission.mandate_path
+      ? (mandateUrls.get(submission.mandate_path) ?? null)
+      : null,
+    participants: submission.participants.map((person) => ({
+      ...person,
+      photoUrl: person.photo_path
+        ? (submissionPhotoUrls.get(person.photo_path) ?? null)
+        : null,
+    })),
+  }));
   const activeSubmissions = submissionsWithFiles.filter(
     (submission) => submission.status !== "cancelled",
   );

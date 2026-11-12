@@ -1,13 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
 export function AssessmentRealtime({ versionId }: { versionId: string }) {
   const router = useRouter();
   const [status, setStatus] = useState("Menghubungkan Realtime…");
+  const refreshTimer = useRef<number | null>(null);
   useEffect(() => {
+    // Coalesce bursts of realtime events into satu refresh di belakang
+    // (autosave 700 ms × beberapa observer = banyak event per detik).
+    const scheduleRefresh = () => {
+      if (refreshTimer.current) window.clearTimeout(refreshTimer.current);
+      refreshTimer.current = window.setTimeout(() => router.refresh(), 500);
+    };
     const client = createClient();
     let channel: ReturnType<typeof client.channel> | null = null;
     let cancelled = false;
@@ -45,7 +52,7 @@ export function AssessmentRealtime({ versionId }: { versionId: string }) {
           },
           (payload) => {
             emit("assessment_ratings", payload);
-            router.refresh();
+            scheduleRefresh();
           },
         )
         .on(
@@ -58,7 +65,7 @@ export function AssessmentRealtime({ versionId }: { versionId: string }) {
           },
           (payload) => {
             emit("assessment_submissions", payload);
-            router.refresh();
+            scheduleRefresh();
           },
         )
         .on(
@@ -94,6 +101,7 @@ export function AssessmentRealtime({ versionId }: { versionId: string }) {
       });
     return () => {
       cancelled = true;
+      if (refreshTimer.current) window.clearTimeout(refreshTimer.current);
       if (channel) void client.removeChannel(channel);
     };
   }, [versionId, router]);

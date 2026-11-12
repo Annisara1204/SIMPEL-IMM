@@ -94,13 +94,24 @@ export default async function ObservationsPage({
         ? eventQuery.in("id", assignedEventIds)
         : Promise.resolve({ data: [], error: null })
       : eventQuery,
-    supabase
-      .from("rubric_versions")
-      .select(
-        "id, event_id, stage, material_id, assessment_type_id, version, rubric_aspects(id, name, weight, position, rubric_indicator_aspects(id, weight, rubric_indicators(id, name, target, position, score_descriptors, competency_indicator_id, competency_indicator_rubric_version_id)))",
-      )
-      .eq("status", "active")
-      .order("version", { ascending: false }),
+    profile.role === "admin_system"
+      ? supabase
+          .from("rubric_versions")
+          .select(
+            "id, event_id, stage, material_id, assessment_type_id, version, rubric_aspects(id, name, weight, position, rubric_indicator_aspects(id, weight, rubric_indicators(id, name, target, position, score_descriptors, competency_indicator_id, competency_indicator_rubric_version_id)))",
+          )
+          .eq("status", "active")
+          .order("version", { ascending: false })
+      : assignedEventIds.length
+        ? supabase
+            .from("rubric_versions")
+            .select(
+              "id, event_id, stage, material_id, assessment_type_id, version, rubric_aspects(id, name, weight, position, rubric_indicator_aspects(id, weight, rubric_indicators(id, name, target, position, score_descriptors, competency_indicator_id, competency_indicator_rubric_version_id)))",
+            )
+            .eq("status", "active")
+            .in("event_id", assignedEventIds)
+            .order("version", { ascending: false })
+        : Promise.resolve({ data: [], error: null }),
     supabase.from("observer_assignments").select("id, event_id, observer_id"),
     supabase
       .from("rubric_assessment_types")

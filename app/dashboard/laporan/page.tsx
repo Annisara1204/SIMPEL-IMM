@@ -95,28 +95,76 @@ export default async function ReportingPage({ searchParams }: Props) {
         </p>
       </main>
     );
-  const { data: moderator } = await supabase.rpc("is_assessment_moderator", {
-    target_event_id: selectedEvent.id,
-  });
+  const [{ data: moderator }, { data: rows, error: reportError }] =
+    await Promise.all([
+      supabase.rpc("is_assessment_moderator", {
+        target_event_id: selectedEvent.id,
+      }),
+      supabase.rpc("get_event_report_rows", {
+        target_event_id: selectedEvent.id,
+      }),
+    ]);
   const canManage =
     role === "admin_system" || role === "bidang_kader" || moderator === true;
   if (role === "instruktur" && !canManage) redirect("/dashboard");
-  const { data: rows, error: reportError } = await supabase.rpc(
-    "get_event_report_rows",
-    { target_event_id: selectedEvent.id },
-  );
   const reportRows = (rows ?? []) as EventReportRow[];
   const rubricVersionIds = reportRows
     .flatMap((row) => row.rubric_version_ids ?? [])
     .filter((id) => typeof id === "string");
-  const { data: versions } = rubricVersionIds.length
-    ? await supabase
-        .from("rubric_versions")
-        .select(
-          "id,version,stage,material_id,competency_framework_version_id,rubric_materials(name),rubric_aspects(rubric_indicator_aspects(rubric_indicators(id,name,competency_indicator_id)))",
-        )
-        .in("id", [...new Set(rubricVersionIds)])
-    : { data: [] };
+  const frameworkIds = [
+    ...new Set(
+      reportRows
+        .flatMap((row) => row.framework_version_ids ?? [])
+        .filter((id: string) => typeof id === "string"),
+    ),
+  ];
+  const canViewPrivate = role === "admin_system" || moderator === true;
+  const [
+    versionsRes,
+    frameworkVersionsRawRes,
+    candidateAccountsRes,
+    privateSourcesRes,
+    observerProgressRes,
+  ] = await Promise.all([
+    rubricVersionIds.length
+      ? supabase
+          .from("rubric_versions")
+          .select(
+            "id,version,stage,material_id,competency_framework_version_id,rubric_materials(name),rubric_aspects(rubric_indicator_aspects(rubric_indicators(id,name,competency_indicator_id)))",
+          )
+          .in("id", [...new Set(rubricVersionIds)])
+      : { data: [] },
+    frameworkIds.length
+      ? supabase
+          .from("competency_framework_versions")
+          .select("id,version,competency_frameworks(name)")
+          .in("id", frameworkIds)
+      : { data: [] },
+    role === "admin_system"
+      ? supabase
+          .from("profiles")
+          .select("id,display_name")
+          .eq("role", "peserta")
+          .order("display_name")
+      : { data: [] },
+    canViewPrivate && reportRows.some((row) => row.snapshot_id)
+      ? supabase
+          .from("assessment_snapshot_private_sources")
+          .select("snapshot_id,private_payload")
+          .in(
+            "snapshot_id",
+            reportRows.flatMap((row) =>
+              row.snapshot_id ? [row.snapshot_id] : [],
+            ),
+          )
+      : { data: [] },
+    canManage
+      ? supabase.rpc("get_event_assessment_progress", {
+          target_event_id: selectedEvent.id,
+        })
+      : { data: [] },
+  ]);
+  const { data: versions } = versionsRes as { data: unknown };
   const versionList = (versions ?? []) as unknown as RubricVersionJoined[];
   const indicatorNames: Record<string, string> = {};
   for (const version of versionList)
@@ -125,19 +173,8 @@ export default async function ReportingPage({ searchParams }: Props) {
         for (const indicator of relatedRows(mapping.rubric_indicators))
           indicatorNames[indicator.competency_indicator_id ?? indicator.id] =
             indicator.name;
-  const frameworkIds = [
-    ...new Set(
-      reportRows
-        .flatMap((row) => row.framework_version_ids ?? [])
-        .filter((id: string) => typeof id === "string"),
-    ),
-  ];
-  const { data: frameworkVersionsRaw } = frameworkIds.length
-    ? await supabase
-        .from("competency_framework_versions")
-        .select("id,version,competency_frameworks(name)")
-        .in("id", frameworkIds)
-    : { data: [] };
+  const frameworkVersionsRaw = (frameworkVersionsRawRes as { data: unknown })
+    .data;
   const frameworkVersions = (frameworkVersionsRaw ??
     []) as unknown as CompetencyFrameworkVersionJoined[];
   const versionInfoBySnapshot = new Map<string, string[]>();
@@ -161,32 +198,9 @@ export default async function ReportingPage({ searchParams }: Props) {
     }
     versionInfoBySnapshot.set(row.snapshot_id, labels);
   }
-  const { data: candidateAccounts } =
-    role === "admin_system"
-      ? await supabase
-          .from("profiles")
-          .select("id,display_name")
-          .eq("role", "peserta")
-          .order("display_name")
-      : { data: [] };
-  const canViewPrivate = role === "admin_system" || moderator === true;
-  const { data: privateSources } =
-    canViewPrivate && reportRows.some((row) => row.snapshot_id)
-      ? await supabase
-          .from("assessment_snapshot_private_sources")
-          .select("snapshot_id,private_payload")
-          .in(
-            "snapshot_id",
-            reportRows.flatMap((row) =>
-              row.snapshot_id ? [row.snapshot_id] : [],
-            ),
-          )
-      : { data: [] };
-  const { data: observerProgress } = canManage
-    ? await supabase.rpc("get_event_assessment_progress", {
-        target_event_id: selectedEvent.id,
-      })
-    : { data: [] };
+  const candidateAccounts = (candidateAccountsRes as { data: unknown }).data;
+  const privateSources = (privateSourcesRes as { data: unknown }).data;
+  const observerProgress = (observerProgressRes as { data: unknown }).data;
   return (
     <Phase7ReportWorkspace
       role={role}

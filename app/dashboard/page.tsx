@@ -71,13 +71,23 @@ export default async function DashboardPage() {
         </form>
       </main>
     );
+  type InstructorAssignmentRow = {
+    id: string;
+    event_id: string;
+    position: string;
+    created_at: string | null;
+    events: { name: string } | { name: string }[] | null;
+  };
+  let instructorAssignmentRows: InstructorAssignmentRow[] = [];
   if (profile.role === "instruktur") {
-    const { data: assignments } = await supabase
+    const { data: allAssignments } = await supabase
       .from("instructor_event_assignments")
-      .select("id")
+      .select("id, event_id, position, created_at, events(name)")
       .eq("instructor_id", userId)
-      .limit(1);
-    if (!assignments?.length)
+      .order("created_at");
+    instructorAssignmentRows =
+      (allAssignments as unknown as InstructorAssignmentRow[] | null) ?? [];
+    if (!instructorAssignmentRows.length)
       return (
         <main className="setup-message">
           <h1>Akun menunggu penugasan Superadmin</h1>
@@ -96,11 +106,7 @@ export default async function DashboardPage() {
   if (["admin_system", "bidang_kader"].includes(profile.role)) {
     phase7Home = await loadStaffPhase7Home(supabase);
   } else if (profile.role === "instruktur") {
-    const { data: assignments } = await supabase
-      .from("instructor_event_assignments")
-      .select("position")
-      .eq("instructor_id", userId);
-    const moderator = !!assignments?.some((item) =>
+    const moderator = instructorAssignmentRows.some((item) =>
       isModeratorPosition(item.position),
     );
     phase7Home = moderator
@@ -117,12 +123,8 @@ export default async function DashboardPage() {
   let instructorAssignments: InstructorAssignment[] = [];
   let instructorParticipantEvents: InstructorParticipantEvent[] = [];
   if (profile.role === "instruktur") {
-    const { data: assignmentRows } = await supabase
-      .from("instructor_event_assignments")
-      .select("id, event_id, position, events(name)")
-      .eq("instructor_id", userId)
-      .order("created_at");
-    const ids = (assignmentRows ?? []).map((assignment) => assignment.id);
+    const assignmentRows = instructorAssignmentRows;
+    const ids = assignmentRows.map((assignment) => assignment.id);
     const { data: dutyRows } = ids.length
       ? await supabase
           .from("instructor_duty_items")

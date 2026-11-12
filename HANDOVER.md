@@ -155,3 +155,17 @@ Perubahan & alur (diverifikasi end-to-end di browser + DB, data simulasi):
 - PROD kini berisi trial set DEV: kegiatan PK IMM FEB UM Bandung + rubrik aktif (Interview/Screening 10 indikator, Kognitif/AIK Pre-Post 50/50) + 3 peserta simulasi. Tanpa akun/nilai/snapshot.
 - DEV tidak berubah (sumber dibaca saja). Apabila DEV perlu diperbarui, terpisah dari prosedur ini.
 - Produksi masih kosong untuk: akun penilai, pengajuan, nilai, snapshot.
+
+
+## Akun sintetik PROD (13 November 2026, malam)
+
+Empat akun uji untuk trial produksi (data simulasi, hapus kapan pun, password acak diserahkan ke pemilik):
+
+| Akun | Role | Penugasan |
+|---|---|---|
+| `qa-prod-observer-a@imm-observer.invalid` | Observer | `PK IMM FEB UM Bandung` |
+| `qa-prod-observer-b@imm-observer.invalid` | Observer | `PK IMM FEB UM Bandung` |
+| `qa-prod-instruktur@imm-observer.invalid` | Instruktur (MoT) | `PK IMM FEB UM Bandung`, 5 tugas checklist |
+| `qa-prod-kader@imm-observer.invalid` | Bidang Kader | — |
+
+Semuanya login terverifikasi di produksi (Observer melihat kegiatan tugasnya; Instruktur melihat monitoring + checklist MoT; Kader dashboard pemantauan). Kredensial tersimpan lokal di `.env.qa-test` (gitignored). Akun produksi nyata untuk anggota panitia belum dibuat — belum ada daftar email/peran.

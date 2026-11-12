@@ -77,3 +77,17 @@ Disalin terpilih dari DEV `thtwrkovcorgxzuqttal` ke PROD `crrqlwlfndhugcqcnkex` 
 Verifikasi: bobot aktif = 100 untuk kedua rubrik; kegiatan tampil di dashboard; Kerangka DAD (6 aspek, 27 indikator, 135 anchor) tampil di `/dashboard/kerangka`; event tampil di `/dashboard/kegiatan`.
 
 **Catatan:** DEV tidak berisi data uji; Salinan dilakukan dengan INSERT tervalidasi FK, satu transaksi. `/dashboard/pengguna` (buat akun) tetap belum berfungsi sampai `SUPABASE_SERVICE_ROLE_KEY` ditambahkan ke `.env.production`.
+
+
+## Akun sintetik PROD (13 November 2026, malam)
+
+Empat akun uji untuk trial produksi (data simulasi, hapus kapan pun, password acak diserahkan ke pemilik):
+
+| Akun | Role | Penugasan |
+|---|---|---|
+| `qa-prod-observer-a@imm-observer.invalid` | Observer | `PK IMM FEB UM Bandung` |
+| `qa-prod-observer-b@imm-observer.invalid` | Observer | `PK IMM FEB UM Bandung` |
+| `qa-prod-instruktur@imm-observer.invalid` | Instruktur (MoT) | `PK IMM FEB UM Bandung`, 5 tugas checklist |
+| `qa-prod-kader@imm-observer.invalid` | Bidang Kader | — |
+
+Semuanya login terverifikasi di produksi (Observer melihat kegiatan tugasnya; Instruktur melihat monitoring + checklist MoT; Kader dashboard pemantauan). Kredensial tersimpan lokal di `.env.qa-test` (gitignored). Akun produksi nyata untuk anggota panitia belum dibuat — belum ada daftar email/peran.

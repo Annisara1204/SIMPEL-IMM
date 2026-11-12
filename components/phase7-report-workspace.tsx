@@ -722,7 +722,7 @@ export function Phase7ReportWorkspace(props: Props) {
             </div>
           </section>
           <section className="event-manage-card">
-            <h2>Rata-rata enam aspek</h2>
+            <h2>Rata-rata aspek</h2>
             {aspectSummary.length ? (
               aspectSummary.map((aspect) => (
                 <div className="report-aspect-row" key={aspect.name}>

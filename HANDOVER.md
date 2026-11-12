@@ -3,6 +3,15 @@
 **Terakhir diperbarui:** 12 November 2026
 **Lokasi proyek:** `C:\Users\Lenovo\Documents\project`
 
+## Verifikasi Supabase — 12 November 2026 (pengguna menjalankan di SQL Editor)
+
+- Tes struktural `supabase/tests/dad_assessment_phase5.sql` dijalankan pengguna dan **lulus**. Phase 5 lengkap di sisi basis data.
+- Tes `supabase/tests/dad_scoring_phase6.sql` awalnya gagal dengan `42601: too few parameters specified for RAISE` karena tanda `%` tunggal di pesan error (`coverage 80%`). File diperbaiki menjadi `80%%` (commit `8067cc5`); setelah diperbaiki, tes **lulus** di Supabase pengguna.
+- Migration Phase 7 `20261112180000_dad_reporting_publication_v1.sql` **terpasang** di Supabase pengguna (dijalankan dalam tiga bagian karena tempel ke SQL Editor terpotong dua kali: terpotong tepat setelah `insert into assessment_report_publication_audit`, dan potongan kedua berjalan mulai dari `return target_snapshot_id;`). Semua bagian bersifat idempotent (`create or replace` / `if not exists` / `drop ... if exists`) sehingga aman diulang.
+- Tombol Supabase "Run and enable RLS" terbukti menyisipkan `ALTER TABLE` keliru di tengah fungsi plpgsql dan selalu menyebabkan `42601`. Untuk migration yang sudah memuat `enable row level security` (seperti Phase 7), pilih **"Run without RLS"**. Migration Phase 7 memang mengaktifkan RLS sendiri untuk ketiga tabel barunya.
+- Setelah ketiga bagian terpasang, `supabase/tests/dad_reporting_phase7.sql` dijalankan pengguna dan **berhasil** (pesan persis tidak dikutip, tetapi sebelumnya tes ini konsisten menampilkan error saat migration belum terpasang, jadi keberhasilan kali ini menandakan pemeriksaan struktur lulus).
+- Masih **belum** diuji: browser/dua akun, RLS lintas role, Realtime, submission/finalisasi nyata, publikasi rapor, ekspor PDF/ZIP/Excel. Build produksi masih `EPERM` di prerender Windows. Data tetap simulasi.
+
 ## Phase 5 — Assessment Form & Observer Collaboration (implementasi lokal, 11 November 2026)
 
 - Prompt Phase 5 terbaru mengubah keputusan sebelumnya: setiap Observer/Instruktur yang ditugaskan memiliki rating independen per peserta, indikator, dan versi rubrik. Data legacy pada `observations` tidak dihapus atau dipindah karena satu skor bersama lama tidak dapat dipisah menjadi skor penulis terdahulu dengan aman.

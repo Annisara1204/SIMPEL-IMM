@@ -251,6 +251,10 @@ Nama tabel masih konsep dan dapat disesuaikan saat implementasi data dimulai:
 
 ## Status proyek saat ini
 
+### Verifikasi Supabase — 12 November 2026
+
+- Regression SQL Phase 5 (`dad_assessment_phase5.sql`) dan Phase 6 (`dad_scoring_phase6.sql`, setelah perbaikan placeholder `%%`) dilaporkan pengguna **lulus**. Migration Phase 7 (`20261112180000_dad_reporting_publication_v1.sql`) terpasang dan `dad_reporting_phase7.sql` dilaporkan **berhasil**. Belum diuji di browser: dua akun, RLS lintas role, Realtime, submission/finalisasi, publikasi rapor, dan ekspor PDF/ZIP/Excel. Data tetap simulasi.
+
 ### Keputusan terbaru Phase 5 — 11 November 2026
 
 - Prompt Phase 5 terbaru menggantikan keputusan lama untuk satu skor bersama: setiap Observer menyimpan skor, N/O, bukti, revisi, dan statusnya sendiri per peserta/indikator/versi rubrik. Penilaian observer lain ditampilkan baca-saja; catatan kategori tetap terpisah per penulis.

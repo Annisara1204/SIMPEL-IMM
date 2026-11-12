@@ -205,15 +205,15 @@ export default async function ParticipantsPage() {
                 <table className="users-table participant-table">
                   <thead>
                     <tr>
-                      <th>Foto</th>
-                      <th>Nama lengkap</th>
-                      <th>NIM</th>
-                      <th>Kelompok</th>
-                      <th>Komisariat</th>
-                      <th>Jurusan/program studi</th>
-                      <th>Tahun</th>
-                      <th>Jabatan</th>
-                      <th>Aksi</th>
+                      <th scope="col">Foto</th>
+                      <th scope="col">Nama lengkap</th>
+                      <th scope="col">NIM</th>
+                      <th scope="col">Kelompok</th>
+                      <th scope="col">Komisariat</th>
+                      <th scope="col">Jurusan/program studi</th>
+                      <th scope="col">Tahun</th>
+                      <th scope="col">Jabatan</th>
+                      <th scope="col">Aksi</th>
                     </tr>
                   </thead>
                   <tbody>

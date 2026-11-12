@@ -393,21 +393,21 @@ export default async function CollectiveEvaluationPage({
               <table className="competency-matrix">
                 <thead>
                   <tr>
-                    <th>Indikator</th>
-                    <th>Cakupan</th>
-                    <th>Rata-rata</th>
-                    <th>Penilai valid</th>
-                    <th>Min–Maks</th>
-                    <th>Rentang</th>
-                    <th>N/O</th>
-                    <th>Pending</th>
-                    <th>Moderasi</th>
+                    <th scope="col">Indikator</th>
+                    <th scope="col">Cakupan</th>
+                    <th scope="col">Rata-rata</th>
+                    <th scope="col">Penilai valid</th>
+                    <th scope="col">Min–Maks</th>
+                    <th scope="col">Rentang</th>
+                    <th scope="col">N/O</th>
+                    <th scope="col">Pending</th>
+                    <th scope="col">Moderasi</th>
                   </tr>
                 </thead>
                 <tbody>
                   {indicatorAggregates.map((item) => (
                     <tr key={`${item.indicatorId}:${item.scopeKey}`}>
-                      <th>
+                      <th scope="row">
                         {indicatorNames.get(item.indicatorId) ??
                           item.indicatorId}
                         <small>{item.indicatorId}</small>

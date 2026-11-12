@@ -1,6 +1,6 @@
 # Handover — IMM Observer
 
-**Terakhir diperbarui:** 12 November 2026 (konsolidasi dokumen)
+**Terakhir diperbarui:** 12 November 2026 (perbaikan UI/UX + QA browser)
 **Lokasi proyek:** `C:\Users\Lenovo\Documents\project` (dev Windows); salinan kerja sesi ini: `/home/ibaysander/Documents/Freelance/SIMPEL-IMM` (Linux)
 
 Dokumen ini hanya mencatat kondisi terkini. Riwayat sesi dan bukti verifikasi lama tersimpan verbatim di `docs/archive/`:
@@ -14,6 +14,21 @@ Keputusan produk tetap di `BLUEPRINT.md`; urutan fase dan ketergantungan di `IMP
 
 - Stack: Next.js 16.4.3, React 19.2, TypeScript strict, Supabase (Auth, PostgreSQL RLS, Storage). Dev menggunakan Windows (PowerShell); verifikasi otomatis berjalan di Linux via GitHub Actions (`.github/workflows/ci.yml`).
 - Kualitas kode (12 Nov): ESLint 9 flat config + Prettier terpasang; `npm run check` = typecheck + lint + format:check + test. Hasil terakhir: **0 error lint** (18 warning), typecheck lolos, tes **12/12**, `npm run build` lolos di Linux. Build Windows sebelumnya gagal `EPERM` di prerender — belum diuji ulang.
+- **Perbaikan UI/UX (12 Nov, sore)** — di-commit 12 Nov 2026 (belum push):
+  - Navigasi internal memakai `<Link>` + `usePathname()`; item href kini dapat kelas `.active` dan `aria-current="page"`. Breadcrumb untuk halaman pratinjau konsisten dengan judul.
+  - Menu tanpa halaman kini menampilkan empty state ("MENU DALAM PENGEMBANGAN" + "Kembali ke Ringkasan") — sebelumnya banner "Pratinjau navigasi" tampil di atas seluruh isi dashboard.
+  - Fokus keyboard global: rule `:focus-visible` (outline maroon) untuk semua elemen interaktif; `outline: none` pada select dihapus.
+  - Kontras teks muted dinaikkan ke minimal 4.5:1 (nilai tunggal `#56665d` sage, `#6f5a64` maroon; status selesai/berjalan → `#3e7c57` / `#8a5a1d`).
+  - `.signout-button` ("Keluar") dan `.login-footnote a` kini ter-style; logo `.login-mark` dot tidak lagi turun ke bawah kotak; sidebar di layar pendek bisa di-scroll (`overflow-y: auto`); tombol "Login pengguna" tidak pecah baris di mobile.
+  - `app/icon.svg` baru (favicon); tautan internal di `app/dashboard/page.tsx`, `app/dashboard/profil/page.tsx`, `components/role-dashboard.tsx` dipindah ke `<Link>`.
+- **Design system batch 2 (12 Nov, malam)** — di-commit 12 Nov 2026 (belum push):
+  - `next/font/google` (DM Sans + Manrope) menggantikan `@import` Google Fonts; font disajikan self-hosted dari `/_next/static/media` (tidak ada request ke Google; diverifikasi via computed style & tanpa error dev server).
+  - `lucide-react@1.72.0` terpasang; glyph Unicode (`▦ ◷ ♧ …` ☰ ×) diganti komponen Lucide di seluruh menu & tombol mobile; `.nav-icon` kini inline-flex SVG.
+  - Token warna diperluas di `:root` (`--color-primary(-dark/-soft/-wash)`, `--color-surface(-soft)`, `--color-border(-soft/-input)`, `--color-label`, `--muted-warm`); seluruh `#8b1e3f`, `#64142d`, `#eee8eb`, `#ded7da`, `#62595d`, `#faf8f9`, `#f0ecee`, `#f8f7f8`, `#f8eef1`, `#fbf6f8`, `#fff`, `#56665d`, `#6f5a64` diganti referensi token; variabel menyesatkan `--green`/`--green-dark` (isinya maroon) dihapus. Hex unik: 234 → < 190.
+  - Palet hijau halaman Kerangka (`/dashboard/kerangka`) diseragamkan ke brand maroon (aksen status hijau "selesai/diterbitkan" dipertahankan sebagai semantik).
+  - 79 `<th>` diberi `scope="col"`/`scope="row"` di 9 berkas; blok `prefers-reduced-motion` ditambahkan; `.chevron`/`.arrow` yang tidak terpakai dihapus.
+  - Verifikasi: `npm run check` exit 0 (0 error, 18 warning lint lama, format & tes 12/12); screenshot desktop & iPhone 14 diperiksa (beranda, login, daftar, empty state, drawer mobile, ring fokus); error sesaat "Objects are not valid as a React child" di log dev (01:06) adalah keadaan transien selama edit ikon, tidak berulang setelah state akhir.
+  - Belum diverifikasi visual: halaman terautentikasi (butuh kredensial); tombol "Keluar" hanya ditinjau dari CSS. `.sidebar` dan `.empty-state` belum diuji di Windows (target dev pengguna).
 - CI belum pernah berjalan (baru ditulis, belum di-push).
 - `@typescript-eslint/no-explicit-any` sudah kembali ke aturan default (error) sejak refactor tipe 12 Nov 2026 — pemakaian `any` di seluruh app/components/lib telah dihapus (tipe baris RPC/relasi didefinisikan di `lib/supabase-rows.ts`, batas konversi).
 - Dua aturan sengaja masih dijadikan peringatan: `react-hooks/set-state-in-effect` (sel autosave/konflik offline; perlu refactor dengan uji browser) dan `@next/next/no-img-element` (foto privat signed URL). `react-hooks/exhaustive-deps` menyisakan 5 peringatan pada sel yang sama.

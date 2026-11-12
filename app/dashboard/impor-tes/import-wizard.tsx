@@ -433,12 +433,12 @@ export function ImportWizard({
                 <table className="users-table">
                   <thead>
                     <tr>
-                      <th>Baris</th>
-                      <th>Nama dari berkas</th>
-                      <th>Komisariat</th>
-                      <th>Nilai</th>
-                      <th>Peserta yang cocok</th>
-                      <th>Sertakan</th>
+                      <th scope="col">Baris</th>
+                      <th scope="col">Nama dari berkas</th>
+                      <th scope="col">Komisariat</th>
+                      <th scope="col">Nilai</th>
+                      <th scope="col">Peserta yang cocok</th>
+                      <th scope="col">Sertakan</th>
                     </tr>
                   </thead>
                   <tbody>

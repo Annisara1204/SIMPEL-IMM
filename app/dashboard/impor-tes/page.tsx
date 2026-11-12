@@ -80,12 +80,12 @@ export default async function TestImportPage() {
             <table className="users-table">
               <thead>
                 <tr>
-                  <th>Waktu</th>
-                  <th>Kegiatan</th>
-                  <th>Jenis</th>
-                  <th>Berkas</th>
-                  <th>Baris</th>
-                  <th>Dipakai</th>
+                  <th scope="col">Waktu</th>
+                  <th scope="col">Kegiatan</th>
+                  <th scope="col">Jenis</th>
+                  <th scope="col">Berkas</th>
+                  <th scope="col">Baris</th>
+                  <th scope="col">Dipakai</th>
                 </tr>
               </thead>
               <tbody>

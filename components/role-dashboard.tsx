@@ -1,6 +1,28 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import {
+  BarChart3,
+  Building2,
+  CalendarClock,
+  CalendarDays,
+  ClipboardList,
+  Eye,
+  FileText,
+  LayoutDashboard,
+  Menu,
+  MessagesSquare,
+  SlidersHorizontal,
+  Upload,
+  UserRound,
+  X,
+  GraduationCap,
+  ClipboardCheck,
+  Settings,
+  type LucideIcon,
+} from "lucide-react";
 import { DashboardAssessmentResults } from "./dashboard-assessment-results";
 import type { DashboardAssessmentData } from "@/lib/dashboard-results";
 import {
@@ -22,7 +44,7 @@ type DashboardProps = {
   instructorParticipantEvents?: InstructorParticipantEvent[];
   phase7Home?: Phase7Home | null;
 };
-type NavItem = { label: string; icon: string; group: string };
+type NavItem = { label: string; icon: LucideIcon; group: string };
 const labels: Record<AppRole, string> = {
   public: "Pengunjung Publik",
   admin_system: "Admin Sistem",
@@ -34,60 +56,80 @@ const labels: Record<AppRole, string> = {
 };
 const menuByRole: Record<AppRole, NavItem[]> = {
   public: [
-    { label: "Dashboard", icon: "▦", group: "INFORMASI" },
-    { label: "Jadwal DAD", icon: "◷", group: "INFORMASI" },
-    { label: "Profil Instruktur", icon: "♧", group: "INFORMASI" },
+    { label: "Dashboard", icon: LayoutDashboard, group: "INFORMASI" },
+    { label: "Jadwal DAD", icon: CalendarClock, group: "INFORMASI" },
+    { label: "Profil Instruktur", icon: GraduationCap, group: "INFORMASI" },
   ],
   admin_system: [
-    { label: "Dashboard", icon: "▦", group: "MENU UTAMA" },
-    { label: "Pengguna", icon: "♧", group: "PENGELOLAAN" },
-    { label: "Komisariat", icon: "⌂", group: "PENGELOLAAN" },
-    { label: "Kegiatan DAD", icon: "▣", group: "PENGELOLAAN" },
-    { label: "Peserta", icon: "♙", group: "PENGELOLAAN" },
-    { label: "Pengaturan Penilaian", icon: "☷", group: "PENGELOLAAN" },
-    { label: "Kerangka DAD", icon: "▤", group: "PENGELOLAAN" },
-    { label: "Seleksi Komisariat", icon: "▤", group: "PENGELOLAAN" },
-    { label: "Pengaturan Sistem", icon: "⚙", group: "PENGELOLAAN" },
-    { label: "Evaluasi Kolektif", icon: "◎", group: "DATA & LAPORAN" },
-    { label: "Laporan & Rapor", icon: "▧", group: "DATA & LAPORAN" },
-    { label: "Impor Hasil Tes", icon: "⇧", group: "DATA & LAPORAN" },
+    { label: "Dashboard", icon: LayoutDashboard, group: "MENU UTAMA" },
+    { label: "Pengguna", icon: GraduationCap, group: "PENGELOLAAN" },
+    { label: "Komisariat", icon: Building2, group: "PENGELOLAAN" },
+    { label: "Kegiatan DAD", icon: CalendarDays, group: "PENGELOLAAN" },
+    { label: "Peserta", icon: UserRound, group: "PENGELOLAAN" },
+    {
+      label: "Pengaturan Penilaian",
+      icon: SlidersHorizontal,
+      group: "PENGELOLAAN",
+    },
+    { label: "Kerangka DAD", icon: FileText, group: "PENGELOLAAN" },
+    { label: "Seleksi Komisariat", icon: ClipboardCheck, group: "PENGELOLAAN" },
+    { label: "Pengaturan Sistem", icon: Settings, group: "PENGELOLAAN" },
+    {
+      label: "Evaluasi Kolektif",
+      icon: MessagesSquare,
+      group: "DATA & LAPORAN",
+    },
+    { label: "Laporan & Rapor", icon: ClipboardList, group: "DATA & LAPORAN" },
+    { label: "Impor Hasil Tes", icon: Upload, group: "DATA & LAPORAN" },
   ],
   bidang_kader: [
-    { label: "Dashboard", icon: "▦", group: "MENU UTAMA" },
-    { label: "Kegiatan DAD", icon: "▣", group: "MENU UTAMA" },
-    { label: "Peserta", icon: "♙", group: "MENU UTAMA" },
-    { label: "Observasi", icon: "◉", group: "PEMANTAUAN" },
-    { label: "Pengaturan Penilaian", icon: "☷", group: "PEMANTAUAN" },
-    { label: "Kerangka DAD", icon: "▤", group: "PEMANTAUAN" },
-    { label: "Evaluasi Kolektif", icon: "◎", group: "DATA & LAPORAN" },
-    { label: "Laporan & Rapor", icon: "▧", group: "DATA & LAPORAN" },
-    { label: "Analitik & Rekap", icon: "▥", group: "DATA & LAPORAN" },
+    { label: "Dashboard", icon: LayoutDashboard, group: "MENU UTAMA" },
+    { label: "Kegiatan DAD", icon: CalendarDays, group: "MENU UTAMA" },
+    { label: "Peserta", icon: UserRound, group: "MENU UTAMA" },
+    { label: "Observasi", icon: Eye, group: "PEMANTAUAN" },
+    {
+      label: "Pengaturan Penilaian",
+      icon: SlidersHorizontal,
+      group: "PEMANTAUAN",
+    },
+    { label: "Kerangka DAD", icon: FileText, group: "PEMANTAUAN" },
+    {
+      label: "Evaluasi Kolektif",
+      icon: MessagesSquare,
+      group: "DATA & LAPORAN",
+    },
+    { label: "Laporan & Rapor", icon: ClipboardList, group: "DATA & LAPORAN" },
+    { label: "Analitik & Rekap", icon: BarChart3, group: "DATA & LAPORAN" },
   ],
   observer: [
-    { label: "Dashboard", icon: "▦", group: "MENU UTAMA" },
-    { label: "Kegiatan DAD", icon: "▣", group: "MENU UTAMA" },
-    { label: "Peserta", icon: "♙", group: "MENU UTAMA" },
-    { label: "Observasi", icon: "◉", group: "PEMANTAUAN" },
-    { label: "Kerangka DAD", icon: "▤", group: "PEMANTAUAN" },
-    { label: "Seleksi Komisariat", icon: "▤", group: "PEMANTAUAN" },
+    { label: "Dashboard", icon: LayoutDashboard, group: "MENU UTAMA" },
+    { label: "Kegiatan DAD", icon: CalendarDays, group: "MENU UTAMA" },
+    { label: "Peserta", icon: UserRound, group: "MENU UTAMA" },
+    { label: "Observasi", icon: Eye, group: "PEMANTAUAN" },
+    { label: "Kerangka DAD", icon: FileText, group: "PEMANTAUAN" },
+    { label: "Seleksi Komisariat", icon: ClipboardCheck, group: "PEMANTAUAN" },
   ],
   instruktur: [
-    { label: "Dashboard", icon: "▦", group: "MENU UTAMA" },
-    { label: "Profil Peserta", icon: "♙", group: "MENU UTAMA" },
-    { label: "Profil Instruktur", icon: "♧", group: "MENU UTAMA" },
-    { label: "Observasi", icon: "◉", group: "PENILAIAN" },
-    { label: "Evaluasi Kolektif", icon: "◎", group: "PENILAIAN" },
-    { label: "Laporan & Rapor", icon: "▧", group: "PENILAIAN" },
-    { label: "Kerangka DAD", icon: "▤", group: "PENILAIAN" },
+    { label: "Dashboard", icon: LayoutDashboard, group: "MENU UTAMA" },
+    { label: "Profil Peserta", icon: UserRound, group: "MENU UTAMA" },
+    { label: "Profil Instruktur", icon: GraduationCap, group: "MENU UTAMA" },
+    { label: "Observasi", icon: Eye, group: "PENILAIAN" },
+    { label: "Evaluasi Kolektif", icon: MessagesSquare, group: "PENILAIAN" },
+    { label: "Laporan & Rapor", icon: ClipboardList, group: "PENILAIAN" },
+    { label: "Kerangka DAD", icon: FileText, group: "PENILAIAN" },
   ],
   komisariat: [
-    { label: "Dashboard", icon: "▦", group: "MENU UTAMA" },
-    { label: "Pengajuan Peserta", icon: "⇧", group: "MENU UTAMA" },
-    { label: "Analitik & Rekap", icon: "▥", group: "DATA & LAPORAN" },
+    { label: "Dashboard", icon: LayoutDashboard, group: "MENU UTAMA" },
+    { label: "Pengajuan Peserta", icon: Upload, group: "MENU UTAMA" },
+    { label: "Analitik & Rekap", icon: BarChart3, group: "DATA & LAPORAN" },
   ],
   peserta: [
-    { label: "Dashboard", icon: "▦", group: "MENU UTAMA" },
-    { label: "Laporan & Rapor", icon: "▧", group: "INFORMASI PRIBADI" },
+    { label: "Dashboard", icon: LayoutDashboard, group: "MENU UTAMA" },
+    {
+      label: "Laporan & Rapor",
+      icon: ClipboardList,
+      group: "INFORMASI PRIBADI",
+    },
   ],
 };
 
@@ -196,6 +238,7 @@ export function RoleDashboard({
 }: DashboardProps) {
   const [active, setActive] = useState("Dashboard");
   const [mobileOpen, setMobileOpen] = useState(false);
+  const pathname = usePathname();
   const items =
     role === "public"
       ? menuByRole[role]
@@ -203,8 +246,14 @@ export function RoleDashboard({
           ...menuByRole[role],
           ...(role === "instruktur"
             ? []
-            : [{ label: "Profil Instruktur", icon: "♧", group: "INFORMASI" }]),
-          { label: "Profil saya", icon: "♙", group: "AKUN" },
+            : [
+                {
+                  label: "Profil Instruktur",
+                  icon: GraduationCap,
+                  group: "INFORMASI",
+                },
+              ]),
+          { label: "Profil saya", icon: UserRound, group: "AKUN" },
         ];
   const groups = [...new Set(items.map((item) => item.group))];
   const pageTitle: Record<AppRole, string> = {
@@ -232,7 +281,7 @@ export function RoleDashboard({
             onClick={() => setMobileOpen(false)}
             aria-label="Tutup menu"
           >
-            ×
+            <X size={23} aria-hidden="true" />
           </button>
         </div>
         <div className="event-switch">
@@ -241,7 +290,6 @@ export function RoleDashboard({
             <small>{isPublic ? "PORTAL INFORMASI" : "KEGIATAN AKTIF"}</small>
             <strong>{isPublic ? "Informasi DAD" : "DAD Simulasi 2026"}</strong>
           </div>
-          <span className="chevron">⌄</span>
         </div>
         <nav aria-label="Navigasi utama">
           {groups.map((group) => (
@@ -252,23 +300,40 @@ export function RoleDashboard({
                 .map((item) => {
                   const href = navHref(item.label, role);
                   if (href) {
+                    const isCurrent = pathname === href;
                     return (
-                      <a key={item.label} className="nav-link" href={href}>
-                        <span className="nav-icon">{item.icon}</span>
+                      <Link
+                        key={item.label}
+                        className={`nav-link ${isCurrent ? "active" : ""}`}
+                        href={href}
+                        aria-current={isCurrent ? "page" : undefined}
+                      >
+                        <item.icon
+                          className="nav-icon"
+                          aria-hidden="true"
+                          size={17}
+                          strokeWidth={1.8}
+                        />
                         {item.label}
-                      </a>
+                      </Link>
                     );
                   }
                   return (
                     <button
                       key={item.label}
                       className={`nav-link ${active === item.label ? "active" : ""}`}
+                      aria-current={active === item.label ? "page" : undefined}
                       onClick={() => {
                         setActive(item.label);
                         setMobileOpen(false);
                       }}
                     >
-                      <span className="nav-icon">{item.icon}</span>
+                      <item.icon
+                        className="nav-icon"
+                        aria-hidden="true"
+                        size={17}
+                        strokeWidth={1.8}
+                      />
                       {item.label}
                     </button>
                   );
@@ -282,7 +347,6 @@ export function RoleDashboard({
             <strong>Butuh bantuan?</strong>
             <small>Panduan penggunaan</small>
           </div>
-          <span className="arrow">↗</span>
         </div>
       </aside>
       {mobileOpen && (
@@ -300,7 +364,7 @@ export function RoleDashboard({
               onClick={() => setMobileOpen(true)}
               aria-label="Buka menu"
             >
-              ☰
+              <Menu size={19} aria-hidden="true" />
             </button>
             <div className="breadcrumb">
               Ruang kerja <span>/</span> <b>{active}</b>
@@ -346,40 +410,46 @@ export function RoleDashboard({
               </p>
             </div>
             {isPublic && (
-              <a className="period-button login-link" href="/login">
+              <Link className="period-button" href="/login">
                 Login pengguna <span>→</span>
-              </a>
+              </Link>
             )}
           </div>
-          {active !== "Dashboard" && (
-            <div className="preview-banner">
-              <span>ⓘ</span>
-              <div>
-                <strong>Pratinjau navigasi</strong>
-                <p>
-                  Halaman <b>{active}</b> akan tersedia pada tahap pengembangan
-                  berikutnya.
-                </p>
-              </div>
-            </div>
-          )}
-          {active === "Dashboard" && phase7Home ? (
+          {active !== "Dashboard" ? (
+            <section className="event-manage-card empty-state">
+              <span className="sample-tag">MENU DALAM PENGEMBANGAN</span>
+              <h2>{active}</h2>
+              <p>
+                Halaman <b>{active}</b> belum tersedia pada tahap ini. Menu ini
+                hanya pratinjau dan tidak menampilkan data apa pun.
+              </p>
+              <button
+                type="button"
+                className="text-button"
+                onClick={() => setActive("Dashboard")}
+              >
+                ← Kembali ke Ringkasan
+              </button>
+            </section>
+          ) : phase7Home ? (
             <Phase7DashboardHome data={phase7Home} />
           ) : (
-            <DashboardContent
-              role={role}
-              onNavigate={setActive}
-              instructorAssignments={instructorAssignments}
-            />
-          )}
-          {active === "Dashboard" && !phase7Home && role === "instruktur" && (
-            <InstructorDutyDashboard
-              assignments={instructorAssignments}
-              participantEvents={instructorParticipantEvents}
-            />
-          )}
-          {active === "Dashboard" && !phase7Home && assessmentData && (
-            <DashboardAssessmentResults data={assessmentData} />
+            <>
+              <DashboardContent
+                role={role}
+                onNavigate={setActive}
+                instructorAssignments={instructorAssignments}
+              />
+              {role === "instruktur" && (
+                <InstructorDutyDashboard
+                  assignments={instructorAssignments}
+                  participantEvents={instructorParticipantEvents}
+                />
+              )}
+              {assessmentData && (
+                <DashboardAssessmentResults data={assessmentData} />
+              )}
+            </>
           )}
           <footer className="page-footer">
             <span>
@@ -495,12 +565,12 @@ function Phase7DashboardHome({ data }: { data: Phase7Home }) {
                       : "belum ada"}
                   </small>
                 </div>
-                <a
+                <Link
                   className="text-button"
                   href={`/dashboard/laporan?eventId=${item.id}`}
                 >
                   Buka dashboard laporan →
-                </a>
+                </Link>
               </article>
             ))
           ) : (
@@ -549,16 +619,16 @@ function Phase7DashboardHome({ data }: { data: Phase7Home }) {
               <table className="competency-matrix">
                 <thead>
                   <tr>
-                    <th>Kegiatan</th>
-                    <th>Sesi/materi</th>
-                    <th>Status</th>
-                    <th>Perubahan terakhir</th>
+                    <th scope="col">Kegiatan</th>
+                    <th scope="col">Sesi/materi</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Perubahan terakhir</th>
                   </tr>
                 </thead>
                 <tbody>
                   {data.sessions.map((item, index) => (
                     <tr key={`${item.eventName}:${item.sessionName}:${index}`}>
-                      <th>{item.eventName}</th>
+                      <th scope="row">{item.eventName}</th>
                       <td>{item.sessionName}</td>
                       <td>{item.status}</td>
                       <td>
@@ -578,9 +648,9 @@ function Phase7DashboardHome({ data }: { data: Phase7Home }) {
             Untuk melanjutkan atau melengkapi penilaian, buka menu Observasi.
             Dashboard ini tidak menampilkan catatan atau nilai Observer lain.
           </p>
-          <a className="text-button" href="/dashboard/observasi">
+          <Link className="text-button" href="/dashboard/observasi">
             Buka penilaian →
-          </a>
+          </Link>
         </section>
       </>
     );
@@ -625,7 +695,7 @@ function Phase7DashboardHome({ data }: { data: Phase7Home }) {
             </strong>
           </article>
           <article>
-            <a href="/dashboard/laporan">Buka rapor dan unduh PDF →</a>
+            <Link href="/dashboard/laporan">Buka rapor dan unduh PDF →</Link>
           </article>
         </div>
       ) : (

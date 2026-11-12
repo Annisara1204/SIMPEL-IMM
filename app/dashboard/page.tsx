@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { RoleDashboard, type AppRole } from "@/components/role-dashboard";
 import { createClient } from "@/lib/supabase/server";
 import { loadDashboardAssessmentData } from "@/lib/dashboard-results";
@@ -68,7 +69,7 @@ export default async function DashboardPage() {
           Dashboard belum menampilkan fitur. Superadmin akan menetapkan role
           dan, untuk Instruktur, subrole serta penugasan kegiatan.
         </p>
-        <a href="/dashboard/profil">Lengkapi profil saya</a>
+        <Link href="/dashboard/profil">Lengkapi profil saya</Link>
         <form action="/auth/signout" method="post">
           <button>Keluar</button>
         </form>
@@ -88,7 +89,7 @@ export default async function DashboardPage() {
             Role Instruktur sudah ditetapkan, tetapi dashboard baru terbuka
             setelah Superadmin menetapkan subrole dan kegiatan.
           </p>
-          <a href="/dashboard/profil">Buka Profil saya</a>
+          <Link href="/dashboard/profil">Buka Profil saya</Link>
           <form action="/auth/signout" method="post">
             <button>Keluar</button>
           </form>

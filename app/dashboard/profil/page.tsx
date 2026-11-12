@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { updateOwnProfile } from "./actions";
 
@@ -50,9 +51,9 @@ export default async function ProfilePage({
     : { data: null };
   return (
     <main className="login-page">
-      <a href="/dashboard" className="login-back">
+      <Link href="/dashboard" className="login-back">
         ← Kembali ke dashboard
-      </a>
+      </Link>
       <section className="login-card personal-profile-card">
         <p className="login-eyebrow">PROFIL AKUN</p>
         <h1>Profil saya</h1>

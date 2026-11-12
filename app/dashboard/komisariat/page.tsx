@@ -97,10 +97,10 @@ export default async function CommissariatsPage({
           <table className="users-table">
             <thead>
               <tr>
-                <th>Nama Komisariat</th>
-                <th>Status</th>
-                <th>Ubah nama</th>
-                <th>Aksi</th>
+                <th scope="col">Nama Komisariat</th>
+                <th scope="col">Status</th>
+                <th scope="col">Ubah nama</th>
+                <th scope="col">Aksi</th>
               </tr>
             </thead>
             <tbody>

@@ -318,12 +318,12 @@ export default async function CommissariatApplicationsPage() {
                 <table className="users-table participant-table">
                   <thead>
                     <tr>
-                      <th>Foto</th>
-                      <th>Nama</th>
-                      <th>Jurusan/program studi</th>
-                      <th>Tahun</th>
-                      <th>Jabatan</th>
-                      {editable && <th>Aksi</th>}
+                      <th scope="col">Foto</th>
+                      <th scope="col">Nama</th>
+                      <th scope="col">Jurusan/program studi</th>
+                      <th scope="col">Tahun</th>
+                      <th scope="col">Jabatan</th>
+                      {editable && <th scope="col">Aksi</th>}
                     </tr>
                   </thead>
                   <tbody>

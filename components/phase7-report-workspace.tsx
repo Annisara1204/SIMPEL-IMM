@@ -745,7 +745,7 @@ export function Phase7ReportWorkspace(props: Props) {
                 <table className="competency-matrix">
                   <thead>
                     <tr>
-                      <th>Peserta</th>
+                      <th scope="col">Peserta</th>
                       {aspectColumns.map((aspect) => {
                         const item = aspects(finalized[0].snapshot_data).find(
                           (value) =>
@@ -756,20 +756,20 @@ export function Phase7ReportWorkspace(props: Props) {
                             ) === aspect.id,
                         );
                         return (
-                          <th key={aspect.id}>
+                          <th key={aspect.id} scope="col">
                             {aspect.name}
                             <small>Bobot {item?.weight ?? "—"}%</small>
                           </th>
                         );
                       })}
-                      <th>Nilai akhir</th>
-                      <th>Keputusan</th>
+                      <th scope="col">Nilai akhir</th>
+                      <th scope="col">Keputusan</th>
                     </tr>
                   </thead>
                   <tbody>
                     {finalized.map((row) => (
                       <tr key={row.participant_id}>
-                        <th>{row.display_name}</th>
+                        <th scope="row">{row.display_name}</th>
                         {aspectColumns.map((column) => {
                           const aspect = aspects(row.snapshot_data).find(
                             (value) =>
@@ -817,11 +817,11 @@ export function Phase7ReportWorkspace(props: Props) {
                 <table className="competency-matrix">
                   <thead>
                     <tr>
-                      <th>Peserta</th>
-                      <th>Indikator</th>
-                      <th>Rata-rata</th>
-                      <th>Rentang</th>
-                      <th>Status</th>
+                      <th scope="col">Peserta</th>
+                      <th scope="col">Indikator</th>
+                      <th scope="col">Rata-rata</th>
+                      <th scope="col">Rentang</th>
+                      <th scope="col">Status</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -829,7 +829,7 @@ export function Phase7ReportWorkspace(props: Props) {
                       <tr
                         key={`${item.participant}:${item.indicator}:${index}`}
                       >
-                        <th>{item.participant}</th>
+                        <th scope="row">{item.participant}</th>
                         <td>{item.indicator}</td>
                         <td>
                           {item.average == null
@@ -858,19 +858,19 @@ export function Phase7ReportWorkspace(props: Props) {
                   <table className="competency-matrix">
                     <thead>
                       <tr>
-                        <th>Penilai</th>
-                        <th>Target</th>
-                        <th>Draft</th>
-                        <th>Submitted</th>
-                        <th>Finalized</th>
-                        <th>Belum mulai</th>
-                        <th>Progres kiriman</th>
+                        <th scope="col">Penilai</th>
+                        <th scope="col">Target</th>
+                        <th scope="col">Draft</th>
+                        <th scope="col">Submitted</th>
+                        <th scope="col">Finalized</th>
+                        <th scope="col">Belum mulai</th>
+                        <th scope="col">Progres kiriman</th>
                       </tr>
                     </thead>
                     <tbody>
                       {observerProgress.map((item) => (
                         <tr key={item.observer_id}>
-                          <th>{item.observer_name}</th>
+                          <th scope="row">{item.observer_name}</th>
                           <td>{item.expected_submissions}</td>
                           <td>{item.draft_count}</td>
                           <td>{item.submitted_count}</td>
@@ -924,7 +924,7 @@ export function Phase7ReportWorkspace(props: Props) {
               <table className="competency-matrix">
                 <thead>
                   <tr>
-                    <th>
+                    <th scope="col">
                       <input
                         type="checkbox"
                         aria-label="Pilih semua rapor Published"
@@ -943,12 +943,12 @@ export function Phase7ReportWorkspace(props: Props) {
                         }
                       />
                     </th>
-                    <th>Peserta</th>
-                    <th>Kelompok / Komisariat</th>
-                    <th>Skor / Coverage</th>
-                    <th>Keputusan</th>
-                    <th>Status</th>
-                    <th>Aksi</th>
+                    <th scope="col">Peserta</th>
+                    <th scope="col">Kelompok / Komisariat</th>
+                    <th scope="col">Skor / Coverage</th>
+                    <th scope="col">Keputusan</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Aksi</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -985,7 +985,7 @@ export function Phase7ReportWorkspace(props: Props) {
                             }
                           />
                         </td>
-                        <th>
+                        <th scope="row">
                           <a
                             href={`${eventHref(event.id)}&participantId=${row.participant_id}`}
                           >

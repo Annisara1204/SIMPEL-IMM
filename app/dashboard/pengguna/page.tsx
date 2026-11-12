@@ -149,12 +149,12 @@ export default async function UsersPage({
           <table className="users-table">
             <thead>
               <tr>
-                <th>Jenis akun</th>
-                <th>Nama / username</th>
-                <th>ID akun</th>
-                <th>Role</th>
-                <th>Tautan Komisariat</th>
-                <th>Aksi</th>
+                <th scope="col">Jenis akun</th>
+                <th scope="col">Nama / username</th>
+                <th scope="col">ID akun</th>
+                <th scope="col">Role</th>
+                <th scope="col">Tautan Komisariat</th>
+                <th scope="col">Aksi</th>
               </tr>
             </thead>
             <tbody>

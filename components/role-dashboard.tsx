@@ -79,6 +79,7 @@ const menuByRole: Record<AppRole, NavItem[]> = {
       icon: MessagesSquare,
       group: "DATA & LAPORAN",
     },
+    { label: "Analitik & Rekap", icon: BarChart3, group: "DATA & LAPORAN" },
     { label: "Laporan & Rapor", icon: ClipboardList, group: "DATA & LAPORAN" },
     { label: "Impor Hasil Tes", icon: Upload, group: "DATA & LAPORAN" },
   ],
@@ -183,6 +184,11 @@ const navDestinations: { label: string; href: string; roles: AppRole[] }[] = [
     label: "Evaluasi Kolektif",
     href: "/dashboard/evaluasi",
     roles: ["admin_system", "bidang_kader", "instruktur"],
+  },
+  {
+    label: "Analitik & Rekap",
+    href: "/dashboard/analitik",
+    roles: ["admin_system", "bidang_kader"],
   },
   {
     label: "Laporan & Rapor",

@@ -64,6 +64,14 @@ Keputusan produk tetap di `BLUEPRINT.md`; urutan fase dan ketergantungan di `IMP
 3. Tinjau pemakaian `<img>` untuk foto privat (6 titik): tetap `<img>` atau optimasi gambar; kembalikan aturan ke `error` bila diputuskan.
 4. Build Windows dan jalankan CI setelah push.
 
+## Otomasi `/goal` & akun QA (12 Nov 2026, malam)
+
+- OpenCode terpasang **v2.2.7** — `/goal` bawaan sejak v2.2.1 (release notes anomalyco/opencode); tidak perlu plugin. `docs/GOAL.md` berisi objective paste-ready + kriteria selesai + batas otonom (project DEV saja, data simulasi, tanpa destruktif, rilis tetap keputusan manusia).
+- Project dev `thtwrkovcorgxzuqttal` dijangkau dari Linux; `.env.local` berformat **CRLF** — saat load di shell, buang `\r` dulu (`tr -d '\r'`), kalau tidak URL Supabase "Malformed input". Project `production imm` (crrqlwlfndhugcqcnkex) **tidak boleh** disentuh. `SUPABASE_SERVICE_ROLE_KEY` tidak ada di `.env.local`; yang tersedia personal access token (ditempel di chat sesi ini — **rotate setelah selesai**) dipakai hanya via shell env, tidak ditulis ke file/git.
+- 5 akun QA sintetik dibuat di project dev (email `qa-auto-*@qa.imm-observer.invalid`, password acak, di **`.env.qa-test`** — di-gitignore lewat `.env*`): admin_system, 2× observer (ditugaskan ke `PK IMM FEB UM Bandung`), instruktur (MoT), bidang_kader. Kelimanya terverifikasi login HTTP 200. Akun lama tidak diubah. `observer_assignments`/`instructor_event_assignments` untuk A & B tercatat.
+- `npm run check` exit 0 (typecheck + lint + format + tes 12/12; build Linux lolos). Belum ada Playwright; `agent-browser` (skill) dipakai untuk e2e. Akun Peserta belum ada (metode akses masih terbuka).
+- Belum dijalankan di sesi ini: uji browser dua akun/konflik/Realtime, build Windows, dan seluruh isi `docs/GOAL.md` — itu tugas sesi otonom `/goal` berikutnya.
+
 ## Cara menjalankan
 
 ```powershell
@@ -73,3 +81,29 @@ npm.cmd run check  # verifikasi lokal
 ```
 
 Hentikan server dengan `Ctrl+C`.
+
+## Sesi otomasi & verifikasi browser (13 November 2026)
+
+Tujuan: menindaklanjuti `docs/GOAL.md` (otomasi penyelesaian aplikasi via `/goal`). Sebelum eksekusi, riset menetapkan: `/goal` bawaan OpenCode ≥ v2.2.1 (terpasang: v2.2.7); OpenCode V2 **tidak** memiliki `/goal` sebagai perintah Markdown Bawaan — yang tersedia adalah native goal mode; plugin pihak ketiga (`@prevalentware/opencode-goal-plugin`) tidak diperlukan.
+
+### Yang diselesaikan
+
+- Verifikasi browser dua sesi (Observer A/B): nilai independen, autosave, konflik (lokal & remote), catatan per penulis + riwayat, Evaluasi Kolektif, draf rekomendasi, Realtime (setelah fix BUG-002).
+- **BUG-002 (High) diperbaiki:** realtime tidak tiba; token sesi kini di-`setAuth()` sebelum join channel (`assessment-realtime.tsx`). Terverifikasi live.
+- **BUG-001 (Low) diperbaiki:** `acceptLatest` tidak membersihkan draf localStorage → konflik berulang. Diperbaiki + terverifikasi.
+- **Refactor `set-state-in-effect` (6 titik) selesai** → rule kembali ke `error`: pola lazy initializer untuk draf localStorage + status online, pola render-time guarded "adjust state" untuk sinkronisasi props (observation-cell, observer-notes), `setTimeout(0)` untuk status offline. Verifikasi: `npm run check` exit 0; konflik berulang sudah terbukti hilang di browser.
+- **`@next/next/no-img-element` kembali ke `error`**: 6 titik `<img>` (signed URL privat) dipindah ke komponen `components/private-img.tsx` (cerukan tunggal, alt wajib); tidak ada `<img>` bebas lain.
+- **Tahap 8 selesai:** `app/dashboard/analitik/page.tsx` (agregat lintas kegiatan; admin_system + bidang_kader; tanpa skor individu/catatan privat). Menu "Analitik & Rekap" aktif; terverifikasi di browser sebagai Kader (3 kegiatan, 10 peserta, semua final=0 sesuai data riil).
+- Lint: 0 error; warning tersisa semuanya pra-existing + 2 exhaustive-deps lama.
+
+### Pemblokir (butuh keputusan pengguna)
+
+- **BUG-003 (BLOCKER):** evaluasi final mustahil — agregator mensyaratkan Σ bobot aspek = 100, padahal dua rubrik aktif menyumbang 200 (Screening 100% + Pelatihan 100%). Rapor/ekspor/publish semuanya terblokir sampai skema agregasi diputuskan (per tahap? per scope cross_session? dinormalisasi?). Uji konsistensi sistem (`npm run check` / build) tetap hijau; blokirnya deterministik dan diverifikasi lewat UI + kode (`lib/phase6-scoring.ts`).
+- Setelah skema dipilih: moderasi manusia ("Perlu ditinjau", rentang ≥2 poin) harus diselesaikan koordinator via Evaluasi Kolektif; agen tidak mengarang konsensus; finalize juga menuntut evaluasi berstatus `draft` di `collective_evaluations`.
+- AUTH-005: sesi kedaluwarsa → "Profil belum tersedia" (bukan redirect login). BUG-004, belum diperbaiki.
+- Build Windows `EPERM` dan CI (`.github/workflows/ci.yml`) tetap belum diverifikasi/pernah jalan.
+- Token Supabase personal access yang dipakai sesi ini: **rotate setelah selesai** (sudah dicatat; jangan di-commit).
+
+### Akun QA sintetik
+
+`.env.qa-test` (gitignored): `qa-auto-admin@qa.imm-observer.invalid`, `qa-auto-observer-{a,b}@qa.imm-observer.invalid` (ditugaskan `PK IMM FEB UM Bandung`), `qa-auto-instruktur@qa.imm-observer.invalid` (MoT), `qa-auto-kader@qa.imm-observer.invalid`. Semua password acak kuat. Project `production imm` (crrqlwlfndhugcqcnkex) TIDAK disentuh.

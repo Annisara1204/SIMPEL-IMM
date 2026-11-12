@@ -31,3 +31,10 @@ Ditemukan audit 12 Nov 2026; detail di HANDOVER.md:
 5. Konten demo statis dipindah ke `components/simulated-panels.tsx`; navigasi `label → href` jadi tabel data — selesai.
 6. Logika data ringkasan dashboard dipindah ke `lib/phase7-home.ts`; duplikasi cabang role diciutkan; `snapshotIds` → `rubricVersionIds` — selesai.
 7. Sisa: sel autosave/konflik offline (`set-state-in-effect`, 6 titik) dan `<img>` foto privat (6 titik) — menunggu uji browser; semua refactor 12 Nov belum dicek di browser.
+
+## Update 13 November 2026
+
+- **Tahap 5–7 — verifikasi browser sebagian berjalan.** Nilai independen dua observer, autosave, konflik draf (lokal & remote), catatan per penulis, Evaluasi Kolektif (agregasi, moderasi flag, draf rekomendasi otomatis, draf evaluasi), dan Realtime terverifikasi live. **Finalisasi → publikasi rapor → ekspor belum bisa dijalankan** karena BUG-003 (agregator `overall` mensyaratkan total bobot rubrik = 100%; event trial berbobot 200%). Perlu keputusan produk sebelum finalisasi dapat diuji.
+- **Tahap 8 — implementasi v1 terpasang & diverifikasi di browser** (`/dashboard/analitik`; role admin_system & bidang_kader; agregat lintas kegiatan: jumlah kegiatan/peserta, peserta final, rapor terbit, distribusi keputusan — tanpa skor individu atau catatan pribadi). Menu "Analitik & Rekap" kini aktif untuk kedua role (admin_system & bidang_kader). Upgrade lanjutan (tren waktu, ekspor, lintas-event per aspek) masih terbuka.
+- **Tahap 10** — belum dimulai (bergantung 5–8 terverifikasi penuh).
+- **Tahap 11** — belum (menunggu BUG-003 + keputusan rilis manusia).

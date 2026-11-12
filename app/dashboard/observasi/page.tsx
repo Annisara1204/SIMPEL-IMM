@@ -16,6 +16,10 @@ const stages = [
   { id: "follow_up", label: "3. Rencana Tindak Lanjut" },
 ] as const;
 
+function firstRelated<T>(relation: T | T[] | null | undefined): T | null {
+  return Array.isArray(relation) ? relation[0] ?? null : relation ?? null;
+}
+
 export default async function ObservationsPage({ searchParams }: ObservationsPageProps) {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) return <main className="setup-message"><h1>Supabase belum dikonfigurasi</h1><p>Atur koneksi lokal dan jalankan migrasi Tahap 4 sesuai README.md.</p><a href="/login">Kembali ke login</a></main>;
   const supabase = await createClient();
@@ -95,7 +99,7 @@ export default async function ObservationsPage({ searchParams }: ObservationsPag
         <section className="event-manage-card">
           <div className="event-manage-title"><div><p className="login-eyebrow">{stageLabel}{selectedMaterial ? ` · ${selectedMaterial.name}` : ""} · {selectedType.name}</p><h2>{selectedEvent.name}</h2><p>{selectedEvent.starts_on ? new Date(`${selectedEvent.starts_on}T00:00:00`).toLocaleDateString("id-ID", { dateStyle: "long" }) : "Tanggal belum diatur"} · {selectedEvent.participants.length} peserta · kelompok: Semua peserta · {eventAssignments.length} Observer ditugaskan</p><p>Observer yang sudah mengisi: {[...new Set((ratings ?? []).map((rating) => rating.observer_name))].filter(Boolean).join(", ") || "belum ada"}</p></div><span className="agenda-status next">Penilaian individu · belum difinalisasi</span>{activeVersion && <AssessmentRealtime versionId={activeVersion.id}/>}</div>
           {!activeVersion ? <p className="users-empty">Belum ada rubrik aktif untuk jenis penilaian ini. Hubungi Super Admin.</p> : selectedEvent.participants.map((participant) => {
-            const scoringAspects = activeVersion.rubric_aspects.map((aspect) => ({ id: aspect.id, weight: aspect.weight, rubric_indicators: (aspect.rubric_indicator_aspects ?? []).flatMap((mapping) => { const indicator = mapping.rubric_indicators?.[0]; return indicator && (!selectedMaterial?.competency_material_id || mappedIndicators.has(indicator.competency_indicator_id)) ? [{ id: indicator.id, weight: mapping.weight }] : []; }) })).filter((aspect) => aspect.rubric_indicators.length) as ScoringAspect[];
+            const scoringAspects = activeVersion.rubric_aspects.map((aspect) => ({ id: aspect.id, weight: aspect.weight, rubric_indicators: (aspect.rubric_indicator_aspects ?? []).flatMap((mapping) => { const indicator = firstRelated(mapping.rubric_indicators); return indicator && (!selectedMaterial?.competency_material_id || mappedIndicators.has(indicator.competency_indicator_id)) ? [{ id: indicator.id, weight: mapping.weight }] : []; }) })).filter((aspect) => aspect.rubric_indicators.length) as ScoringAspect[];
             const allIndicatorIds = new Set(scoringAspects.flatMap((aspect) => aspect.rubric_indicators.map((indicator) => indicator.id)));
             const participantObservations = (ratings ?? []).filter((item) => item.participant_id === participant.id && item.observer_id === userId && allIndicatorIds.has(item.indicator_id));
             const participantScores = new Map(participantObservations.filter((item) => item.response_status === "scored").map((item) => [item.indicator_id, { score: item.score }]));
@@ -108,8 +112,8 @@ export default async function ObservationsPage({ searchParams }: ObservationsPag
             const status = profile.role === "admin_system" ? (finalizedCount === eventAssignments.length && eventAssignments.length > 0 ? "finalized" : submittedCount > 0 ? "submitted" : "draft") : mySubmission?.status ?? "draft";
             return <details className="observation-participant" key={participant.id}><summary>{participant.display_name} · {status === "submitted" ? "Submitted" : status === "finalized" ? "Finalized" : "Draft"}</summary>
               <div className="score-summary"><strong>{calculated.value === null ? "Belum ada penilaian Anda" : `Pratinjau penilaian Anda: ${calculated.value.toFixed(2)} / 100`}</strong>{category && <span className={`score-category ${category.id}`}>{category.label}</span>}<small>{participantObservations.filter((item) => item.response_status === "scored").length} dinilai · {participantObservations.filter((item) => item.response_status === "not_observed").length} N/O · {Math.max(0, allIndicatorIds.size - participantObservations.filter((item) => item.response_status !== "unrated").length)} belum dinilai</small></div>
-              {[...activeVersion.rubric_aspects].sort((a, b) => a.position - b.position).map((aspect) => <div className="observation-aspect" key={aspect.id}><h3>{aspect.name} <small>{Number(aspect.weight).toFixed(2)}%</small></h3>{[...(aspect.rubric_indicator_aspects ?? [])].filter((mapping) => { const indicator = mapping.rubric_indicators?.[0]; return indicator && (!selectedMaterial?.competency_material_id || mappedIndicators.has(indicator.competency_indicator_id)); }).sort((a, b) => (a.rubric_indicators?.[0]?.position ?? 0) - (b.rubric_indicators?.[0]?.position ?? 0)).map((mapping) => {
-                const indicator = mapping.rubric_indicators?.[0];
+              {[...activeVersion.rubric_aspects].sort((a, b) => a.position - b.position).map((aspect) => <div className="observation-aspect" key={aspect.id}><h3>{aspect.name} <small>{Number(aspect.weight).toFixed(2)}%</small></h3>{[...(aspect.rubric_indicator_aspects ?? [])].filter((mapping) => { const indicator = firstRelated(mapping.rubric_indicators); return indicator && (!selectedMaterial?.competency_material_id || mappedIndicators.has(indicator.competency_indicator_id)); }).sort((a, b) => (firstRelated(a.rubric_indicators)?.position ?? 0) - (firstRelated(b.rubric_indicators)?.position ?? 0)).map((mapping) => {
+                const indicator = firstRelated(mapping.rubric_indicators);
                 if (!indicator) return null;
                 const saved = observationMap.get(`${participant.id}:${indicator.id}`);
                 const masterMapping = mappedIndicators.get(indicator.competency_indicator_id);

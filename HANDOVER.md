@@ -1,7 +1,15 @@
 # Handover — IMM Observer
 
-**Terakhir diperbarui:** 12 November 2026
+**Terakhir diperbarui:** 12 November 2026 (uji QA browser sesi pagi)
 **Lokasi proyek:** `C:\Users\Lenovo\Documents\project`
+
+## Sesi QA browser (12 Nov 2026, pagi) — ringkasan
+
+- Login Admin & Observer berhasil; dashboard Admin menampilkan metrik DB; Observer hanya melihat kegiatan tugas; autosave, submit/buka kembali kiriman terverifikasi di Pelatihan AIK · Kognitif; `/dashboard` tanpa login → `/login`; sign out OK.
+- **BUG-001 diperbaiki:** RPC `get_event_assessment_summary` error `42702 ambiguous` → migration `20261112190000_fix_get_event_assessment_summary_ambiguous.sql` (tambah `#variable_conflict use_column`); pengguna menjalankannya; halaman Evaluasi terbuka.
+- **BUG-002 diperbaiki:** indikator workspace Observasi tidak tampil karena relasi many-to-one dibaca sebagai array; helper `firstRelated` ditambahkan di `app/dashboard/observasi/page.tsx`.
+- Skor uji tersimpan di Peserta 01 (Pelatihan AIK · Kognitif, Draft) — nilai dummy.
+- Belum diuji: dua akun/konflik, Realtime, finalisasi, publikasi rapor, ekspor, akun Instruktur & Peserta. Lihat `QA_PHASE8_TEST_PLAN.md`.
 
 ## Verifikasi Supabase — 12 November 2026 (pengguna menjalankan di SQL Editor)
 

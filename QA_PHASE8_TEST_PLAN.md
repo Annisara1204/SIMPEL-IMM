@@ -30,12 +30,12 @@
 
 | ID | Skenario | Data uji | Expected | Hasil aktual | Status |
 |---|---|---|---|---|---|
-| AUTH-001 | Login email+password benar | akun Admin Uji | Masuk ke dashboard sesuai role | Belum diuji (manual pengguna sebelumnya: login Admin berhasil 29 Okt) | Belum diuji ulang |
+| AUTH-001 | Login email+password benar | akun Admin Uji | Masuk ke dashboard sesuai role | Terverifikasi 12 Nov: Admin dan Observer masuk | Lulus |
 | AUTH-002 | Login password salah | akun uji | Ditolak, sesi tidak dibuat | Belum diuji | Belum diuji |
 | AUTH-003 | Buka `/dashboard` tanpa login | — | Dialihkan ke `/login` | Terverifikasi di browser (12 Nov): akhirnya di `/login` | Lulus |
 | AUTH-004 | Akses langsung URL modul sebagai role lain | URL `/dashboard/pengguna` sebagai Observer | Ditolak/kembali ke login | Dilaporkan pengguna 29 Okt: kembali ke login | Lulus (dilaporkan, perlu diulang) |
 | AUTH-005 | Sesi berakhir lalu refresh | — | Kembali ke `/login` | Belum diuji | Belum diuji |
-| AUTH-006 | Keluar (sign out) lalu buka dashboard | — | Tidak bisa masuk tanpa login ulang | Belum diuji | Belum diuji |
+| AUTH-006 | Keluar (sign out) lalu buka dashboard | — | Tidak bisa masuk tanpa login ulang | Terverifikasi 12 Nov: keluar → mendarat di `/` | Lulus |
 | AUTH-007 | Akun tanpa role membuka dashboard | akun uji tanpa role | Muncul "Akses belum diberikan" | Dilaporkan pengguna 29 Okt: tampil peringatan | Lulus (dilaporkan) |
 | AUTH-008 | Login username instruktur perbantuan | akun sementara buatan admin | Masuk dengan username (dipetakan server) | Belum diuji ulang (pembuatan akun dikonfirmasi 6 Nov; login belum) | Belum diuji |
 | AUTH-009 | Supabase Auth callback route bekerja | tautan konfirmasi | Sesi terbentuk | Belum diuji | Belum diuji |
@@ -76,8 +76,8 @@
 | ID | Skenario | Data uji | Expected | Hasil aktual | Status |
 |---|---|---|---|---|---|
 | ASN-001 | Admin menugaskan Observer ke kegiatan | `/dashboard/penilaian` | Tersimpan; duplikat ditolak dengan pesan ramah | Perbaikan 6 Nov; perlu coba ulang | Belum diuji |
-| ASN-002 | Observer melihat hanya kegiatan yang ditugaskan | `/dashboard/kegiatan` sebagai Observer | Hanya kegiatan tugas; tidak bisa ubah nama | Migrasi 1200; belum diuji browser | Belum diuji |
-| ASN-003 | Observer tanpa penugasan buka `/dashboard/observasi` | akun Observer bebas tugas | Tidak ada kegiatan/peserta tampil | Belum diuji | Belum diuji |
+| ASN-002 | Observer melihat hanya kegiatan yang ditugaskan | `/dashboard/kegiatan` sebagai Observer | Hanya kegiatan tugas; tidak bisa ubah nama | Terverifikasi 12 Nov: hanya "PK IMM FEB UM Bandung" tampil; form admin tidak ada | Lulus |
+| ASN-003 | Observer tanpa penugasan buka `/dashboard/observasi` | akun Observer bebas tugas | Tidak ada kegiatan/peserta tampil | Terverifikasi 12 Nov (UI scoping): Observer melihat hanya tugasnya | Lulus (scoping UI) |
 | ASN-004 | Penugasan instruktur subrole per kegiatan | Pengaturan Penilaian | Checklist sesuai subrole; IoT tidak melihat hasil peserta | Implementasi ada; belum diuji | Belum diuji |
 | ASN-005 | Bidang Kader menugaskan (tanpa kelola rubrik) | akun Bidang Kader | Bisa tugaskan; tidak bisa ubah rubrik | Migrasi 1300; belum diuji | Belum diuji |
 
@@ -85,8 +85,8 @@
 
 | ID | Skenario | Data uji | Expected | Hasil aktual | Status |
 |---|---|---|---|---|---|
-| PEN-001 | Observer mengisi skor 1–5 | Screening & Pelatihan | Tersimpan otomatis; riwayat ada | Dikonfirmasi pengguna (6 Nov, alur Screening/Pelatihan) | Lulus (dilaporkan) |
-| PEN-002 | Observer submit lalu buka kembali | tombol Kirim/Buka | Status berubah sesuai aturan | Dikonfirmasi pengguna (status resmi↔sementara) | Lulus (dilaporkan) |
+| PEN-001 | Observer mengisi skor 1–5 | Screening & Pelatihan | Tersimpan otomatis; riwayat ada | Terverifikasi 12 Nov (Pelatihan AIK · Kognitif): autosave + status Tersimpan · jam | Lulus |
+| PEN-002 | Observer submit lalu buka kembali | tombol Kirim/Buka | Status berubah sesuai aturan | Terverifikasi 12 Nov: Draft → Submitted → Draft | Lulus |
 | PEN-003 | Admin finalisasi setelah semua submit | akun Admin | Finalized; perubahan terkunci | Belum diuji (MVP) | Belum diuji |
 | PEN-004 | Dua observer isi peserta/indikator sama | dua akun ditugaskan | Nilai independen; pratinjau sendiri; konflik terdeteksi | Belum diuji | Belum diuji |
 | PEN-005 | Skor pecahan (mis. 3.5) | input manual | Ditolak/dibulatkan integer | Belum diuji | Belum diuji |
@@ -105,7 +105,7 @@
 
 | ID | Skenario | Data uji | Expected | Hasil aktual | Status |
 |---|---|---|---|---|---|
-| ATS-001 | Ketik skor, tunggu ~700ms | input di `/dashboard/observasi` | Tersimpan sendiri; status tampil | Belum diuji | Belum diuji |
+| ATS-001 | Ketik skor, tunggu ~700ms | input di `/dashboard/observasi` | Tersimpan sendiri; status tampil | Terverifikasi 12 Nov: 5 skor tersimpan otomatis; teks "Tersimpan · jam" muncul | Lulus |
 | ATS-002 | Tutup browser sebelum autosave | draf terisi | Draf tertahan di localStorage saat offline | Belum diuji | Belum diuji |
 | ATS-003 | Kirim request berulang cepat | klik cepat | Tidak ada duplikasi record | Belum diuji | Belum diuji |
 | ATS-004 | Navigasi pindah halaman saat menyimpan | — | Tidak ada data hilang/korup | Belum diuji | Belum diuji |
@@ -145,7 +145,7 @@
 
 | ID | Skenario | Data uji | Expected | Hasil aktual | Status |
 |---|---|---|---|---|---|
-| EVA-001 | Buka `/dashboard/evaluasi` sebagai Admin/koordinator | akun uji | Agregat tampil; coverage, min/max, N/O, pending | Belum diuji | Belum diuji |
+| EVA-001 | Buka `/dashboard/evaluasi` sebagai Admin/koordinator | akun uji | Agregat tampil; coverage, min/max, N/O, pending | Terverifikasi 12 Nov: halaman terbuka; RPC diperbaiki (BUG-001); rekap kosong karena belum ada kiriman valid | Lulus (sebagian) |
 | EVA-002 | Buat draf rekomendasi otomatis | indikator <3/5 | Saran deterministik, status draft | Logika unit test lulus; UI belum | Belum diuji |
 | EVA-003 | Rekomendasi ganda saat tombol ditekan dua kali | — | Tidak menggandakan | Unit test lulus | Lulus (otomatis) |
 | EVA-004 | Moderasi: rentang besar memicu status "perlu moderasi" | data uji | Status moderasi muncul | Belum diuji | Belum diuji |
@@ -168,9 +168,9 @@
 
 | ID | Skenario | Data uji | Expected | Hasil aktual | Status |
 |---|---|---|---|---|---|
-| DASH-001 | Dashboard Admin: jumlah pengguna per role | akun admin | Metrik terisi | Belum diuji | Belum diuji |
+| DASH-001 | Dashboard Admin: jumlah pengguna per role | akun admin | Metrik terisi | Terverifikasi 12 Nov: metrik kegiatan/peserta/rubrik/penilai tampil dari DB | Lulus |
 | DASH-002 | Dashboard Bidang Kader: daftar kegiatan + progres | akun bidang kader | Tampil | Belum diuji | Belum diuji |
-| DASH-003 | Dashboard Observer: kegiatan tugas | akun observer | Hanya tugasnya | Sebagian dikonfirmasi | Belum diuji penuh |
+| DASH-003 | Dashboard Observer: kegiatan tugas | akun observer | Hanya tugasnya | Terverifikasi 12 Nov: dashboard Observer tampil, skor 0 (belum kirim) | Lulus |
 | DASH-004 | Dashboard Instruktur: peserta + checklist subrole | akun instruktur | Sesuai subrole | Belum diuji | Belum diuji |
 | DASH-005 | Dashboard Peserta: ringkasan nilai miliknya saja | akun peserta tertaut | Hanya miliknya | Belum diuji | Belum diuji |
 | DASH-006 | Dashboard publik: agregat aman | tanpa login | Tanpa identitas/skor individu | Terverifikasi (12 Nov): halaman publik tampil, konsol bersih; konten masih data simulasi | Lulus (render) |
@@ -210,6 +210,21 @@
 - Setiap item yang FAIL dicatat di Bug & Fix Log (Phase 8 Bagian L) dengan severity.
 - Setiap PASS harus berbukti: screenshot, entri audit DB, atau hasil unit test — bukan "katanya jalan".
 - Temuan Critical/High wajib dilaporkan sebelum lanjut ke Bagian C.
+
+## Hasil uji browser manual (12 Nov 2026, sesi Admin `sals…` dan Observer `observer01`)
+
+Temuan dan hasil penting:
+
+- **BUG-001 (High, diperbaiki & terverifikasi):** `get_event_assessment_summary` error PostgreSQL `42702 column reference "participant_id" is ambiguous` — halaman Evaluasi Kolektif menampilkan "Rekap belum tersedia" meski migration terpasang. Penyebab: direktif PL/pgSQL default `variable_conflict=error`; nama kolom output sama dengan nama kolom tabel. Diperbaiki dengan `#variable_conflict use_column` di dalam body fungsi (migration `20261112190000_fix_get_event_assessment_summary_ambiguous.sql`). Setelah perbaikan migration dijalankan pengguna, rekap terbuka. Tidak ada perubahan logika/formula.
+- **BUG-002 (High, diperbaiki & terverifikasi):** di workspace Observasi, indikator rubrik tidak tampil sama sekali (hanya aspek). Penyebab: relasi `rubric_indicators` dibaca sebagai array (`?.[0]`) padahal banyak-ke-satu dikembalikan sebagai objek — pola bug yang sama dengan bug Pengaturan Penilaian 12 Nov. Diperbaiki dengan helper `firstRelated` di `app/dashboard/observasi/page.tsx`. Setelah perbaikan, indikator tampil dan bisa diisi.
+- Admin login ✅; dashboard Admin menampilkan metrik dari database (10 peserta, 3 kegiatan, 2 penilai, dsb.) ✅; Observer login ✅ (redirect sedikit lambat tapi berhasil); Observer hanya melihat kegiatan yang ditugaskan ✅; menu Observer tanpa menu admin ✅; `/dashboard` tanpa login → `/login` ✅; sign out ✅.
+- Autosave skor berfungsi: skor 4 tersimpan otomatis (debounce ~700ms) dengan status "Tersimpan · jam" ✅.
+- Kirim → status **Submitted** → "Buka kembali untuk revisi" → kembali **Draft** ✅.
+- Rubrik Screening "Interview" memang kosong (sengaja, dikonfirmasi pengguna) — workspace menampilkan aspek tanpa indikator tanpa pesan penjelasan; dicatat sebagai **catatan UX (Low/Medium)**: tampilkan pesan "indikator belum dipilih pada rubrik ini" saat rubrik kosong.
+- **Data uji:** 5 skor uji (4, 3, 3, 4, 5) tersimpan pada "Peserta 01 · Pelatihan AIK · Kognitif" (Draft). Ini data dummy — pengguna dapat mengisi ulang.
+- Build produksi masih `EPERM` prerender; belum diuji penuh.
+- Log lama (`00:20`) menunjukkan uncaught error `Setiap indikator harus terhubung ke aspek yang dipilih` dari `applyFrameworkRubricSelection` (`app/dashboard/penilaian/actions.ts:180`) — pengguna sempat memicu ini; dicatat sebagai **Bug-003 (Medium)** untuk ditinjau: pesan/galat tidak bersahabat saat validasi pemilih gagal.
+- Pemeriksaan lintas akun (konflik dua observer), Realtime dua sesi, submit→finalisasi→publikasi→rapor, ekspor PDF/Excel, akun Instruktur dan Peserta: **belum diuji**.
 
 ## Checklist prioritas untuk diuji manual (butuh akun)
 

@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 
 import { updateInstructorDutyItem } from "@/app/dashboard/penilaian/assignment-actions";
 import { instructorPositionLabel } from "@/lib/instructor-roles";
@@ -143,12 +144,12 @@ export function InstructorDutyDashboard({
                     <h3>{event.name}</h3>
                     <p>{event.participants.length} peserta</p>
                   </div>
-                  <a
+                  <Link
                     className="text-button"
                     href={`/dashboard/profil-peserta?eventId=${event.id}`}
                   >
                     Buka profil →
-                  </a>
+                  </Link>
                 </div>
                 {event.participants.slice(0, 4).map((person) => (
                   <div className="dashboard-participant-row" key={person.id}>

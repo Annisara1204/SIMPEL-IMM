@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -28,11 +29,8 @@ export default async function UsersPage({
     return (
       <main className="setup-message">
         <h1>Supabase belum dikonfigurasi</h1>
-        <p>
-          Atur koneksi lokal mengikuti README.md sebelum membuka pengelolaan
-          akun.
-        </p>
-        <a href="/login">Kembali ke login</a>
+        <p>Aplikasi belum siap digunakan. Hubungi Admin sistem.</p>
+        <Link href="/login">Kembali ke login</Link>
       </main>
     );
   const supabase = await createClient();
@@ -62,9 +60,9 @@ export default async function UsersPage({
 
   return (
     <main className="users-page">
-      <a className="users-back" href="/dashboard">
+      <Link className="users-back" href="/dashboard">
         ← Kembali ke dashboard
-      </a>
+      </Link>
       <div className="users-heading">
         <div>
           <p className="login-eyebrow">PENGELOLAAN AKUN</p>
@@ -139,8 +137,7 @@ export default async function UsersPage({
       </form>
       {error ? (
         <p className="users-error">
-          Daftar pengguna belum dapat dibaca. Pastikan migrasi RLS sudah
-          dijalankan.
+          Data belum dapat dibaca. Hubungi Admin sistem bila masalah berulang.
         </p>
       ) : !users?.length ? (
         <p className="users-empty">Belum ada profil pengguna.</p>

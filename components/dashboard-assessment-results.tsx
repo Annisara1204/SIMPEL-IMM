@@ -40,8 +40,7 @@ export function DashboardAssessmentResults({
       </div>
       {data.error && (
         <p className="users-error">
-          Sebagian hasil belum dapat dibaca. Periksa migrasi dashboard dan izin
-          akses di Supabase.
+          Data belum dapat dibaca. Hubungi Admin sistem bila masalah berulang.
         </p>
       )}
       <div className="dashboard-stage-grid">

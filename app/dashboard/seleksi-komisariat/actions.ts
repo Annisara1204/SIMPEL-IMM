@@ -5,7 +5,6 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
-
 async function reviewerClient() {
   const supabase = await createClient();
   const { data: claims } = await supabase.auth.getClaims();

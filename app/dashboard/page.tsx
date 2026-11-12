@@ -32,11 +32,8 @@ export default async function DashboardPage() {
     return (
       <main className="setup-message">
         <h1>Login belum dikonfigurasi</h1>
-        <p>
-          Siapkan proyek Supabase dan ikuti panduan lokal di README.md.
-          Dashboard internal belum dapat dibuka.
-        </p>
-        <a href="/login">Kembali ke login</a>
+        <p>Aplikasi belum siap digunakan. Hubungi Admin sistem.</p>
+        <Link href="/login">Kembali ke login</Link>
       </main>
     );
   const supabase = await createClient();
@@ -53,8 +50,7 @@ export default async function DashboardPage() {
       <main className="setup-message">
         <h1>Profil belum tersedia</h1>
         <p>
-          Periksa apakah migrasi basis data telah dijalankan. Hubungi Admin
-          sistem bila masalah berlanjut.
+          Data belum dapat dibaca. Hubungi Admin sistem bila masalah berulang.
         </p>
         <form action="/auth/signout" method="post">
           <button>Keluar</button>

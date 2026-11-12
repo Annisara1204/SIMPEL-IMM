@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { Phase7ReportWorkspace } from "@/components/phase7-report-workspace";
@@ -31,7 +32,9 @@ export default async function ReportingPage({ searchParams }: Props) {
     return (
       <main className="setup-message">
         <h1>Laporan belum dikonfigurasi</h1>
-        <p>Konfigurasikan Supabase dan jalankan seluruh migrasi basis data.</p>
+        <p>
+          Data belum dapat dibaca. Hubungi Admin sistem bila masalah berulang.
+        </p>
       </main>
     );
   const supabase = await createClient();
@@ -83,13 +86,12 @@ export default async function ReportingPage({ searchParams }: Props) {
   if (!selectedEvent)
     return (
       <main className="users-page">
-        <a className="users-back" href="/dashboard">
+        <Link className="users-back" href="/dashboard">
           ← Dashboard
-        </a>
+        </Link>
         <h1>Laporan dan Rapor</h1>
         <p className="users-error">
-          Tidak ada kegiatan yang dapat diakses, atau basis data belum
-          dimigrasi. {eventError?.message}
+          Data belum dapat dibaca. Hubungi Admin sistem bila masalah berulang.
         </p>
       </main>
     );

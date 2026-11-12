@@ -242,10 +242,7 @@ export function AssessmentRatingCell(props: Props) {
           <option value="no">N/O · Tidak teramati</option>
           {[1, 2, 3, 4, 5].map((n) => (
             <option key={n} value={n}>
-              {n} ·{" "}
-              {
-                SCORE_SCALE_LABELS[n]
-              }
+              {n} · {SCORE_SCALE_LABELS[n]}
             </option>
           ))}
         </select>
@@ -261,11 +258,7 @@ export function AssessmentRatingCell(props: Props) {
         {[1, 2, 3, 4, 5].map((n) => (
           <p key={n}>
             <strong>
-              {n} ·{" "}
-              {
-                SCORE_SCALE_LABELS[n]
-              }
-              :
+              {n} · {SCORE_SCALE_LABELS[n]}:
             </strong>{" "}
             {props.descriptors[String(n)]}
           </p>

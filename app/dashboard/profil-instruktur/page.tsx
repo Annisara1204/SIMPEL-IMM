@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { PrivateImg } from "@/components/private-img";
@@ -41,9 +42,9 @@ export default async function InstructorProfilesPage() {
 
   return (
     <main className="users-page">
-      <a className="users-back" href="/dashboard">
+      <Link className="users-back" href="/dashboard">
         ← Kembali ke dashboard
-      </a>
+      </Link>
       <div className="users-heading">
         <div>
           <p className="login-eyebrow">PROFIL INSTRUKTUR</p>
@@ -54,8 +55,7 @@ export default async function InstructorProfilesPage() {
       </div>
       {error ? (
         <p className="users-error">
-          Daftar profil belum dapat dibaca. Pastikan migrasi akses nama dan foto
-          sudah dijalankan.
+          Data belum dapat dibaca. Hubungi Admin sistem bila masalah berulang.
         </p>
       ) : !instructors.length ? (
         <p className="users-empty">

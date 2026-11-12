@@ -7,6 +7,7 @@
  * Panel ini bukan data nyata; ganti dengan konten berbasis database
  * sesuai BLUEPRINT.md sebelum pemakaian resmi.
  */
+import { CalendarDays, ClipboardList, FileText, Sparkles } from "lucide-react";
 import { instructorPositionLabel } from "@/lib/instructor-roles";
 import type { AppRole } from "@/lib/roles";
 import type { InstructorAssignment } from "./instructor-duty-dashboard";
@@ -81,7 +82,9 @@ export function DashboardContent({
         <div className="role-grid">
           <section className="panel">
             <div className="assigned-card">
-              <div className="assigned-icon">▣</div>
+              <div className="assigned-icon">
+                <ClipboardList size={20} aria-hidden="true" />
+              </div>
               <div className="assigned-copy">
                 <span className="agenda-status live">Sedang berlangsung</span>
                 <h3>DAD Simulasi 2026</h3>
@@ -140,7 +143,9 @@ export function DashboardContent({
         <div className="role-grid">
           <section className="panel">
             <div className="activity-row">
-              <div className="assigned-icon">▣</div>
+              <div className="assigned-icon">
+                <CalendarDays size={20} aria-hidden="true" />
+              </div>
               <div className="activity-copy">
                 <small>24–26 Oktober 2026 · Komisariat FEB</small>
                 <h3>Darul Arqam Dasar</h3>
@@ -210,7 +215,9 @@ export function DashboardContent({
         <div className="role-grid">
           <section className="panel">
             <div className="activity-row">
-              <div className="assigned-icon">▣</div>
+              <div className="assigned-icon">
+                <CalendarDays size={20} aria-hidden="true" />
+              </div>
               <div className="activity-copy">
                 <small>24–26 Oktober 2026</small>
                 <h3>Darul Arqam Dasar</h3>
@@ -230,7 +237,9 @@ export function DashboardContent({
               </div>
             </div>
             <div className="report-row">
-              <span className="report-icon">▤</span>
+              <span className="report-icon">
+                <FileText size={20} aria-hidden="true" />
+              </span>
               <div>
                 <strong>Rekap kegiatan DAD</strong>
                 <small>Ringkasan umum · belum diterbitkan</small>
@@ -265,7 +274,6 @@ export function DashboardContent({
               </strong>
               <p>Nilai ini belum menjadi hasil resmi.</p>
             </div>
-            <div className="score-watermark">◌</div>
             <SampleTag />
           </section>
           <section className="panel">
@@ -276,7 +284,9 @@ export function DashboardContent({
               </div>
             </div>
             <div className="development-note">
-              <span>✦</span>
+              <span>
+                <Sparkles size={18} aria-hidden="true" />
+              </span>
               <p>
                 Terus berlatih menyampaikan pendapat dengan runtut dan ikut
                 aktif dalam diskusi kelompok.

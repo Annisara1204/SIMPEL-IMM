@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 
 import { useRouter } from "next/navigation";
 
@@ -71,8 +72,7 @@ const indicators = (data?: ReportSnapshotData | null) =>
   Array.isArray(data?.indicators) ? data.indicators : [];
 const decisionOf = (row: ReportRow) =>
   row.snapshot_data?.collective?.decision ?? "";
-const category = (score: number | null) =>
-  categorizeScore(score)?.label ?? "—";
+const category = (score: number | null) => categorizeScore(score)?.label ?? "—";
 const scoreOf = (row: ReportRow) =>
   typeof row.snapshot_data?.overall?.score === "number"
     ? Number(row.snapshot_data.overall.score)
@@ -558,9 +558,9 @@ export function Phase7ReportWorkspace(props: Props) {
     if (!participantReport)
       return (
         <main className="users-page">
-          <a className="users-back" href="/dashboard">
+          <Link className="users-back" href="/dashboard">
             ← Dashboard
-          </a>
+          </Link>
           <h1>Rapor Saya</h1>
           <p className="users-notice">
             {reportError ??
@@ -578,9 +578,9 @@ export function Phase7ReportWorkspace(props: Props) {
     };
     return (
       <main className="users-page">
-        <a className="users-back" href="/dashboard">
+        <Link className="users-back" href="/dashboard">
           ← Dashboard
-        </a>
+        </Link>
         <div className="users-heading">
           <div>
             <p className="login-eyebrow">RAPOR PESERTA · PUBLISHED</p>
@@ -606,9 +606,9 @@ export function Phase7ReportWorkspace(props: Props) {
 
   return (
     <main className="users-page">
-      <a className="users-back" href="/dashboard">
+      <Link className="users-back" href="/dashboard">
         ← Kembali ke dashboard
-      </a>
+      </Link>
       <div className="users-heading">
         <div>
           <p className="login-eyebrow">LAPORAN, RAPOR & EKSPOR</p>
@@ -885,7 +885,8 @@ export function Phase7ReportWorkspace(props: Props) {
                 </div>
               ) : (
                 <p>
-                  Belum ada penugasan penilai, atau basis data belum dimigrasi.
+                  Data belum dapat dibaca. Hubungi Admin sistem bila masalah
+                  berulang.
                 </p>
               )}
             </section>
@@ -993,11 +994,11 @@ export function Phase7ReportWorkspace(props: Props) {
                           />
                         </td>
                         <th scope="row">
-                          <a
+                          <Link
                             href={`${eventHref(event.id)}&participantId=${row.participant_id}`}
                           >
                             {row.display_name}
-                          </a>
+                          </Link>
                           <small>
                             {row.student_number ?? "NIM tidak tersedia"}
                           </small>

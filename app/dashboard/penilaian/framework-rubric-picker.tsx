@@ -66,8 +66,7 @@ export function FrameworkRubricPicker({
   if (!aspects.length)
     return (
       <p className="assessment-assignment-empty">
-        Master kerangka DAD tidak dapat dimuat. Jalankan seluruh migrasi
-        kerangka DAD terlebih dahulu.
+        Data belum dapat dibaca. Hubungi Admin sistem bila masalah berulang.
       </p>
     );
   return (

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { firstRelated } from "@/lib/relations";
@@ -31,8 +32,8 @@ export default async function ObservationsPage({
     return (
       <main className="setup-message">
         <h1>Supabase belum dikonfigurasi</h1>
-        <p>Atur koneksi lokal dan jalankan migrasi Tahap 4 sesuai README.md.</p>
-        <a href="/login">Kembali ke login</a>
+        <p>Aplikasi belum siap digunakan. Hubungi Admin sistem.</p>
+        <Link href="/login">Kembali ke login</Link>
       </main>
     );
   const supabase = await createClient();
@@ -199,13 +200,15 @@ export default async function ObservationsPage({
       .filter((item) => item.observer_id === userId)
       .map((item) => [item.participant_id, item]),
   );
-  const stageLabel = stageOrder.find((stage) => stage.id === selectedStage)?.label;
+  const stageLabel = stageOrder.find(
+    (stage) => stage.id === selectedStage,
+  )?.label;
 
   return (
     <main className="users-page">
-      <a className="users-back" href="/dashboard">
+      <Link className="users-back" href="/dashboard">
         ← Kembali ke dashboard
-      </a>
+      </Link>
       <div className="users-heading">
         <div>
           <p className="login-eyebrow">PENILAIAN OBSERVER</p>
@@ -228,8 +231,7 @@ export default async function ObservationsPage({
         notesError ||
         mappingError) && (
         <p className="users-error">
-          Sebagian data belum dapat dibaca. Pastikan migrasi penilaian Fase 5
-          sudah dijalankan.
+          Data belum dapat dibaca. Hubungi Admin sistem bila masalah berulang.
         </p>
       )}
 
@@ -246,7 +248,7 @@ export default async function ObservationsPage({
           {events?.length ? (
             <div className="assessment-event-list">
               {events.map((event) => (
-                <a
+                <Link
                   className="assessment-event-option"
                   href={`/dashboard/observasi?eventId=${event.id}`}
                   key={event.id}
@@ -256,7 +258,7 @@ export default async function ObservationsPage({
                     <small>{event.participants.length} peserta</small>
                   </span>
                   <span className="assessment-event-arrow">→</span>
-                </a>
+                </Link>
               ))}
             </div>
           ) : (
@@ -277,9 +279,9 @@ export default async function ObservationsPage({
 
       {selectedEvent && (
         <>
-          <a className="users-back" href="/dashboard/observasi">
+          <Link className="users-back" href="/dashboard/observasi">
             ← Pilih kegiatan lain
-          </a>
+          </Link>
           {!selectedStage && (
             <section className="event-manage-card">
               <div className="event-manage-title">
@@ -290,14 +292,14 @@ export default async function ObservationsPage({
               </div>
               <div className="assessment-event-list">
                 {stageOrder.map((stage) => (
-                  <a
+                  <Link
                     className="assessment-event-option"
                     key={stage.id}
                     href={`/dashboard/observasi?eventId=${selectedEvent.id}&stage=${stage.id}`}
                   >
                     <strong>{stage.label}</strong>
                     <span className="assessment-event-arrow">→</span>
-                  </a>
+                  </Link>
                 ))}
               </div>
             </section>
@@ -313,25 +315,25 @@ export default async function ObservationsPage({
             selectedStage === "training" &&
             !selectedMaterialId && (
               <section className="event-manage-card">
-                <a
+                <Link
                   className="users-back"
                   href={`/dashboard/observasi?eventId=${selectedEvent.id}`}
                 >
                   ← Pilih tahap lain
-                </a>
+                </Link>
                 <h2>{selectedEvent.name} · Pelatihan</h2>
                 <p>Pilih materi yang akan dinilai.</p>
                 {eventMaterials.length ? (
                   <div className="assessment-event-list">
                     {eventMaterials.map((material) => (
-                      <a
+                      <Link
                         className="assessment-event-option"
                         href={`/dashboard/observasi?eventId=${selectedEvent.id}&stage=training&materialId=${material.id}`}
                         key={material.id}
                       >
                         <strong>{material.name}</strong>
                         <span className="assessment-event-arrow">→</span>
-                      </a>
+                      </Link>
                     ))}
                   </div>
                 ) : (
@@ -355,7 +357,7 @@ export default async function ObservationsPage({
             (selectedStage !== "training" || selectedMaterial) &&
             !selectedTypeId && (
               <section className="event-manage-card">
-                <a
+                <Link
                   className="users-back"
                   href={
                     selectedStage === "training"
@@ -367,7 +369,7 @@ export default async function ObservationsPage({
                   {selectedStage === "training"
                     ? "Pilih materi lain"
                     : "Pilih tahap lain"}
-                </a>
+                </Link>
                 <h2>
                   {selectedEvent.name} · {stageLabel}
                   {selectedMaterial ? ` · ${selectedMaterial.name}` : ""}
@@ -376,7 +378,7 @@ export default async function ObservationsPage({
                 {eventTypes.length ? (
                   <div className="assessment-event-list">
                     {eventTypes.map((type) => (
-                      <a
+                      <Link
                         className="assessment-event-option"
                         href={`/dashboard/observasi?eventId=${selectedEvent.id}&stage=${selectedStage}${selectedMaterial ? `&materialId=${selectedMaterial.id}` : ""}&typeId=${type.id}`}
                         key={type.id}
@@ -396,7 +398,7 @@ export default async function ObservationsPage({
                             : "Rubrik belum aktif"}
                         </span>
                         <span className="assessment-event-arrow">→</span>
-                      </a>
+                      </Link>
                     ))}
                   </div>
                 ) : (
@@ -422,12 +424,12 @@ export default async function ObservationsPage({
             selectedType &&
             (selectedStage !== "training" || selectedMaterial) && (
               <>
-                <a
+                <Link
                   className="users-back"
                   href={`/dashboard/observasi?eventId=${selectedEvent.id}&stage=${selectedStage}${selectedMaterial ? `&materialId=${selectedMaterial.id}` : ""}`}
                 >
                   ← Pilih jenis penilaian lain
-                </a>
+                </Link>
                 <section className="event-manage-card">
                   <div className="event-manage-title">
                     <div>

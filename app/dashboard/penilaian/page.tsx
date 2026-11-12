@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { firstRelated } from "@/lib/relations";
@@ -49,8 +50,8 @@ export default async function AssessmentSettingsPage({
     return (
       <main className="setup-message">
         <h1>Supabase belum dikonfigurasi</h1>
-        <p>Atur koneksi lokal dan jalankan migrasi Tahap 4 sesuai README.md.</p>
-        <a href="/login">Kembali ke login</a>
+        <p>Aplikasi belum siap digunakan. Hubungi Admin sistem.</p>
+        <Link href="/login">Kembali ke login</Link>
       </main>
     );
   const supabase = await createClient();
@@ -181,9 +182,9 @@ export default async function AssessmentSettingsPage({
   const canManageRubric = profile.role === "admin_system";
   return (
     <main className="users-page">
-      <a className="users-back" href="/dashboard">
+      <Link className="users-back" href="/dashboard">
         ← Kembali ke dashboard
-      </a>
+      </Link>
       <div className="users-heading">
         <div>
           <p className="login-eyebrow">PENGATURAN RUBRIK DAD</p>
@@ -208,7 +209,7 @@ export default async function AssessmentSettingsPage({
         materialsError ||
         instructorAssignmentsError) && (
         <p className="users-error">
-          Data belum dapat dibaca. Jalankan migrasi terbaru Tahap 4 di Supabase.
+          Data belum dapat dibaca. Hubungi Admin sistem bila masalah berulang.
         </p>
       )}
       {!requestedEventId && (
@@ -229,7 +230,7 @@ export default async function AssessmentSettingsPage({
                   (assignment) => assignment.event_id === event.id,
                 ).length;
                 return (
-                  <a
+                  <Link
                     className="assessment-event-option"
                     href={`/dashboard/penilaian?eventId=${encodeURIComponent(event.id)}`}
                     key={event.id}
@@ -263,7 +264,7 @@ export default async function AssessmentSettingsPage({
                     <span className="assessment-event-arrow" aria-hidden="true">
                       →
                     </span>
-                  </a>
+                  </Link>
                 );
               })}
             </div>
@@ -284,16 +285,16 @@ export default async function AssessmentSettingsPage({
             Pilih kegiatan dari daftar agar pengaturan dan penugasan Observer
             terhubung ke kegiatan yang benar.
           </p>
-          <a className="text-button" href="/dashboard/penilaian">
+          <Link className="text-button" href="/dashboard/penilaian">
             Kembali ke daftar kegiatan
-          </a>
+          </Link>
         </div>
       )}
       {selectedEvent && (
         <>
-          <a className="users-back" href="/dashboard/penilaian">
+          <Link className="users-back" href="/dashboard/penilaian">
             ← Kembali ke daftar kegiatan DAD
-          </a>
+          </Link>
           {assignmentStatus === "success" && (
             <p className="users-notice">
               <strong>Observer berhasil ditugaskan.</strong> Akun tersebut
@@ -564,14 +565,14 @@ export default async function AssessmentSettingsPage({
                         { id: "training", label: "2. Pelatihan" },
                         { id: "follow_up", label: "3. Rencana Tindak Lanjut" },
                       ].map((stage) => (
-                        <a
+                        <Link
                           className="assessment-event-option"
                           key={stage.id}
                           href={`/dashboard/penilaian?eventId=${event.id}&stage=${stage.id}`}
                         >
                           <strong>{stage.label}</strong>
                           <span className="assessment-event-arrow">→</span>
-                        </a>
+                        </Link>
                       ))}
                     </div>
                   </div>
@@ -590,12 +591,12 @@ export default async function AssessmentSettingsPage({
                     selectedStage,
                   ) && (
                     <>
-                      <a
+                      <Link
                         className="users-back"
                         href={`/dashboard/penilaian?eventId=${event.id}`}
                       >
                         ← Pilih tahapan lain
-                      </a>
+                      </Link>
                       <div className="assignment-box">
                         <h3>
                           {selectedStage === "screening"
@@ -627,7 +628,7 @@ export default async function AssessmentSettingsPage({
                                       className="assessment-material-row"
                                       key={material.id}
                                     >
-                                      <a
+                                      <Link
                                         className="assessment-event-option"
                                         href={`/dashboard/penilaian?eventId=${event.id}&stage=training&materialId=${material.id}`}
                                       >
@@ -643,7 +644,7 @@ export default async function AssessmentSettingsPage({
                                         <span className="assessment-event-arrow">
                                           →
                                         </span>
-                                      </a>
+                                      </Link>
                                       {canManageRubric && !hasLockedVersion && (
                                         <form
                                           action={setTrainingMaterialFramework}
@@ -748,12 +749,12 @@ export default async function AssessmentSettingsPage({
                               {selectedStage === "training" &&
                                 selectedMaterial && (
                                   <>
-                                    <a
+                                    <Link
                                       className="users-back"
                                       href={`/dashboard/penilaian?eventId=${event.id}&stage=training`}
                                     >
                                       ← Pilih materi lain
-                                    </a>
+                                    </Link>
                                     <h4>Materi: {selectedMaterial.name}</h4>
                                   </>
                                 )}
@@ -761,7 +762,7 @@ export default async function AssessmentSettingsPage({
                                 Pilih jenis penilaian atau tambahkan jenis baru.
                               </p>
                               {eventTypes.map((type) => (
-                                <a
+                                <Link
                                   className="assessment-event-option"
                                   key={type.id}
                                   href={`/dashboard/penilaian?eventId=${event.id}&stage=${selectedStage}${selectedStage === "training" ? `&materialId=${selectedMaterialId}` : ""}&typeId=${type.id}`}
@@ -770,7 +771,7 @@ export default async function AssessmentSettingsPage({
                                   <span className="assessment-event-arrow">
                                     →
                                   </span>
-                                </a>
+                                </Link>
                               ))}
                               {canManageRubric && (
                                 <form
@@ -1169,7 +1170,11 @@ export default async function AssessmentSettingsPage({
                                                   (score) => (
                                                     <label key={score}>
                                                       Uraian skor {score} ·{" "}
-{SCORE_SCALE_LABELS[score]}
+                                                      {
+                                                        SCORE_SCALE_LABELS[
+                                                          score
+                                                        ]
+                                                      }
                                                       <textarea
                                                         required
                                                         minLength={3}
@@ -1331,7 +1336,7 @@ export default async function AssessmentSettingsPage({
                                       {[1, 2, 3, 4, 5].map((score) => (
                                         <label key={score}>
                                           Uraian skor {score} ·{" "}
-{SCORE_SCALE_LABELS[score]}
+                                          {SCORE_SCALE_LABELS[score]}
                                           <textarea
                                             required
                                             minLength={3}

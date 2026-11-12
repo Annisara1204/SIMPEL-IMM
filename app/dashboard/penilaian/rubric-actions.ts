@@ -387,10 +387,7 @@ export async function setTrainingMaterialFramework(formData: FormData) {
   const competencyMaterialId = String(
     formData.get("competencyMaterialId") ?? "",
   );
-  if (
-    !uuidPattern.test(materialId) ||
-    !uuidPattern.test(competencyMaterialId)
-  )
+  if (!uuidPattern.test(materialId) || !uuidPattern.test(competencyMaterialId))
     throw new Error("Materi atau konteks kerangka tidak valid.");
   const { data: source } = await supabase
     .from("competency_materials")
@@ -1061,10 +1058,7 @@ export async function unlinkIndicatorFromAspect(formData: FormData) {
   const { supabase } = await staffClient(["admin_system"]);
   const mappingId = String(formData.get("mappingId") ?? "");
   const indicatorId = String(formData.get("indicatorId") ?? "");
-  if (
-    !uuidPattern.test(mappingId) ||
-    !uuidPattern.test(indicatorId)
-  )
+  if (!uuidPattern.test(mappingId) || !uuidPattern.test(indicatorId))
     throw new Error("Pemetaan indikator tidak valid.");
   const { data: mappings, error: readError } = await supabase
     .from("rubric_indicator_aspects")
@@ -1095,10 +1089,7 @@ export async function removeDraftIndicatorMapping(formData: FormData) {
   const { supabase } = await staffClient(["admin_system"]);
   const mappingId = String(formData.get("mappingId") ?? "");
   const indicatorId = String(formData.get("indicatorId") ?? "");
-  if (
-    !uuidPattern.test(mappingId) ||
-    !uuidPattern.test(indicatorId)
-  )
+  if (!uuidPattern.test(mappingId) || !uuidPattern.test(indicatorId))
     throw new Error("Pemetaan indikator tidak valid.");
   const { data: mapping } = await supabase
     .from("rubric_indicator_aspects")

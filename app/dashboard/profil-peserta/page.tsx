@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { DashboardAssessmentResults } from "@/components/dashboard-assessment-results";
 import { createClient } from "@/lib/supabase/server";
@@ -70,9 +71,9 @@ export default async function InstructorParticipantProfilesPage({
 
   return (
     <main className="users-page">
-      <a className="users-back" href="/dashboard">
+      <Link className="users-back" href="/dashboard">
         ← Kembali ke dashboard
-      </a>
+      </Link>
       <div className="users-heading">
         <div>
           <p className="login-eyebrow">PROFIL KEGIATAN</p>
@@ -126,8 +127,8 @@ export default async function InstructorParticipantProfilesPage({
           </form>
           {error ? (
             <p className="users-error">
-              Profil peserta belum dapat dibaca. Pastikan migrasi akses
-              instruktur sudah dijalankan.
+              Data belum dapat dibaca. Hubungi Admin sistem bila masalah
+              berulang.
             </p>
           ) : (
             <section className="event-manage-card">

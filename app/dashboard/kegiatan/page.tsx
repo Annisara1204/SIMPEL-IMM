@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createEvent, updateEvent } from "./actions";
@@ -22,8 +23,8 @@ export default async function ActivitiesPage({
     return (
       <main className="setup-message">
         <h1>Supabase belum dikonfigurasi</h1>
-        <p>Atur koneksi lokal dan jalankan migrasi Tahap 3 sesuai README.md.</p>
-        <a href="/login">Kembali ke login</a>
+        <p>Aplikasi belum siap digunakan. Hubungi Admin sistem.</p>
+        <Link href="/login">Kembali ke login</Link>
       </main>
     );
   const supabase = await createClient();
@@ -66,9 +67,9 @@ export default async function ActivitiesPage({
   const error = eventResult.error ?? assignmentError;
   return (
     <main className="users-page">
-      <a className="users-back" href="/dashboard">
+      <Link className="users-back" href="/dashboard">
         ← Kembali ke dashboard
-      </a>
+      </Link>
       <div className="users-heading">
         <div>
           <p className="login-eyebrow">KEGIATAN</p>
@@ -94,8 +95,7 @@ export default async function ActivitiesPage({
       )}
       {createStatus === "failed" && (
         <p className="users-error">
-          Kegiatan gagal disimpan. Pastikan seluruh migrasi basis data sudah
-          dijalankan.
+          Data belum dapat dibaca. Hubungi Admin sistem bila masalah berulang.
         </p>
       )}
       {profile.role === "admin_system" && (
@@ -170,8 +170,7 @@ export default async function ActivitiesPage({
       )}
       {error ? (
         <p className="users-error">
-          Data kegiatan belum dapat dibaca. Jalankan migrasi akses kegiatan
-          Observer di Supabase.
+          Data belum dapat dibaca. Hubungi Admin sistem bila masalah berulang.
         </p>
       ) : !events?.length ? (
         <p className="users-empty">

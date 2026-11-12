@@ -63,8 +63,7 @@ export async function setCommissariatActive(formData: FormData) {
   const supabase = await requireAdmin();
   const id = String(formData.get("id") ?? "");
   const active = String(formData.get("active") ?? "") === "true";
-  if (!uuidPattern.test(id))
-    throw new Error("ID Komisariat tidak valid.");
+  if (!uuidPattern.test(id)) throw new Error("ID Komisariat tidak valid.");
   const { error } = await supabase
     .from("commissariats")
     .update({ is_active: active, updated_at: new Date().toISOString() })

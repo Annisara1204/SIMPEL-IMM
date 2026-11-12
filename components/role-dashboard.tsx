@@ -295,7 +295,7 @@ export function RoleDashboard({
           <span className="event-dot" />
           <div>
             <small>{isPublic ? "PORTAL INFORMASI" : "KEGIATAN AKTIF"}</small>
-            <strong>{isPublic ? "Informasi DAD" : "DAD Simulasi 2026"}</strong>
+            <strong>{isPublic ? "Informasi DAD" : "Kegiatan DAD"}</strong>
           </div>
         </div>
         <nav aria-label="Navigasi utama">
@@ -466,7 +466,7 @@ export function RoleDashboard({
             <span>
               IMM Observer <b>·</b> Tahap uji coba
             </span>
-            <span>Data simulasi untuk keperluan pengembangan</span>
+            <span>Seluruh data pada fase ini bersifat simulasi</span>
           </footer>
         </div>
       </section>
@@ -692,7 +692,7 @@ function Phase7DashboardHome({ data }: { data: Phase7Home }) {
           <article>
             <small>Keputusan</small>
             <strong>
-{decisionLabel(report.snapshot_data?.collective?.decision)}
+              {decisionLabel(report.snapshot_data?.collective?.decision)}
             </strong>
           </article>
           <article>

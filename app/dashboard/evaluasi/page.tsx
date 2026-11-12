@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -40,8 +41,7 @@ export default async function CollectiveEvaluationPage({
       <main className="setup-message">
         <h1>Evaluasi belum dikonfigurasi</h1>
         <p>
-          Koneksi Supabase belum diatur atau migrasi basis data belum
-          dijalankan.
+          Data belum dapat dibaca. Hubungi Admin sistem bila masalah berulang.
         </p>
       </main>
     );
@@ -88,9 +88,7 @@ export default async function CollectiveEvaluationPage({
   if (
     profile.role === "instruktur" &&
     eventId &&
-    !assignments?.some((assignment) =>
-      isModeratorPosition(assignment.position),
-    )
+    !assignments?.some((assignment) => isModeratorPosition(assignment.position))
   )
     redirect("/dashboard");
   const { data: participants } = eventId
@@ -299,9 +297,9 @@ export default async function CollectiveEvaluationPage({
 
   return (
     <main className="users-page">
-      <a className="users-back" href="/dashboard">
+      <Link className="users-back" href="/dashboard">
         ← Kembali ke dashboard
-      </a>
+      </Link>
       <div className="users-heading">
         <div>
           <p className="login-eyebrow">EVALUASI KOLEKTIF</p>
@@ -316,7 +314,7 @@ export default async function CollectiveEvaluationPage({
         <section className="event-manage-card">
           <h2>Pilih kegiatan</h2>
           {(events ?? []).map((event) => (
-            <a
+            <Link
               className="assessment-event-option"
               key={event.id}
               href={`/dashboard/evaluasi?eventId=${event.id}`}
@@ -324,7 +322,7 @@ export default async function CollectiveEvaluationPage({
               <strong>{event.name}</strong>
               <span>{event.starts_on}</span>
               <span className="assessment-event-arrow">→</span>
-            </a>
+            </Link>
           ))}
         </section>
       )}
@@ -335,13 +333,13 @@ export default async function CollectiveEvaluationPage({
       )}
       {selectedEvent && !selectedParticipant && (
         <section className="event-manage-card">
-          <a className="users-back" href="/dashboard/evaluasi">
+          <Link className="users-back" href="/dashboard/evaluasi">
             ← Pilih kegiatan lain
-          </a>
+          </Link>
           <h2>{selectedEvent.name}</h2>
           <h3>Pilih peserta</h3>
           {participantRows.map((person) => (
-            <a
+            <Link
               className="assessment-event-option"
               key={person.id}
               href={`/dashboard/evaluasi?eventId=${eventId}&participantId=${person.id}`}
@@ -353,19 +351,19 @@ export default async function CollectiveEvaluationPage({
                 {person.commissariat}
               </span>
               <span className="assessment-event-arrow">→</span>
-            </a>
+            </Link>
           ))}
         </section>
       )}
       {displayParticipant && selectedEvent && (
         <>
           <section className="event-manage-card">
-            <a
+            <Link
               className="users-back"
               href={`/dashboard/evaluasi?eventId=${eventId}`}
             >
               ← Daftar peserta
-            </a>
+            </Link>
             <h2>{displayParticipant.display_name}</h2>
             <p>
               {displayParticipant.student_number ?? "NIM belum diisi"} ·{" "}
@@ -388,7 +386,7 @@ export default async function CollectiveEvaluationPage({
                 }${materialName ? ` · ${materialName}` : ""}`;
                 const active = version.id === selectedVersionId;
                 return (
-                  <a
+                  <Link
                     key={version.id}
                     className={
                       active
@@ -399,14 +397,14 @@ export default async function CollectiveEvaluationPage({
                     href={`/dashboard/evaluasi?eventId=${eventId}&participantId=${participantId}&versionId=${version.id}`}
                   >
                     {label}
-                  </a>
+                  </Link>
                 );
               })}
             </nav>
             {summaryError && (
               <p className="users-error">
-                Rekap skor belum tersedia. Jalankan seluruh migrasi basis data
-                terlebih dahulu.
+                Data belum dapat dibaca. Hubungi Admin sistem bila masalah
+                berulang.
               </p>
             )}
             <div className="users-notice">

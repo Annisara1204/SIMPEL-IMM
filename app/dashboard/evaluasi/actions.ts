@@ -33,7 +33,6 @@ async function requireModerator(eventId: string) {
   return { supabase, userId };
 }
 
-
 /**
  * Filter rekap indikator ke satu jenis penilaian (satu rubrik versi aktif
  * per kegiatan). Baris `cross_session` masuk hanya bila versi ini memuat

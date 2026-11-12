@@ -31,7 +31,7 @@ export default async function CompetencyFrameworkPage() {
     .maybeSingle();
   if (!framework)
     return (
-      <main className="dashboard-main">
+      <main className="users-page">
         <section className="event-manage-card">
           <h1>Kerangka Kompetensi DAD</h1>
           <p>
@@ -49,7 +49,7 @@ export default async function CompetencyFrameworkPage() {
     .maybeSingle();
   if (!frameworkVersion)
     return (
-      <main className="dashboard-main">
+      <main className="users-page">
         <section className="event-manage-card">
           <h1>Kerangka Kompetensi DAD</h1>
           <p>Versi trial belum tersedia.</p>
@@ -199,7 +199,7 @@ export default async function CompetencyFrameworkPage() {
   );
 
   return (
-    <main className="dashboard-main competency-framework-page">
+    <main className="users-page competency-framework-page">
       <header className="users-heading">
         <div>
           <p className="login-eyebrow">KERANGKA DAD</p>
@@ -221,8 +221,7 @@ export default async function CompetencyFrameworkPage() {
       </div>
       {(materialsError || materialMappingsError) && (
         <p className="users-error">
-          Data pemetaan belum dapat dibaca. Pastikan migrasi kerangka DAD
-          berhasil dijalankan.
+          Data belum dapat dibaca. Hubungi Admin sistem bila masalah berulang.
         </p>
       )}
       <section className="event-manage-card">

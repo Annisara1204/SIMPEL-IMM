@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -36,11 +37,8 @@ export default async function ParticipantsPage() {
     return (
       <main className="setup-message">
         <h1>Supabase belum dikonfigurasi</h1>
-        <p>
-          Atur koneksi lokal dan jalankan migrasi profil peserta sesuai
-          README.md.
-        </p>
-        <a href="/login">Kembali ke login</a>
+        <p>Aplikasi belum siap digunakan. Hubungi Admin sistem.</p>
+        <Link href="/login">Kembali ke login</Link>
       </main>
     );
   const supabase = await createClient();
@@ -83,29 +81,25 @@ export default async function ParticipantsPage() {
   );
   return (
     <main className="users-page">
-      <a className="users-back" href="/dashboard">
+      <Link className="users-back" href="/dashboard">
         ← Kembali ke dashboard
-      </a>
+      </Link>
       <div className="users-heading">
         <div>
-          <p className="login-eyebrow">TAHAP 3 · DATA SIMULASI</p>
+          <p className="login-eyebrow">PROFIL PESERTA</p>
           <h1>Peserta</h1>
           <p>
             Profil peserta untuk tiap kegiatan. Kolom bertanda wajib harus
             dilengkapi.
           </p>
         </div>
-        <span className="sample-tag">SIMULASI</span>
       </div>
       {error ? (
         <p className="users-error">
-          Data peserta belum dapat dibaca. Pastikan migrasi profil dan foto
-          peserta sudah dijalankan.
+          Data belum dapat dibaca. Hubungi Admin sistem bila masalah berulang.
         </p>
       ) : !eventsWithPhotos.length ? (
-        <p className="users-empty">
-          Belum ada kegiatan. Jalankan migrasi Tahap 3 di Supabase.
-        </p>
+        <p className="users-empty">Belum ada kegiatan untuk ditampilkan.</p>
       ) : (
         eventsWithPhotos.map((event) => (
           <section className="event-manage-card" key={event.id}>

@@ -17,7 +17,7 @@ export default async function ProfilePage({
     return (
       <main className="setup-message">
         <h1>Supabase belum dikonfigurasi</h1>
-        <a href="/login">Kembali ke login</a>
+        <Link href="/login">Kembali ke login</Link>
       </main>
     );
   const supabase = await createClient();
@@ -42,7 +42,9 @@ export default async function ProfilePage({
     return (
       <main className="setup-message">
         <h1>Profil belum tersedia</h1>
-        <p>Pastikan migrasi pendaftaran akun sudah dijalankan.</p>
+        <p>
+          Data belum dapat dibaca. Hubungi Admin sistem bila masalah berulang.
+        </p>
       </main>
     );
   const { data: photo } = personalProfile?.photo_path
@@ -81,8 +83,7 @@ export default async function ProfilePage({
         )}
         {query.status === "failed" && (
           <p className="login-error" role="alert">
-            Profil gagal disimpan. Pastikan migrasi profil terbaru sudah
-            dijalankan.
+            Data belum dapat dibaca. Hubungi Admin sistem bila masalah berulang.
           </p>
         )}
         {photo?.signedUrl && (

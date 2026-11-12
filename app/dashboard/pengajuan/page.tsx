@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -29,11 +30,8 @@ export default async function CommissariatApplicationsPage() {
     return (
       <main className="setup-message">
         <h1>Supabase belum dikonfigurasi</h1>
-        <p>
-          Atur koneksi lokal dan jalankan migrasi pengajuan Komisariat sesuai
-          README.md.
-        </p>
-        <a href="/login">Kembali ke login</a>
+        <p>Aplikasi belum siap digunakan. Hubungi Admin sistem.</p>
+        <Link href="/login">Kembali ke login</Link>
       </main>
     );
   const supabase = await createClient();
@@ -49,9 +47,9 @@ export default async function CommissariatApplicationsPage() {
   if (!profile.commissariat_id)
     return (
       <main className="users-page">
-        <a className="users-back" href="/dashboard">
+        <Link className="users-back" href="/dashboard">
           ← Kembali ke dashboard
-        </a>
+        </Link>
         <div className="users-notice">
           <strong>Akun Komisariat belum ditautkan</strong>
           <p>
@@ -119,9 +117,9 @@ export default async function CommissariatApplicationsPage() {
 
   return (
     <main className="users-page">
-      <a className="users-back" href="/dashboard">
+      <Link className="users-back" href="/dashboard">
         ← Kembali ke dashboard
-      </a>
+      </Link>
       <div className="users-heading">
         <div>
           <p className="login-eyebrow">RUANG KERJA KOMISARIAT</p>
@@ -141,8 +139,7 @@ export default async function CommissariatApplicationsPage() {
       </div>
       {(eventError || submissionError) && (
         <p className="users-error">
-          Data kegiatan atau pengajuan belum dapat dibaca. Pastikan migrasi 1000
-          sudah dijalankan.
+          Data belum dapat dibaca. Hubungi Admin sistem bila masalah berulang.
         </p>
       )}
       {!commissariat?.is_active && (

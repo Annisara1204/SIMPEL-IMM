@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -23,8 +24,8 @@ export default async function CommissariatReviewPage() {
     return (
       <main className="setup-message">
         <h1>Supabase belum dikonfigurasi</h1>
-        <p>Atur koneksi lokal dan jalankan migrasi pengajuan Komisariat.</p>
-        <a href="/login">Kembali ke login</a>
+        <p>Aplikasi belum siap digunakan. Hubungi Admin sistem.</p>
+        <Link href="/login">Kembali ke login</Link>
       </main>
     );
   const supabase = await createClient();
@@ -83,9 +84,9 @@ export default async function CommissariatReviewPage() {
 
   return (
     <main className="users-page">
-      <a className="users-back" href="/dashboard">
+      <Link className="users-back" href="/dashboard">
         ← Kembali ke dashboard
-      </a>
+      </Link>
       <div className="users-heading">
         <div>
           <p className="login-eyebrow">TINJAUAN OBSERVER</p>
@@ -98,8 +99,7 @@ export default async function CommissariatReviewPage() {
       </div>
       {error && (
         <p className="users-error">
-          Daftar pengajuan gagal dimuat. Pastikan migrasi pengajuan Komisariat
-          sudah dijalankan.
+          Data belum dapat dibaca. Hubungi Admin sistem bila masalah berulang.
         </p>
       )}
       {!rows.length && !error && (

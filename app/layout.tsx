@@ -18,6 +18,8 @@ const manrope = Manrope({
 export const metadata: Metadata = {
   title: "Observer DAD | IMM Kota Bandung",
   description: "Dashboard pemantauan Pelatihan Kader IMM Kota Bandung",
+  // Fase uji coba: jangan diindeks mesin pencari sampai rilis resmi.
+  robots: { index: false, follow: false },
 };
 
 export default function RootLayout({

@@ -1,6 +1,6 @@
 import type { ReportSnapshotData } from "./supabase-rows";
-import { categorizeScore } from "./scoring";
-import { decisionLabel } from "./decision-labels";
+import { categorizeScore } from "./scoring.ts";
+import { decisionLabel } from "./decision-labels.ts";
 
 export type ReportFileData = {
   participant: {
@@ -58,7 +58,9 @@ const wrap = (text: string, limit = 88) => {
 const moneyDate = (value?: string | null) =>
   value ? new Date(value).toLocaleDateString("id-ID") : "Belum diisi";
 const category = (value: number | null) =>
-  value === null ? "Belum tersedia" : (categorizeScore(value)?.label ?? "Belum tersedia");
+  value === null
+    ? "Belum tersedia"
+    : (categorizeScore(value)?.label ?? "Belum tersedia");
 
 function reportPages(report: ReportFileData) {
   const data = report.snapshotData ?? {};

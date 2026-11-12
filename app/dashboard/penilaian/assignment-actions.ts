@@ -148,10 +148,7 @@ export async function updateInstructorDutyItem(formData: FormData) {
   const assignmentId = String(formData.get("assignmentId") ?? "");
   const dutyItemId = String(formData.get("dutyItemId") ?? "");
   const isDone = formData.get("isDone") === "on";
-  if (
-    !uuidPattern.test(assignmentId) ||
-    !uuidPattern.test(dutyItemId)
-  )
+  if (!uuidPattern.test(assignmentId) || !uuidPattern.test(dutyItemId))
     throw new Error("Tugas tidak valid.");
   const { data: assignment } = await supabase
     .from("instructor_event_assignments")

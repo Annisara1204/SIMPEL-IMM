@@ -85,8 +85,7 @@ export async function updateUserRole(formData: FormData) {
 
   const targetId = String(formData.get("userId") ?? "");
   const selectedRole = String(formData.get("role") ?? "");
-  if (!uuidPattern.test(targetId))
-    throw new Error("ID pengguna tidak valid.");
+  if (!uuidPattern.test(targetId)) throw new Error("ID pengguna tidak valid.");
   if (targetId === userId)
     throw new Error(
       "Role akun yang sedang digunakan tidak dapat diubah dari halaman ini.",
@@ -130,10 +129,7 @@ export async function assignUserCommissariat(formData: FormData) {
 
   const targetId = String(formData.get("userId") ?? "");
   const commissariatId = String(formData.get("commissariatId") ?? "");
-  if (
-    !uuidPattern.test(targetId) ||
-    !uuidPattern.test(commissariatId)
-  )
+  if (!uuidPattern.test(targetId) || !uuidPattern.test(commissariatId))
     throw new Error("Pilih akun dan Komisariat yang valid.");
   const [{ data: target }, { data: commissariat }] = await Promise.all([
     supabase.from("profiles").select("role").eq("id", targetId).maybeSingle(),

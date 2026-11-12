@@ -29,7 +29,7 @@ export default function LoginPage() {
     } catch (err) {
       setError(
         err instanceof Error && err.message.includes("belum dikonfigurasi")
-          ? "Login belum disambungkan. Admin perlu mengatur Supabase sesuai README.md."
+          ? "Aplikasi belum siap. Silakan coba lagi nanti atau hubungi Admin sistem."
           : "Email atau kata sandi tidak cocok, atau akun belum aktif.",
       );
     } finally {

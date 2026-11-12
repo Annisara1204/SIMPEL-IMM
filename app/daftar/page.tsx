@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { registerPermanentInstructor } from "./actions";
 
 export default async function RegisterPage({
@@ -8,9 +9,9 @@ export default async function RegisterPage({
   const query = await searchParams;
   return (
     <main className="login-page">
-      <a href="/login" className="login-back">
+      <Link href="/login" className="login-back">
         ← Kembali ke login
-      </a>
+      </Link>
       <section className="login-card">
         <div className="login-mark">
           i<span>•</span>

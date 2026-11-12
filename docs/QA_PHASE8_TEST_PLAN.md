@@ -223,7 +223,7 @@ Temuan dan hasil penting:
 - Rubrik Screening "Interview" memang kosong (sengaja, dikonfirmasi pengguna) — workspace menampilkan aspek tanpa indikator tanpa pesan penjelasan; dicatat sebagai **catatan UX (Low/Medium)**: tampilkan pesan "indikator belum dipilih pada rubrik ini" saat rubrik kosong.
 - **Data uji:** 5 skor uji (4, 3, 3, 4, 5) tersimpan pada "Peserta 01 · Pelatihan AIK · Kognitif" (Draft). Ini data dummy — pengguna dapat mengisi ulang.
 - Build produksi masih `EPERM` prerender; belum diuji penuh.
-- Log lama (`00:20`) menunjukkan uncaught error `Setiap indikator harus terhubung ke aspek yang dipilih` dari `applyFrameworkRubricSelection` (`app/dashboard/penilaian/actions.ts:180`) — pengguna sempat memicu ini; dicatat sebagai **Bug-003 (Medium)** untuk ditinjau: pesan/galat tidak bersahabat saat validasi pemilih gagal.
+- Log lama (`00:20`) menunjukkan uncaught error `Setiap indikator harus terhubung ke aspek yang dipilih` dari `applyFrameworkRubricSelection` (saat ditulis berkasnya `app/dashboard/penilaian/actions.ts`; sejak 12 Nov 2026 terpecah — lihat `app/dashboard/penilaian/rubric-actions.ts`) — pengguna sempat memicu ini; dicatat sebagai **Bug-003 (Medium)** untuk ditinjau: pesan/galat tidak bersahabat saat validasi pemilih gagal.
 - Pemeriksaan lintas akun (konflik dua observer), Realtime dua sesi, submit→finalisasi→publikasi→rapor, ekspor PDF/Excel, akun Instruktur dan Peserta: **belum diuji**.
 
 ## Checklist prioritas untuk diuji manual (butuh akun)

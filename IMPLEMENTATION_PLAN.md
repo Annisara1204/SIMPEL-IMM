@@ -1,55 +1,33 @@
 # Rencana Implementasi — DAD Assessment & Cadre Development System
 
-Dokumen ini mencatat urutan kerja berdasarkan audit repository 11 November 2026. `BLUEPRINT.md` tetap menjadi sumber keputusan produk dan aturan akses. Tahap berikutnya baru dimulai setelah pengguna memeriksa dan menyatakan tahap berjalan sesuai atau meminta lanjut.
+Acuan produk dan aturan akses: `BLUEPRINT.md`. Kondisi terkini: `HANDOVER.md`. Riwayat sesi dan status lama: `docs/archive/`.
 
-## Kondisi repository
+Prinsip kerja: tetap pada Next.js + Supabase yang sudah berjalan; otorisasi di server dan RLS; migrasi SQL bertahap dan dapat ditinjau; keputusan terakhir pengguna mengalahkan dokumen; data simulasi saja sampai tinjauan keamanan/privasi; jangan menambah dependensi tanpa kebutuhan.
 
-- Frontend: Next.js 16.4.3 App Router, React 19.2, TypeScript 5.9.
-- Backend dan basis data: Supabase Auth, PostgreSQL, RLS, Storage; klien server/browser tersedia di `lib/supabase/`.
-- Package manager: npm (`package-lock.json`).
-- Fitur yang sudah ada: login/role, kegiatan dan peserta, Komisariat, rubrik dan observasi, pengajuan Komisariat dan seleksi administrasi, profil Instruktur, serta beberapa alur dashboard.
-- Migrasi database tersimpan berurutan di `supabase/migrations/`.
-- Dependensi relevan yang tersedia: `@supabase/ssr`, `@supabase/supabase-js`, dan `xlsx`. Belum ada dependensi khusus PDF yang digunakan.
-- Foto peserta opsional dan migration framework/rubrik Phase 2–3 telah dikonfirmasi berhasil oleh pengguna. Spesifikasi trial serta mapping Phase 4 diperbarui di `TRIAL_DAD_COMPETENCY_FRAMEWORK.md`; migration final Phase 4 menunggu diterapkan.
-- Perubahan sampai Phase 3 sudah tersinkron ke `origin/main` pada commit `ad5a2a7`. Perubahan Phase 4 yang sedang dikerjakan akan menjadi commit berikutnya setelah ditinjau pengguna.
+## Tahapan dan ketergantungan (per 12 Nov 2026)
 
-## Prinsip arsitektur
+| # | Tahap | Status |
+|---|-------|--------|
+| 1 | Fondasi — audit, skema, autentikasi, role, RLS | Selesai dan diterima (Tahap 1–2) |
+| 2 | Kegiatan dan peserta — kegiatan, peserta, komisariat, materi, penugasan | Selesai dan diterima (Tahap 3, 29 Okt 2026) |
+| 3 | Competency Framework v1 — enam aspek, 27 indikator, bobot, relasi | Migration diterapkan; regression SQL lulus |
+| 4 | Rubric Engine — rubrik master per indikator, anchor 1–5, mapping materi/aktivitas | Migration diterapkan; regression SQL lulus; `/dashboard/kerangka` tampil |
+| 5 | Assessment Workspace — nilai independen per Observer/Instruktur, autosave, offline, Realtime, submission, audit | Migration terpasang; regression SQL lulus (12 Nov); uji browser/dua akun/konflik/Realtime **belum** dijalankan |
+| 6 | Scoring & Collective Evaluation — agregasi, coverage 80%, moderasi, keputusan manual, snapshot immutable | Migration terpasang; regression SQL lulus; uji browser/finalisasi **belum** |
+| 7 | Dashboard, Rapor & Export — snapshot publikasi, PDF/ZIP/Excel, audit ekspor | Migration terpasang; regression SQL dilaporkan berhasil; uji browser/publikasi/ekspor **belum** |
+| 8 | Analitik & rekap lintas kegiatan | Belum dikerjakan |
+| 9 | Evaluasi program & impor tes (.xlsx, khusus Admin Sistem bila dilanjutkan) | Ditunda atas arahan pengguna |
+| 10 | Pengembangan kader 30/60/90 hari | Belum dikerjakan; bergantung hasil final dan kebijakan akses |
+| 11 | QA & persiapan rilis — uji alur, RLS lintas role, backup, deployment | Menunggu tahap 5–7 terverifikasi; data nyata dilarang sebelum tinjauan |
 
-1. Pertahankan Next.js dan pola Supabase yang sudah berjalan; jangan membuat integrasi duplikat.
-2. Otorisasi diberlakukan di server dan RLS. Kunci service role hanya boleh dipakai di server.
-3. Migration SQL menjadi perubahan skema yang berurutan dan dapat ditinjau.
-4. Keputusan terbaru Phase 5: satu skor independen per observer/peserta/indikator/versi rubrik, dengan bukti, status, revisi, dan audit trail. Data legacy skor bersama dipertahankan sebagai historis; agregasi baru menunggu Phase 6.
-5. Pengembangan memakai data simulasi. Jangan mempublikasikan aplikasi atau memasukkan data nyata sebelum peninjauan privasi, keamanan, backup, dan biaya.
-6. Tambahkan dependensi hanya bila fitur yang disetujui membutuhkannya.
+## Backlog kualitas kode (12 Nov 2026 — sebagian besar selesai)
 
-## Tahapan dan ketergantungan
+Ditemukan audit 12 Nov 2026; detail di HANDOVER.md:
 
-| Tahap | Cakupan | Status dan ketergantungan |
-|---|---|---|
-| 1. Fondasi | Audit, skema, autentikasi, role, RLS | Sudah dikerjakan dan diterima menurut `HANDOVER.md`; audit akses menyeluruh tetap diperlukan sebelum rilis. |
-| 2. Kegiatan dan peserta | Kegiatan, peserta, Komisariat, materi, penugasan | Fitur dasar sudah ada. Form pengajuan Komisariat dan seleksi administrasi sudah dibuat; migrasi/alur browser terbaru masih perlu pemeriksaan pengguna. |
-| 2A. Competency Framework | Master framework DAD trial v1: aspek, indikator, bobot, dan relasi | Migration seed berhasil diterapkan di Supabase menurut konfirmasi pengguna. File SQL regression check tersedia; hasilnya belum dikonfirmasi terpisah. |
-| 3. Rubric Engine | Master 7 materi, 27 rubrik indikator, 135 behavioral anchors, N/O, preview, dan RLS | Migration serta SQL regression berhasil menurut pengguna; halaman `/dashboard/kerangka` telah tampil. Pengguna meminta lanjut ke Phase 4. Approval workflow tetap tidak digunakan sesuai keputusan pengguna. |
-| 4. Material Mapping | Seed materi/aktivitas ke aspek, indikator, metode, panduan, cakupan sesi/lintas sesi, matriks read-only, dan validasi | Migrations 1400 dan 1500 berhasil diterapkan menurut pengguna. SQL regression Phase 2–4 dan uji browser masih menunggu. TypeScript dan diff check lulus. |
-| 5. Assessment Workspace | Rating independen observer, bukti, N/O, autosave/offline, Realtime, submission, RLS, audit, dynamic mapping | Implementasi lokal tersedia; pengguna sempat mendapat `42P07` karena `assessment_submissions` sudah ada saat suatu migrasi dijalankan. Kelengkapan Phase 5 perlu diverifikasi dengan `supabase/tests/dad_assessment_phase5.sql`; uji browser/dua akun belum dikonfirmasi. |
-| 6. Scoring & Collective Evaluation | Agregasi per peserta/indikator/cakupan, coverage, moderasi, evaluasi kolektif, keputusan manual, rekomendasi disetujui, snapshot immutable | Implementasi lokal tersedia di `/dashboard/evaluasi`; migration `20261112170000_dad_scoring_collective_evaluation_v1.sql` dan regression SQL tersedia. Unit test 10/10, TSC, dan diff check lulus. Migration dan SQL regression belum dikonfirmasi berjalan; browser/RLS multiakun belum diverifikasi. |
-| 5. Analitik | Agregasi, dashboard, progres dan profil kompetensi | Sebagian ringkasan dashboard sudah ada. Analitik lintas kegiatan dan pemeriksaan privasi agregat belum lengkap. |
-| 6. Evaluasi | Tes, evaluasi program, moderasi dan sidang kelulusan | Impor tes ditunda. Evaluasi program dan keputusan sidang belum diimplementasikan penuh. |
-| 7. Dashboard, Rapor, Reporting & Export | Dashboard role, snapshot final, publikasi, PDF/ZIP, Excel, event report, audit | Implementasi lokal tersedia di dashboard root dan `/dashboard/laporan`; migration `20261112180000_dad_reporting_publication_v1.sql` serta SQL regression tersedia. Tes generator PDF/ZIP 2/2 dan TSC lulus. Menunggu verifikasi Phase 5/6 lalu migration 1800 dan uji browser/RLS/SQL di Supabase. |
-| 8. Pengembangan kader | Rekomendasi dan pemantauan 30/60/90 hari | Belum dikerjakan; bergantung pada hasil final dan kebijakan akses yang disetujui. |
-| 9. QA dan persiapan rilis | Uji alur, RLS, privasi, performa, backup dan dokumentasi deployment | Belum selesai; tidak boleh dinyatakan siap produksi sebelum pemeriksaan menyeluruh. |
-
-## Urutan kerja terdekat
-
-1. Jalankan `supabase/tests/dad_assessment_phase5.sql`. Jika lulus, Phase 5 lengkap; jangan ulangi migration itu karena tabel `assessment_submissions` sudah terdeteksi ada.
-2. Jalankan `supabase/tests/dad_scoring_phase6.sql`. Jika fungsi/tabel Phase 6 belum ada, terapkan migration 1700 lalu ulangi cek. Jangan lanjut ke migration 1800 sebelum Phase 6 lengkap.
-3. Terapkan `20261112180000_dad_reporting_publication_v1.sql`, kemudian jalankan `supabase/tests/dad_reporting_phase7.sql`.
-4. Jalankan server lokal dan uji role Admin, Bidang Kader, koordinator, Observer, dan Peserta dengan data simulasi. Pastikan akun Peserta ditautkan, rapor hanya tampil setelah Published, dan bulk export mengecualikan yang belum Published.
-
-## Pemeriksaan sebelum penggunaan nyata
-
-- Uji akses langsung setiap role di server dan RLS, termasuk isolasi kegiatan dan catatan privat.
-- Uji konflik serta sinkronisasi antar-Observer sebelum menyebut kolaborasi realtime siap.
-- Pastikan status sementara/resmi dan snapshot nilai tidak berubah diam-diam.
-- Tinjau retensi berkas, backup/pemulihan, biaya layanan, serta izin publik.
-- Jalankan pemeriksaan browser nyata dan keamanan; keberhasilan TypeScript/build saja tidak membuktikan hal tersebut.
+1. Gate kualitas (selesai 12 Nov): ESLint + Prettier + CI; seluruh sumber diformat.
+2. Ekstrak helper normalisasi relasi Supabase (`firstRelated`/`relatedRows`) ke `lib/relations.ts`; label tahap ke `lib/stage-labels.ts` — selesai.
+3. Ganti seluruh pemakaian `any` (66 titik) dengan tipe `lib/supabase-rows.ts`; `no-explicit-any` kembali ke error — selesai.
+4. Pecah `app/dashboard/penilaian/actions.ts` menjadi `rubric-actions.ts` (rubrik), `assignment-actions.ts` (penugasan), `assessment-actions.ts` (simpan nilai/catatan), `internal.ts` (staffClient) — selesai.
+5. Konten demo statis dipindah ke `components/simulated-panels.tsx`; navigasi `label → href` jadi tabel data — selesai.
+6. Logika data ringkasan dashboard dipindah ke `lib/phase7-home.ts`; duplikasi cabang role diciutkan; `snapshotIds` → `rubricVersionIds` — selesai.
+7. Sisa: sel autosave/konflik offline (`set-state-in-effect`, 6 titik) dan `<img>` foto privat (6 titik) — menunggu uji browser; semua refactor 12 Nov belum dicek di browser.

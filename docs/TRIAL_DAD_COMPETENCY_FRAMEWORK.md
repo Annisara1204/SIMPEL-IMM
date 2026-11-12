@@ -4,7 +4,7 @@
 
 ## Keputusan penggunaan
 
-- Skor satu nilai bersama per peserta dan indikator; catatan tetap per penulis.
+- ~~Skor satu nilai bersama per peserta dan indikator~~ **Digantikan Phase 5 (11 Nov 2026):** tiap Observer/Instruktur menyimpan nilai independen per peserta/indikator/versi rubrik; catatan tetap per penulis.
 - Skala: 1 Sangat Kurang, 2 Kurang, 3 Cukup, 4 Baik, 5 Sangat Baik. `N/O` berarti belum diamati dan tidak dihitung sebagai nol.
 - Tidak ada alur review/finalisasi aplikasi pada uji ini. Evaluasi dilakukan manual.
 - Kerangka disediakan sebagai template awal yang dapat disalin ke versi rubrik kegiatan. Jika nanti materi atau pelatihan berbeda, buat versi/template baru; versi dan hasil terdahulu tidak berubah.

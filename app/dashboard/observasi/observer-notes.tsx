@@ -176,6 +176,7 @@ function NoteEditor({
     noteType,
     onSaved,
     locked,
+    router,
   ]);
 
   const acceptLatest = () => {

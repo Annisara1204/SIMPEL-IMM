@@ -1,5 +1,7 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+
 import { useMemo, useState } from "react";
 import { auditReportExport } from "@/app/dashboard/laporan/actions";
 import {
@@ -103,6 +105,7 @@ const coverageOf = (row: ReportRow) => {
     : null;
 };
 export function Phase7ReportWorkspace(props: Props) {
+  const router = useRouter();
   const {
     role,
     event,
@@ -634,9 +637,7 @@ export function Phase7ReportWorkspace(props: Props) {
             <select
               value={event?.id ?? ""}
               onChange={(change) =>
-                location.assign(
-                  `/dashboard/laporan?eventId=${change.target.value}`,
-                )
+                router.push(`/dashboard/laporan?eventId=${change.target.value}`)
               }
             >
               {events.map((item) => (

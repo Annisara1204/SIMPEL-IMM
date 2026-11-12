@@ -437,23 +437,27 @@ export function RoleDashboard({
                 ← Kembali ke Ringkasan
               </button>
             </section>
-          ) : phase7Home ? (
-            <Phase7DashboardHome data={phase7Home} />
           ) : (
             <>
-              <DashboardContent
-                role={role}
-                onNavigate={setActive}
-                instructorAssignments={instructorAssignments}
-              />
+              {phase7Home ? (
+                <Phase7DashboardHome data={phase7Home} />
+              ) : (
+                <>
+                  <DashboardContent
+                    role={role}
+                    onNavigate={setActive}
+                    instructorAssignments={instructorAssignments}
+                  />
+                  {assessmentData && (
+                    <DashboardAssessmentResults data={assessmentData} />
+                  )}
+                </>
+              )}
               {role === "instruktur" && (
                 <InstructorDutyDashboard
                   assignments={instructorAssignments}
                   participantEvents={instructorParticipantEvents}
                 />
-              )}
-              {assessmentData && (
-                <DashboardAssessmentResults data={assessmentData} />
               )}
             </>
           )}

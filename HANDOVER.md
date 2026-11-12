@@ -124,3 +124,12 @@ Perubahan & alur (diverifikasi end-to-end di browser + DB, data simulasi):
 - Catatan: evaluasi kolektif lama (legacy draft id `02afc62c…`, tanpa versi) dibiarkan, tidak dihapus (terhubung ke `collective_evaluation_revisions`).
 - Peserta masih tidak punya akun (metode akses belum diputuskan pengguna) — rapor hanya bisa dibuka Admin/Kader/Instruktur; RPT-001..005 tetap belum teruji end-to-end.
 - Consensus: `assessment_moderations` berisi 2 record resolved (retain_average) untuk indikator menyimpang — dilakukan sebagai koordinator (simulasi).
+
+## Role tambahan diverifikasi + lint bersih (13 November 2026, akhir sesi)
+
+- **Akun QA baru (DEV, data simulasi):** `qa-auto-iot@qa.imm-observer.invalid` (instruktur, subrole IoT, penugasan `PK IMM FEB UM Bandung` + 5 duty ter-seed, 1 tercentang selesai) dan `qa-auto-komisariat@qa.imm-observer.invalid` (komisariat, ditautkan `PK IMM FEB UM Bandung`). Kredensial di `.env.qa-test`.
+- **DASH-007 IoT** terverifikasi di browser (checklist tampil & persist; `/dashboard/laporan` redirect; agregat penilaian tidak ditampilkan di dashboard IoT). **Komisariat** terverifikasi (menu kosong sesuai peran; menu lain dialihkan; tidak ada data pengajuan milik komisariat lain yang tampil).
+- **BUG-005 (Medium, diperbaiki & terverifikasi di browser untuk MoT dan IoT):** `InstructorDutyDashboard` tidak pernah dirender — panel tugas Instruktur kini tampil setelah dashboard phase 7.
+- **Lint-debt = 0 peringatan** (perbaikan 2 exhaustive-deps + `location.assign` → `useRouter().push`). `npm run check` hijau; `npm run lint` tanpa output (bersih).
+- **Bug riwayat:** legacy evaluation draft (`02afc62c…`, kosong) tetap ada — sengaja tidak dihapus (terhubung ke tabel riwayat).
+- Production project `crrqlwlfndhugcqcnkex` TIDAK disentuh; 3 migration baru terpasang hanya di DEV via Management API.

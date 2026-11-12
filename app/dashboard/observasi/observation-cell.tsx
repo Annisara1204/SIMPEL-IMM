@@ -150,6 +150,7 @@ export function ObservationCell(props: Props) {
     isPending,
     props.participantId,
     props.indicatorId,
+    props.currentUserId,
     router,
   ]);
 

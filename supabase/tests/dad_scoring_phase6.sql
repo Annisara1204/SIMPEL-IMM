@@ -37,7 +37,7 @@ begin
   if context_count<>14 or mapping_count<>56 then raise exception 'Phase 4 gagal: konteks %, mapping %.',context_count,mapping_count; end if;
   if exists(select 1 from public.competency_material_indicators where framework_version_id=framework_version and active and competency_indicator_rubric_version_id is null) then raise exception 'Mapping Phase 4 belum menyimpan versi rubrik sumber.'; end if;
 
-  if not exists(select 1 from public.assessment_scoring_policies where id and review_score_delta=2 and minimum_coverage=80) then raise exception 'Konfigurasi Phase 6 awal harus delta 2 dan coverage 80%.'; end if;
+  if not exists(select 1 from public.assessment_scoring_policies where id and review_score_delta=2 and minimum_coverage=80) then raise exception 'Konfigurasi Phase 6 awal harus delta 2 dan coverage 80%%.'; end if;
   if not exists(select 1 from pg_proc where proname='get_event_assessment_summary') or not exists(select 1 from pg_proc where proname='finalize_collective_evaluation') then raise exception 'Fungsi agregasi/finalisasi Phase 6 belum tersedia.'; end if;
   select string_agg(tbl,', ') into rls_missing from (values
     ('assessment_moderations'),('assessment_moderation_revisions'),('collective_evaluations'),

@@ -7,7 +7,7 @@ import { saveObserverNote } from "../penilaian/actions";
 type NoteType = "observation" | "strength" | "development" | "special";
 type NoteRevision = { id: number; content_before: string; content_after: string; revision: number; actor_name: string; changed_at: string };
 export type NoteRecord = { id: string; participant_id: string; rubric_version_id: string; indicator_id: string | null; author_id: string; author_name: string; note_type: NoteType; content: string; revision: number; updated_at: string; observer_note_revisions?: NoteRevision[] };
-type Props = { participantId: string; rubricVersionId: string; currentUserId: string; notes: NoteRecord[] };
+type Props = { participantId: string; rubricVersionId: string; currentUserId: string; notes: NoteRecord[]; locked?: boolean };
 
 const noteTypes: { id: NoteType; label: string; hint: string }[] = [
   { id: "observation", label: "Observasi / bukti", hint: "Tulis perilaku atau ucapan yang benar-benar teramati." },
@@ -16,7 +16,7 @@ const noteTypes: { id: NoteType; label: string; hint: string }[] = [
   { id: "special", label: "Catatan khusus", hint: "Informasi kontekstual privat yang relevan untuk tim penilai." },
 ];
 
-function NoteEditor({ participantId, rubricVersionId, currentUserId, noteType, record, onSaved }: { participantId: string; rubricVersionId: string; currentUserId: string; noteType: NoteType; record: NoteRecord | null; onSaved: (record: NoteRecord) => void }) {
+function NoteEditor({ participantId, rubricVersionId, currentUserId, noteType, record, onSaved, locked }: { participantId: string; rubricVersionId: string; currentUserId: string; noteType: NoteType; record: NoteRecord | null; onSaved: (record: NoteRecord) => void; locked?: boolean }) {
   const router = useRouter();
   const [content, setContent] = useState(record?.content ?? "");
   const [syncedContent, setSyncedContent] = useState(record?.content ?? "");
@@ -50,7 +50,7 @@ function NoteEditor({ participantId, rubricVersionId, currentUserId, noteType, r
   }, [record?.id, record?.revision, record?.content, record?.author_name]);
 
   useEffect(() => {
-    if (content === syncedContent || conflict || pending) return;
+    if (content === syncedContent || conflict || pending || locked) return;
     const timer = window.setTimeout(() => {
       setStatus("Menyimpan…");
       startTransition(async () => {
@@ -76,7 +76,7 @@ function NoteEditor({ participantId, rubricVersionId, currentUserId, noteType, r
       });
     }, 700);
     return () => window.clearTimeout(timer);
-  }, [content, syncedContent, revision, conflict, pending, participantId, rubricVersionId, noteType, onSaved]);
+  }, [content, syncedContent, revision, conflict, pending, participantId, rubricVersionId, noteType, onSaved, locked]);
 
   const acceptLatest = () => {
     if (!conflict) return;
@@ -95,7 +95,7 @@ function NoteEditor({ participantId, rubricVersionId, currentUserId, noteType, r
     setStatus("Menerapkan catatan Anda setelah konflik dikonfirmasi…");
   };
 
-  return <div className="observer-note-editor"><label>{noteTypes.find((type) => type.id === noteType)?.label}<textarea value={content} maxLength={3000} rows={3} onChange={(event) => setContent(event.target.value)} disabled={pending || !!conflict} placeholder={noteTypes.find((type) => type.id === noteType)?.hint}/></label><small aria-live="polite">{status}{latest.revision ? ` · versi catatan ${latest.revision}` : ""}</small>{conflict && <div className="observation-conflict" role="alert"><strong>Konflik catatan</strong><p>Versi server: “{conflict.content || "kosong"}”. Pilihan Anda: “{content || "kosong"}”.</p><button type="button" onClick={acceptLatest} disabled={pending}>Gunakan catatan terbaru</button><button type="button" onClick={applyMine} disabled={pending}>Terapkan ulang tulisan saya</button></div>}{record?.observer_note_revisions?.length ? <details className="observation-history"><summary>Riwayat catatan ({record.observer_note_revisions.length})</summary>{[...record.observer_note_revisions].sort((a, b) => b.revision - a.revision).slice(0, 8).map((item) => <p key={item.id}><strong>{item.actor_name}</strong> · “{item.content_before || "kosong"}” → “{item.content_after || "kosong"}” · {new Date(item.changed_at).toLocaleString("id-ID")}</p>)}</details> : null}</div>;
+  return <div className="observer-note-editor"><label>{noteTypes.find((type) => type.id === noteType)?.label}<textarea value={content} maxLength={3000} rows={3} onChange={(event) => setContent(event.target.value)} disabled={locked || pending || !!conflict} placeholder={noteTypes.find((type) => type.id === noteType)?.hint}/></label><small aria-live="polite">{locked ? "Terkunci setelah dikirim; buka kembali untuk revisi." : status}{latest.revision ? ` · versi catatan ${latest.revision}` : ""}</small>{conflict && <div className="observation-conflict" role="alert"><strong>Konflik catatan</strong><p>Versi server: “{conflict.content || "kosong"}”. Pilihan Anda: “{content || "kosong"}”.</p><button type="button" onClick={acceptLatest} disabled={pending}>Gunakan catatan terbaru</button><button type="button" onClick={applyMine} disabled={pending}>Terapkan ulang tulisan saya</button></div>}{record?.observer_note_revisions?.length ? <details className="observation-history"><summary>Riwayat catatan ({record.observer_note_revisions.length})</summary>{[...record.observer_note_revisions].sort((a, b) => b.revision - a.revision).slice(0, 8).map((item) => <p key={item.id}><strong>{item.actor_name}</strong> · “{item.content_before || "kosong"}” → “{item.content_after || "kosong"}” · {new Date(item.changed_at).toLocaleString("id-ID")}</p>)}</details> : null}</div>;
 }
 
 export function ObserverNotes(props: Props) {
@@ -129,5 +129,5 @@ export function ObserverNotes(props: Props) {
   const legacy = notes.filter((note) => note.indicator_id && note.content.trim());
   const shared = notes.filter((note) => note.content.trim() && note.author_id !== props.currentUserId);
 
-  return <details className="observer-notes"><summary>Catatan privat tiap penulis ({notes.filter((note) => note.content.trim()).length})</summary><p>Catatan tidak dibagikan ke peserta atau publik. Setiap penulis mengubah catatannya sendiri; skor indikator tetap satu nilai bersama.</p><div className="observer-notes-grid">{noteTypes.map((type) => <NoteEditor key={type.id} participantId={props.participantId} rubricVersionId={props.rubricVersionId} currentUserId={props.currentUserId} noteType={type.id} record={notes.find((note) => note.author_id === props.currentUserId && note.note_type === type.id && !note.indicator_id) ?? null} onSaved={update}/>)}</div>{shared.length > 0 && <div className="observer-notes-readonly"><h4>Catatan penulis lain</h4>{shared.map((note) => <article key={note.id}><strong>{note.author_name} · {noteTypes.find((type) => type.id === note.note_type)?.label ?? "Catatan"}</strong><p>{note.content}</p><small>{new Date(note.updated_at).toLocaleString("id-ID")}</small></article>)}</div>}{legacy.length > 0 && <div className="observer-notes-readonly"><h4>Catatan lama per indikator</h4>{legacy.map((note) => <article key={note.id}><strong>{note.author_name} · {noteTypes.find((type) => type.id === note.note_type)?.label ?? "Catatan"}</strong><p>{note.content}</p></article>)}</div>}</details>;
+  return <details className="observer-notes"><summary>Catatan privat tiap penulis ({notes.filter((note) => note.content.trim()).length})</summary><p>Catatan tetap dipisah per penulis dan hanya dapat dibaca tim berwenang. Setiap observer menyimpan penilaian dan bukti miliknya sendiri.</p><div className="observer-notes-grid">{noteTypes.map((type) => <NoteEditor key={type.id} participantId={props.participantId} rubricVersionId={props.rubricVersionId} currentUserId={props.currentUserId} noteType={type.id} record={notes.find((note) => note.author_id === props.currentUserId && note.note_type === type.id && !note.indicator_id) ?? null} onSaved={update} locked={props.locked}/>)}</div>{shared.length > 0 && <div className="observer-notes-readonly"><h4>Catatan penulis lain</h4>{shared.map((note) => <article key={note.id}><strong>{note.author_name} · {noteTypes.find((type) => type.id === note.note_type)?.label ?? "Catatan"}</strong><p>{note.content}</p><small>{new Date(note.updated_at).toLocaleString("id-ID")}</small></article>)}</div>}{legacy.length > 0 && <div className="observer-notes-readonly"><h4>Catatan lama per indikator</h4>{legacy.map((note) => <article key={note.id}><strong>{note.author_name} · {noteTypes.find((type) => type.id === note.note_type)?.label ?? "Catatan"}</strong><p>{note.content}</p></article>)}</div>}</details>;
 }

@@ -21,7 +21,37 @@ export default async function DashboardPage() {
     const { data: assignments } = await supabase.from("instructor_event_assignments").select("id").eq("instructor_id", userId).limit(1);
     if (!assignments?.length) return <main className="setup-message"><h1>Akun menunggu penugasan Superadmin</h1><p>Role Instruktur sudah ditetapkan, tetapi dashboard baru terbuka setelah Superadmin menetapkan subrole dan kegiatan.</p><a href="/dashboard/profil">Buka Profil saya</a><form action="/auth/signout" method="post"><button>Keluar</button></form></main>;
   }
-  const assessmentData = await loadDashboardAssessmentData(supabase, profile.role);
+  let phase7Home:any=null;
+  const summarizeEvent=async(event:{id:string;name:string})=>{
+    const [{data:rows,error},{data:progress},{data:versions}]=await Promise.all([
+      supabase.rpc("get_event_report_rows",{target_event_id:event.id}),
+      supabase.rpc("get_event_assessment_progress",{target_event_id:event.id}),
+      supabase.from("rubric_versions").select("id").eq("event_id",event.id).eq("status","active"),
+    ]);
+    const reports=(rows??[]) as any[];const final=reports.filter((row)=>row.snapshot_id);const scores=final.map((row)=>Number(row.snapshot_data?.overall?.score)).filter(Number.isFinite);const versionIds=(versions??[]).map((item)=>item.id);
+    const {data:submissions}=versionIds.length?await supabase.from("assessment_submissions").select("id,status,updated_at").in("rubric_version_id",versionIds).order("updated_at",{ascending:false}):{data:[]};
+    return {id:event.id,name:event.name,participants:reports.length,finalized:final.length,published:reports.filter((row)=>row.published_at).length,provisional:reports.length-final.length,passed:final.filter((row)=>row.snapshot_data?.collective?.decision==="pass").length,notPassed:final.filter((row)=>row.snapshot_data?.collective?.decision==="not_pass").length,furtherDiscussion:final.filter((row)=>row.snapshot_data?.collective?.decision==="further_discussion").length,averageScore:scores.length?scores.reduce((sum,score)=>sum+score,0)/scores.length:null,reviewers:progress?.length??0,sessions:versions?.length??0,assessmentSubmissions:submissions?.length??0,latestActivity:submissions?.[0]?.updated_at??null,unavailable:!!error};
+  };
+  const loadPersonalProgress=async()=>{
+    const {data:submissions,error:submissionError}=await supabase.from("assessment_submissions").select("id,status,participant_id,updated_at,rubric_versions(stage,material_id,events(name),rubric_materials(name))").eq("observer_id",userId).order("updated_at",{ascending:false});
+    const sessions=(submissions??[]).map((item:any)=>{const version=Array.isArray(item.rubric_versions)?item.rubric_versions[0]:item.rubric_versions;const event=Array.isArray(version?.events)?version.events[0]:version?.events;const material=Array.isArray(version?.rubric_materials)?version.rubric_materials[0]:version?.rubric_materials;const stage=version?.stage==="training"?"Pelatihan":version?.stage==="screening"?"Screening":version?.stage==="follow_up"?"Tindak lanjut":"Sesi asesmen";return {eventName:event?.name??"Kegiatan DAD",sessionName:material?.name?`${stage} · ${material.name}`:stage,status:item.status,updatedAt:item.updated_at};});
+    const items=submissions??[];return {kind:"personal",total:items.length,draft:items.filter((item:any)=>item.status==="draft").length,submitted:items.filter((item:any)=>item.status==="submitted").length,finalized:items.filter((item:any)=>item.status==="finalized").length,assessedParticipants:new Set(items.map((item:any)=>item.participant_id)).size,sessions,unavailable:!!submissionError};
+  };
+  if(["admin_system","bidang_kader"].includes(profile.role)){
+    const {data:events}=await supabase.from("events").select("id,name").order("starts_on",{ascending:false});
+    const summaries=await Promise.all((events??[]).map(summarizeEvent));
+    phase7Home={kind:"staff",events:summaries};
+  }else if(profile.role==="instruktur"){
+    const {data:assignments}=await supabase.from("instructor_event_assignments").select("position").eq("instructor_id",userId);
+    const moderator=!!assignments?.some((item)=>["mot","vice_mot","master_observer","vice_observer"].includes(item.position));
+    if(moderator){const {data:events}=await supabase.from("events").select("id,name").order("starts_on",{ascending:false});const summaries=await Promise.all((events??[]).map(summarizeEvent));phase7Home={kind:"staff",events:summaries};}
+    else {phase7Home=await loadPersonalProgress();}
+  }else if(profile.role==="observer"){
+    phase7Home=await loadPersonalProgress();
+  }else if(profile.role==="peserta"){
+    const {data:report}=await supabase.rpc("get_my_published_assessment_report");phase7Home={kind:"participant",report:report??null};
+  }
+  const assessmentData = phase7Home?null:await loadDashboardAssessmentData(supabase, profile.role);
   let instructorAssignments: InstructorAssignment[] = [];
   let instructorParticipantEvents: InstructorParticipantEvent[] = [];
   if (profile.role === "instruktur") {
@@ -45,6 +75,6 @@ export default async function DashboardPage() {
       instructorParticipantEvents = (events ?? []).map((event) => ({ ...event, participants: event.participants ?? [] }));
     }
   }
-  return <RoleDashboard role={profile.role as AppRole} displayName={profile.display_name ?? undefined} assessmentData={assessmentData} instructorAssignments={instructorAssignments} instructorParticipantEvents={instructorParticipantEvents} />;
+  return <RoleDashboard role={profile.role as AppRole} displayName={profile.display_name ?? undefined} assessmentData={assessmentData} instructorAssignments={instructorAssignments} instructorParticipantEvents={instructorParticipantEvents} phase7Home={phase7Home} />;
 }
 

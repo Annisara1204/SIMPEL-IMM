@@ -54,19 +54,28 @@
 | KOM-03 | KOM | Inisiatif untuk terus berproses | Mengusulkan langkah belajar/berorganisasi lanjutan yang sesuai kapasitas dan minat. |
 | KOM-04 | KOM | Rencana tindak lanjut | Menyusun langkah berikutnya yang spesifik, terukur, realistis, dan memiliki waktu atau dukungan yang dibutuhkan. |
 
-## Pemetaan materi uji
+## Pemetaan materi dan aktivitas uji
 
-Pemetaan aspek mengikuti prompt; pemilihan indikator berikut adalah usulan awal agar indikator yang tidak relevan tidak dipaksakan. Fasilitator dapat memakai diskusi, simulasi, tugas, refleksi, atau kerja kelompok sebagai bukti.
+Pemetaan Phase 4 adalah konfigurasi trial yang disediakan prompt. Nama tujuh materi yang sudah ada di repository dipertahankan; aktivitas tambahan di prompt ditambahkan sebagai konteks pengukuran, bukan diklaim sebagai daftar silabus resmi. Metode, panduan observasi, kewajiban/opsional, dan cakupan sesi disimpan per relasi materi-indikator di database.
 
-| Materi | Aspek | Indikator uji yang disarankan |
-|---|---|---|
-| Keislaman | REL, INT | REL-01, REL-04, INT-01, INT-02 |
-| Kemuhammadiyahan | INT, REL | INT-01, INT-02, INT-04, REL-01, REL-04 |
-| Ke-IMM-an | INT, KOM | INT-01, INT-03, INT-04, KOM-02, KOM-03 |
-| Filsafat Ilmu | INT | INT-01, INT-02, INT-03, INT-04, INT-05 |
-| Analisis Sosial | HUM, INT | HUM-03, HUM-05, INT-02, INT-04, INT-05 |
-| Kepemimpinan | PAR, DIS | PAR-02, PAR-03, PAR-04, PAR-05, DIS-02 |
-| Keorganisasian | HUM, PAR, DIS | HUM-04, HUM-05, PAR-02, PAR-04, PAR-05, DIS-02, DIS-03 |
+| Materi/aktivitas | Indikator uji yang disarankan |
+|---|---|
+| Keislaman | REL-01, REL-02, REL-04, INT-01 |
+| Kemuhammadiyahan | INT-01, INT-02, REL-01, REL-04 |
+| Ke-IMM-an | INT-01, INT-02, KOM-02 |
+| Filsafat Ilmu | INT-01, INT-02, INT-03, INT-04 |
+| Analisis Sosial | INT-02, INT-04, INT-05, HUM-03, HUM-05 |
+| Kepemimpinan | PAR-02, PAR-03, PAR-04, PAR-05, DIS-02 |
+| Keorganisasian | INT-04, HUM-04, PAR-04, PAR-05, DIS-02 |
+| Diskusi Kelompok | INT-02, INT-03, PAR-01, PAR-03, HUM-05 |
+| Simulasi/Problem Solving | INT-05, PAR-02, PAR-04, PAR-05 |
+| Penugasan Individu | INT-01, DIS-02, KOM-01 |
+| Refleksi Akhir | REL-02, KOM-01, KOM-02, KOM-04 |
+| Rencana Tindak Lanjut | KOM-02, KOM-03, KOM-04 |
+| Observasi Kedisiplinan | DIS-01, DIS-03, DIS-04 |
+| Observasi Lintas Sesi DAD | REL-03, DIS-01, DIS-03, DIS-04 — cakupan cross-session |
+
+HUM-01 (Empati) dan HUM-02 (Solidaritas) belum memiliki konteks terencana dalam tabel Phase 4. Keduanya dilaporkan sebagai belum dipetakan; jangan tambahkan konteks tanpa contoh aktivitas dan bukti yang disepakati.
 
 ## Behavioral anchors uji
 

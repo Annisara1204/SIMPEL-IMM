@@ -1,7 +1,22 @@
 # Handover — IMM Observer
 
-**Terakhir diperbarui:** 11 November 2026
+**Terakhir diperbarui:** 12 November 2026
 **Lokasi proyek:** `C:\Users\Lenovo\Documents\project`
+
+## Phase 5 — Assessment Form & Observer Collaboration (implementasi lokal, 11 November 2026)
+
+- Prompt Phase 5 terbaru mengubah keputusan sebelumnya: setiap Observer/Instruktur yang ditugaskan memiliki rating independen per peserta, indikator, dan versi rubrik. Data legacy pada `observations` tidak dihapus atau dipindah karena satu skor bersama lama tidak dapat dipisah menjadi skor penulis terdahulu dengan aman.
+- Migration baru `20261111160000_dad_assessment_workspace_v1.sql` menambah `assessment_submissions`, `assessment_ratings`, `assessment_submission_revisions`, dan `assessment_rating_revisions`; rating menyimpan skor 1–5 atau `not_observed` (N/O) atau `unrated`, bukti, owner, versi rubrik, revisi, dan waktu. Constraint unik memungkinkan beberapa observer menilai peserta/indikator sama, tetapi mencegah duplikasi dalam akun observer sendiri.
+- RLS membatasi baca ke staf bertugas/Admin Sistem, penulisan rating hanya oleh pemilik record saat draft, pengiriman hanya oleh pemilik, dan finalisasi hanya Admin Sistem. Trigger mencegah perubahan owner/scope, mencatat riwayat rating/status, serta mengunci rating setelah dikirim.
+- `/dashboard/observasi` memakai rubric aktif, aspek, indikator, anchor, master mapping Phase 4 dan guidance jika materi kegiatan dihubungkan ke konteks framework. Workspace menampilkan pratinjau skor personal, progress, N/O, penulis rating lain secara baca-saja, dan status per peserta. Belum tersedia model kelompok; UI memakai “Semua peserta”.
+- Rating dan catatan menggunakan debounce 700 ms, revision check, konflik dengan pilihan eksplisit, draf lokal `localStorage` ketika offline, Realtime Supabase dan status koneksi. Realtime meminta ulang ringkasan sesi saat rating/submission berubah.
+- Materi kegiatan kini dapat dihubungkan ke konteks master DAD saat dibuat. Membuat versi rubrik pertama untuk konteks yang terhubung akan menyalin aspek/indikator/anchor master sebagai snapshot draf dengan bobot ternormalisasi.
+- Regression SQL baru: `supabase/tests/dad_assessment_phase5.sql`. Pemeriksaan SQL ini bersifat struktural; belum dijalankan terhadap Supabase pengguna. Migrasi Phase 5 belum diterapkan menurut percakapan ini.
+- `npx.cmd tsc --noEmit` dan `git diff --check` lulus setelah perubahan terakhir. `npm.cmd run build` berhasil compile dan TypeScript, tetapi gagal pada prerender `/login` dengan Windows `EPERM: operation not permitted, mkdir ... .next/server/app/login.segments/login`; rute produksi tidak terverifikasi penuh.
+- Browser, Supabase Realtime, RLS lintas akun, skenario dua observer, offline/reconnect, submission/finalisasi, dan SQL test Phase 5 belum diuji dalam sesi ini. Regression Phase 2–4 sebelumnya dilaporkan lulus oleh pengguna, tetapi belum diulang pada perubahan Phase 5.
+- Belum ada screenshot yang diambil. Status implementasi Phase 6 dan langkah verifikasi dicatat pada bagian Phase 6 di bawah.
+- Setelah mencoba Phase 5, pengguna melaporkan `/dashboard/penilaian` masih terasa seperti tampilan lama dan belum ada pilihan aspek/indikator per materi. Perbaikan lokal sekarang menambahkan tombol versi draf berikutnya, pemilih checkbox Kerangka DAD pada setiap draf rubrik Pelatihan, salin anchor master dan relasi aspek-indikator dengan bobot awal tervalidasi, serta aksi hapus aspek/indikator khusus draf. Versi aktif/arsip tetap baca-saja. TSC dan `git diff --check` lulus setelah perubahan ini; browser/Supabase belum dicoba ulang.
+- Uji pengguna menemukan submit pemilih ditolak karena checkbox indikator dapat dipilih tanpa checkbox aspek induknya. Pemilih kini otomatis memilih aspek saat indikator dicentang, melepas indikator di aspek terkait saat aspek dimatikan, dan server memvalidasi pasangan aspek-indikator yang spesifik. `npx.cmd tsc --noEmit` dan `git diff --check` lulus. Submit ulang di browser masih perlu dikonfirmasi.
 
 ## Audit dan rencana implementasi (11 November 2026)
 
@@ -35,16 +50,27 @@
 
 ## Phase 3 — Pemetaan Materi dan Rubric Engine (11 November 2026)
 
-- Prompt Phase 3 baru meminta 27 rubrik indikator, masing-masing lima anchor perilaku, pilihan N/O nonnumerik, validasi, dan preview. Permintaan approval workflow pada prompt bertentangan dengan keputusan sebelumnya; status review/approval tidak ditambahkan. Master trial diberi status published agar dapat dipratinjau, bukan sebagai pengesahan resmi.
+- Prompt Phase 3 meminta 27 rubrik indikator, masing-masing lima anchor perilaku, pilihan N/O nonnumerik, validasi, dan preview. Permintaan approval workflow pada prompt bertentangan dengan keputusan sebelumnya; status review/approval tidak ditambahkan. Framework tetap berstatus trial/nonresmi; versi rubrik master published hanya berarti dapat dipakai sebagai sumber template.
 - Migration `20261111120000_dad_training_material_mapping_v1.sql` membuat master 7 materi Pelatihan, 14 pemetaan aspek, dan 36 pemetaan indikator relevan. FK komposit memastikan materi, aspek, dan indikator berada dalam framework version yang sama. Tabel materi master berbeda dari materi aktual per kegiatan.
 - Migration `20261111130000_dad_indicator_rubric_engine_v1.sql` membuat rubrik master per indikator, versi rubrik, serta 135 anchor (5 untuk setiap 27 indikator) dengan label Sangat Kurang, Kurang, Cukup, Baik, Sangat Baik. Constraint mencegah skor 0; N/O tidak menjadi anchor. FK pada `rubric_indicators` dapat menyimpan pasangan indikator dan versi rubrik master yang digunakan.
 - Preview baca-saja tersedia di `/dashboard/kerangka` untuk Admin Sistem, Bidang Kader, Observer, dan Instruktur; menu **Kerangka DAD** ditambahkan. Halaman menampilkan bobot aspek, pemetaan materi, tujuan indikator, anchor, panduan bukti, dan N/O. Tidak ada UI edit master atau form asesmen baru.
-- Regression SQL tersedia di `supabase/tests/competency_framework_phase3.sql`. TypeScript dan `git diff --check` lulus; pemeriksaan statis menghitung 135 anchor, 135 deskripsi berbeda, dan tepat 5 anchor per indikator. Review isi dilakukan terhadap progression dan fairness pada dokumen trial. Kedua migration Phase 3 dan test SQL belum dijalankan di Supabase; preview belum diperiksa di browser.
+- Regression SQL tersedia di `supabase/tests/competency_framework_phase3.sql`. TypeScript dan `git diff --check` lulus; pemeriksaan statis menghitung 135 anchor, 135 deskripsi berbeda, dan tepat 5 anchor per indikator. Review isi dilakukan terhadap progression dan fairness pada dokumen trial.
 - Percobaan awal migration pemetaan materi gagal pada target `ON CONFLICT` yang tidak sesuai constraint unik tiga kolom. File `20261111120000_dad_training_material_mapping_v1.sql` diperbaiki memakai target `(material_id, indicator_id, aspect_id)`. Pengguna mengonfirmasi migration pemetaan materi berhasil.
 - Percobaan migration rubric engine menemukan alias SQL pada query seed anchor bertabrakan (`indicator` dan `rubric`). Query diperbaiki dan constraint/policy dibuat aman diulang. Pengguna mengonfirmasi `20261111130000_dad_indicator_rubric_engine_v1.sql` berhasil dijalankan.
-- Pengguna mengonfirmasi `supabase/tests/competency_framework_phase3.sql` berhasil dijalankan. Pemeriksaan tampilan `/dashboard/kerangka` di browser belum dikonfirmasi; tunggu pemeriksaan/penerimaan preview sebelum menyatakan Phase 3 selesai atau mulai Phase 4.
+- Pengguna mengonfirmasi `supabase/tests/competency_framework_phase3.sql` berhasil dijalankan dan kemudian melaporkan halaman `/dashboard/kerangka` sudah muncul. Pengguna meminta melanjutkan ke Phase 4.
 - Error preview `link.competency_aspects.map is not a function` berasal dari asumsi relasi Supabase selalu berbentuk array. Halaman `/dashboard/kerangka` kini menormalisasi relasi objek maupun array sebelum menampilkan aspek. `npx.cmd tsc --noEmit` dan `git diff --check` lulus setelah perbaikan; server lokal tidak sedang berjalan, jadi tampilan belum diuji ulang di browser.
-- Langkah Phase 3 yang tersisa: jalankan migration 1200 lalu 1300 di SQL Editor, kemudian `supabase/tests/competency_framework_phase3.sql`. Jangan lanjut ke Phase 4 sampai hasil Phase 3 dilaporkan dan diterima.
+
+## Phase 4 — Material Mapping DAD (11 November 2026)
+
+- Prompt Phase 4 menetapkan pemetaan master read-only; UI salin-template ke rubrik kegiatan dan form penilaian penuh tidak termasuk fase ini. Code salin-template yang sempat dibuat berdasarkan interpretasi awal telah dilepas.
+- Migration `20261111140000_dad_framework_assessment_snapshots.sql` berhasil dijalankan pengguna. Migration itu menambah referensi sumber opsional untuk snapshot framework/materi dan tidak mengubah hasil lama.
+- Mapping final di migration `20261111150000_dad_material_activity_mapping_v1.sql` mencakup 13 materi/aktivitas dari prompt, ditambah konteks “Observasi Lintas Sesi DAD”; setiap mapping memiliki relasi aspek/indikator, metode, panduan, status wajib/opsional, cakupan session/cross_session, status aktif, dan FK ke versi rubrik master published.
+- Ada 56 relasi indikator-konteks. HUM-01 (Empati) dan HUM-02 (Solidaritas) sengaja tidak diberi konteks tanpa dasar; empat indikator lintas sesi ialah REL-03, DIS-01, DIS-03, dan DIS-04.
+- `/dashboard/kerangka` menampilkan detail konteks, metode, panduan, ketersediaan rubrik, serta matriks read-only materi/aktivitas × 27 indikator. Tidak ada UI edit mapping. Penyimpanan observasi per sesi dan agregasi lintas sesi masih menjadi pekerjaan Phase 5.
+- `npx.cmd tsc --noEmit` dan `git diff --check` lulus. Pengguna mengonfirmasi migration `20261111150000_dad_material_activity_mapping_v1.sql` berhasil, tampilan `/dashboard/kerangka` sesuai, dan regression SQL Phase 2–4 berhasil dijalankan.
+- Pemeriksaan database yang dikonfirmasi pengguna memakai `supabase/tests/competency_framework_phase2.sql`, `supabase/tests/competency_framework_phase3.sql` (diperbarui untuk 14 konteks/56 mapping), serta `supabase/tests/competency_material_mapping_phase4.sql`. Seluruh pemeriksaan Phase 2–4 lulus menurut pengguna.
+- Phase 4 diterima pengguna: materi/aktivitas dan matriks sudah dilihat di halaman kerangka. Deliverable screenshot terpisah belum disimpan; uji lintas role dan proses capture untuk lampiran tidak dilakukan.
+- Migration 1500 menjaga snapshot lama dan berhenti jika framework v1 sudah dirujuk rubrik kegiatan. Jalankan setelah migration 1400; jangan rerun bila mapping sudah dipakai hasil asesmen.
 
 ## Keputusan terbaru — pendaftaran akun Instruktur
 
@@ -206,3 +232,41 @@ npm.cmd run dev
 
 Buka `http://localhost:3000`. Hentikan server dengan `Ctrl+C`.
 
+
+## Perbaikan tombol Terapkan Kerangka DAD (12 November 2026)
+
+- Panel pilihan aspek/indikator sebelumnya tertutup saat halaman dibuka, dan tombol Terapkan berada setelah daftar indikator yang panjang. Tombol tidak tampak pada halaman awal sehingga terlihat seolah tidak dapat diklik.
+- `app/dashboard/penilaian/framework-rubric-picker.tsx`: panel dibuka secara default dan tombol Terapkan dipindah ke atas daftar.
+- `app/globals.css`: tombol dibuat sticky agar tetap mudah dijangkau saat menggulir pilihan.
+- Pemeriksaan browser lokal menunjukkan halaman rubrik draf Versi 1 untuk materi AIK; panel memang tertutup dan tombol Terapkan tidak tampil. Belum dilakukan klik submit agar data rubrik pengguna tidak berubah tanpa instruksi.
+
+## Perbaikan indikator Kerangka DAD tidak tampil di rubrik (12 November 2026)
+
+- Akar masalah pada halaman Pengaturan Penilaian: relasi Supabase `rubric_indicators` di dalam `rubric_indicator_aspects` dibaca seolah selalu berupa array (`[0]`). Relasi many-to-one dapat dikembalikan sebagai objek, sehingga indikator hasil pilihan bisa tersimpan tetapi tidak ditampilkan dan versi tetap dianggap belum lengkap.
+- `app/dashboard/penilaian/page.tsx` kini menormalkan relasi objek atau array sebelum menampilkan indikator, memuat pilihan tersimpan, menghitung kelengkapan rubrik, dan menentukan aspek lain yang sudah terhubung.
+- `npx.cmd tsc --noEmit` dan `git diff --check` lulus. Silakan muat ulang Pengaturan Penilaian untuk memastikan indikator DAD yang dipilih terlihat di draf.
+
+## Phase 6 — Scoring Engine & Collective Evaluation (implementasi lokal, 12 November 2026)
+
+- Menambahkan migration `supabase/migrations/20261112170000_dad_scoring_collective_evaluation_v1.sql`. Terapkan setelah migration Phase 5 `20261111160000_dad_assessment_workspace_v1.sql`.
+- Migration menambah NIM/kelompok opsional pada peserta; kebijakan coverage 80% dan rentang review 2; RPC agregasi berdasarkan peserta/indikator/cakupan; tabel moderasi dan riwayatnya; evaluasi kolektif dan riwayat; rekomendasi; snapshot final immutable; serta payload privat sumber nilai/bukti yang tidak bisa dibaca Bidang Kader.
+- Halaman baru `/dashboard/evaluasi` (menu **Evaluasi Kolektif**) menampilkan agregat/aspek/coverage, skor minimum–maksimum, N/O, pending, moderasi, diskusi kolektif, rekomendasi, keputusan manual, dan riwayat snapshot. Server action dan RLS membatasi tulis/finalisasi kepada Admin Sistem dan koordinator Instruktur kegiatan. Keputusan kelulusan tidak diotomatisasi.
+- Rumus keseluruhan tidak menormalisasi ulang bobot aspek. Finalisasi memerlukan coverage minimal tiap aspek, total bobot 100%, dan tidak ada moderasi terbuka. RPC finalisasi memeriksa ulang snapshot, formula nilai, coverage, dan referensi rating Submitted/Finalized.
+- Pemeriksaan lokal: `npm.cmd run test:phase6` lulus 8/8; `npx.cmd tsc --noEmit` dan `git diff --check` lulus. Node memberi peringatan tipe modul pada test runner, tetapi tes tidak gagal.
+- Belum diterapkan atau diuji di Supabase. Belum ada verifikasi browser, dua akun, RLS lintas role, SQL RPC, Realtime, dan snapshot pada database. Terapkan migration Phase 5 dahulu jika belum, lalu migration Phase 6; jalankan `supabase/tests/dad_assessment_phase5.sql` dan `supabase/tests/dad_scoring_phase6.sql` setelah keduanya. Perubahan database tidak dilakukan oleh Codex.
+- Migration mengandalkan struktur Phase 5 dan Phase 2–4 yang sudah tersedia. Jika Supabase melaporkan error, simpan pesan lengkap sebelum mengubah atau mencoba ulang migration yang sudah berjalan.
+- Pembaruan setelah persetujuan pengguna: tombol **Buat draf rekomendasi otomatis** membuat saran deterministik untuk indikator dengan rata-rata Submitted/Finalized di bawah 3/5. Saran berisi latihan umum per aspek, menyimpan referensi indikator/cakupan, dan tidak menggandakan draf yang sama saat ditekan ulang. Semua saran baru berstatus `draft` dan membutuhkan persetujuan instruktur; bukan fitur AI dan tidak menentukan kelulusan.
+- Tes pure-logic rekomendasi ditambahkan ke `tests/phase6-recommendations.test.ts`; jalankan bersama tes skor melalui `npm.cmd run test:phase6`.
+
+## Phase 7 — Dashboard, Rapor, Reporting & Export (implementasi lokal, 12 November 2026)
+
+- Audit menemukan dashboard role sebelumnya memakai data simulasi statis; schema `events` belum punya tema/penyelenggara; role Peserta belum ditautkan ke record `participants`; belum ada library PDF/ZIP. Fase 7 mengganti dashboard root untuk Admin/Bidang Kader/Instruktur/Observer/Peserta dengan metrik database, menambah halaman `/dashboard/laporan`, dan tidak mengubah framework/rubrik/mapping/rumus skor.
+- Migration baru `20261112180000_dad_reporting_publication_v1.sql` menambah tema/penyelenggara, tautan akun peserta, RLS/RPC untuk publikasi snapshot final, baca rapor Published oleh peserta sendiri, daftar report staff, progres Observer, dan audit ekspor/publikasi. Jalankan setelah Phase 5 dan Phase 6 lengkap.
+- Admin Sistem menautkan akun role Peserta dari halaman Laporan & Rapor. Rapor peserta hanya dapat dibaca melalui RPC miliknya jika sudah Published. Admin/Bidang Kader/koordinator dapat melihat snapshot final; preview final yang belum Published tidak diekspor sebagai rapor resmi.
+- Dashboard laporan menampilkan status/ringkasan final, rata-rata aspek, heatmap peserta, indikator review, progres penilai, filter kegiatan/kelompok/status, publikasi rapor, preview, dan ekspor. PDF individual dibuat oleh generator PDF internal tanpa dependency tambahan. ZIP massal mendukung pilih satu/beberapa atau semua rapor Published di filter, serta melaporkan peserta yang dilewati. Excel memakai dependency `xlsx` yang sudah ada; tersedia rekap peserta, per materi, evaluasi akhir, dan internal Observer untuk Admin/koordinator. PDF event report merangkum snapshot final dan rekomendasi yang berulang.
+- Tautan akun Peserta unik per kegiatan (akun yang sama bisa terkait dengan rekam peserta di kegiatan berbeda). Peserta dapat mengunduh PDF rapor Published miliknya; pencatatan ekspor membatasi akses berdasarkan tautan tersebut.
+- Data snapshot Phase 6 baru kini menyimpan kekuatan dan area pengembangan dalam bagian collective yang aman untuk hasil final; sumber rating/evidence/catatan deliberasi tetap di tabel privat. Snapshot lama yang tidak punya kolom itu tidak diisi dengan tebakan.
+- Tes lokal: `npm.cmd run test:phase6` lulus 10/10; `npm.cmd run test:phase7` lulus 2/2 (struktur PDF dan ZIP); `npx.cmd tsc --noEmit` serta `git diff --check` lulus. Node menampilkan peringatan `MODULE_TYPELESS_PACKAGE_JSON`; tes tetap lulus.
+- `npm.cmd run build` berhasil kompilasi dan TypeScript, tetapi gagal pada prerender `/login` dengan Windows `EPERM` saat Next.js membuat `.next/server/app/login.segments/login`. Karena itu build produksi belum dinyatakan lulus.
+- SQL Regression `supabase/tests/dad_reporting_phase7.sql` tersedia. Belum ada migration Phase 7 yang diterapkan atau uji database/browser/RLS lintas akun. Sebelumnya pengguna mendapat `42P07 relation assessment_submissions already exists` ketika menjalankan skrip terkait Phase 5; ini menunjukkan tabel sudah ada tetapi belum membuktikan migration Phase 5 selesai. Jangan drop tabel atau mengulang Phase 5; jalankan tes Phase 5 dan Phase 6 untuk memastikan kelengkapan sebelum migration 1800.
+- Batasan yang belum diverifikasi: tampilan PDF pada browser/PDF reader dan ZIP/Excel di desktop belum dicoba; export Excel community `xlsx` belum menyediakan pembekuan baris header melalui API yang digunakan. Filter materi dan Observer berlaku khusus sheet ekspor, sedangkan filter dashboard umum adalah kegiatan, kelompok, dan status. Migration Phase 7 dan SQL regression belum diterapkan/dijalankan di Supabase; uji browser serta RLS lintas akun belum tersedia.

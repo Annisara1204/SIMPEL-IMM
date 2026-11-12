@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "test:phase6": "node --experimental-strip-types --test tests/phase6-scoring.test.ts tests/phase6-recommendations.test.ts",
+    "test:phase7": "node --experimental-strip-types --test tests/phase7-files.test.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

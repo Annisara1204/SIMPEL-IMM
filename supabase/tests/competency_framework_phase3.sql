@@ -1,5 +1,5 @@
--- Regression checks for Phase 3 material mapping and rubric anchors.
--- Run in Supabase SQL Editor after migrations 20261111120000 and 20261111130000.
+-- Regression checks for Phase 3 rubric anchors plus the latest Phase 4 material map.
+-- Run after migrations through 20261111150000.
 -- The transaction is rolled back; no project data is changed by this check.
 begin;
 
@@ -24,9 +24,9 @@ begin
   select count(*) into material_count from public.competency_materials where framework_version_id = framework_version;
   select count(*) into aspect_mapping_count from public.competency_material_aspects where framework_version_id = framework_version;
   select count(*) into indicator_mapping_count from public.competency_material_indicators where framework_version_id = framework_version;
-  if material_count <> 7 then raise exception 'Expected 7 materials, got %.', material_count; end if;
-  if aspect_mapping_count <> 14 then raise exception 'Expected 14 material-aspect mappings, got %.', aspect_mapping_count; end if;
-  if indicator_mapping_count <> 36 then raise exception 'Expected 36 material-indicator mappings, got %.', indicator_mapping_count; end if;
+  if material_count <> 14 then raise exception 'Expected 14 material/activity contexts, got %.', material_count; end if;
+  if aspect_mapping_count <> 29 then raise exception 'Expected 29 material-aspect mappings, got %.', aspect_mapping_count; end if;
+  if indicator_mapping_count <> 56 then raise exception 'Expected 56 material-indicator-context mappings, got %.', indicator_mapping_count; end if;
 
   select count(*) into rubric_count from public.competency_indicator_rubrics where framework_version_id = framework_version;
   select count(*) into published_count from public.competency_indicator_rubric_versions where framework_version_id = framework_version and status = 'published';
@@ -70,8 +70,8 @@ begin
   insert into public.competency_material_aspects(framework_version_id, material_id, aspect_id, position)
     select framework_version_id, material_id, aspect_id, position from public.competency_material_aspects where framework_version_id = framework_version
     on conflict (material_id, aspect_id) do nothing;
-  insert into public.competency_material_indicators(framework_version_id, material_id, aspect_id, indicator_id, position)
-    select framework_version_id, material_id, aspect_id, indicator_id, position from public.competency_material_indicators where framework_version_id = framework_version
+  insert into public.competency_material_indicators(framework_version_id, material_id, aspect_id, indicator_id, position, assessment_method, observation_guidance, is_required, assessment_scope, active, competency_indicator_rubric_version_id)
+    select framework_version_id, material_id, aspect_id, indicator_id, position, assessment_method, observation_guidance, is_required, assessment_scope, active, competency_indicator_rubric_version_id from public.competency_material_indicators where framework_version_id = framework_version
     on conflict (material_id, indicator_id, aspect_id) do nothing;
   insert into public.competency_indicator_rubrics(framework_version_id, indicator_id, code, title)
     select framework_version_id, indicator_id, code, title from public.competency_indicator_rubrics where framework_version_id = framework_version

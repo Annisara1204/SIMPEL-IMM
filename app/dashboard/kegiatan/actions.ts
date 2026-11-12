@@ -47,15 +47,17 @@ export async function updateEvent(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
   const commissariat = String(formData.get("commissariat") ?? "").trim();
   const location = String(formData.get("location") ?? "").trim();
+  const theme = String(formData.get("theme") ?? "").trim();
+  const organizer = String(formData.get("organizer") ?? "").trim();
   const startsOn = String(formData.get("startsOn") ?? "");
   const endsOn = String(formData.get("endsOn") ?? "");
   const status = String(formData.get("status") ?? "");
-  if (!/^[0-9a-f-]{36}$/i.test(id) || (role === "admin_system" && (name.length < 3 || name.length > 120)) || commissariat.length < 2 || commissariat.length > 120 || location.length < 2 || location.length > 160 || !/^\d{4}-\d{2}-\d{2}$/.test(startsOn) || !/^\d{4}-\d{2}-\d{2}$/.test(endsOn) || endsOn < startsOn || !["planned", "ongoing", "completed"].includes(status)) throw new Error("Data kegiatan tidak valid.");
+  if (!/^[0-9a-f-]{36}$/i.test(id) || (role === "admin_system" && (name.length < 3 || name.length > 120)) || commissariat.length < 2 || commissariat.length > 120 || location.length < 2 || location.length > 160 || theme.length>200 || organizer.length>160 || !/^\d{4}-\d{2}-\d{2}$/.test(startsOn) || !/^\d{4}-\d{2}-\d{2}$/.test(endsOn) || endsOn < startsOn || !["planned", "ongoing", "completed"].includes(status)) throw new Error("Data kegiatan tidak valid.");
   if (role === "observer") {
     const { data: assignment, error: assignmentError } = await supabase.from("observer_assignments").select("id").eq("event_id", id).eq("observer_id", userId).maybeSingle();
     if (assignmentError || !assignment) throw new Error("Anda hanya dapat mengubah detail kegiatan yang ditugaskan kepada Anda.");
   }
-  const updates = { commissariat, location, starts_on: startsOn, ends_on: endsOn, status, updated_at: new Date().toISOString(), ...(role === "admin_system" ? { name } : {}) };
+  const updates = { commissariat, location, theme:theme||null, organizer:organizer||null, starts_on: startsOn, ends_on: endsOn, status, updated_at: new Date().toISOString(), ...(role === "admin_system" ? { name } : {}) };
   const { error } = await supabase.from("events").update(updates).eq("id", id);
   if (error) throw new Error("Kegiatan gagal disimpan. Pastikan migrasi Tahap 3 sudah dijalankan.");
   revalidatePath("/dashboard/kegiatan");
@@ -68,12 +70,14 @@ export async function createEvent(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
   const commissariat = String(formData.get("commissariat") ?? "").trim();
   const location = String(formData.get("location") ?? "").trim();
+  const theme = String(formData.get("theme") ?? "").trim();
+  const organizer = String(formData.get("organizer") ?? "").trim();
   const startsOn = String(formData.get("startsOn") ?? "");
   const endsOn = String(formData.get("endsOn") ?? "");
-  if (name.length < 3 || name.length > 120 || commissariat.length < 2 || commissariat.length > 120 || location.length < 2 || location.length > 160 || !/^\d{4}-\d{2}-\d{2}$/.test(startsOn) || !/^\d{4}-\d{2}-\d{2}$/.test(endsOn) || endsOn < startsOn) {
+  if (name.length < 3 || name.length > 120 || commissariat.length < 2 || commissariat.length > 120 || location.length < 2 || location.length > 160 || theme.length>200 || organizer.length>160 || !/^\d{4}-\d{2}-\d{2}$/.test(startsOn) || !/^\d{4}-\d{2}-\d{2}$/.test(endsOn) || endsOn < startsOn) {
     redirect("/dashboard/kegiatan?create=invalid");
   }
-  const { error } = await supabase.from("events").insert({ name, commissariat, location, starts_on: startsOn, ends_on: endsOn, status: "planned" });
+  const { error } = await supabase.from("events").insert({ name, commissariat, location, theme:theme||null, organizer:organizer||null, starts_on: startsOn, ends_on: endsOn, status: "planned" });
   if (error) redirect("/dashboard/kegiatan?create=failed");
   revalidatePath("/dashboard/kegiatan");
   revalidatePath("/dashboard/penilaian");
@@ -87,15 +91,17 @@ export async function addParticipant(formData: FormData) {
   const displayName = String(formData.get("displayName") ?? "").trim();
   const commissariatId = String(formData.get("commissariatId") ?? "");
   const major = String(formData.get("major") ?? "").trim();
+  const studentNumber = String(formData.get("studentNumber") ?? "").trim();
+  const groupName = String(formData.get("groupName") ?? "").trim();
   const entryYear = Number(formData.get("entryYear"));
   const position = String(formData.get("position") ?? "").trim();
   const photo = formData.get("photo");
-  if (!uuidPattern.test(eventId) || !uuidPattern.test(commissariatId) || displayName.length < 2 || displayName.length > 120 || major.length < 2 || major.length > 120 || !Number.isInteger(entryYear) || entryYear < 1900 || entryYear > 2100 || position.length > 120) throw new Error("Data peserta tidak valid. Periksa nama, Komisariat, jurusan, dan tahun angkatan.");
+  if (!uuidPattern.test(eventId) || !uuidPattern.test(commissariatId) || displayName.length < 2 || displayName.length > 120 || major.length < 2 || major.length > 120 || !Number.isInteger(entryYear) || entryYear < 1900 || entryYear > 2100 || position.length > 120 || studentNumber.length > 40 || groupName.length > 100) throw new Error("Data peserta tidak valid. Periksa nama, Komisariat, NIM, kelompok, jurusan, dan tahun angkatan.");
   const { data: commissariat, error: commissariatError } = await supabase.from("commissariats").select("name").eq("id", commissariatId).eq("is_active", true).maybeSingle();
   if (commissariatError || !commissariat) throw new Error("Pilih Komisariat yang masih aktif.");
   const participantId = crypto.randomUUID();
   const photoPath = await uploadParticipantPhoto(supabase, photo, eventId, participantId);
-  const { error } = await supabase.from("participants").insert({ id: participantId, event_id: eventId, display_name: displayName, commissariat: commissariat.name, commissariat_id: commissariatId, major, entry_year: entryYear, position: position || null, photo_path: photoPath });
+  const { error } = await supabase.from("participants").insert({ id: participantId, event_id: eventId, display_name: displayName, commissariat: commissariat.name, commissariat_id: commissariatId, student_number:studentNumber||null,group_name:groupName||null,major, entry_year: entryYear, position: position || null, photo_path: photoPath });
   if (error) {
     if (photoPath) await supabase.storage.from(photoBucket).remove([photoPath]);
     throw new Error("Peserta gagal disimpan. Pastikan migrasi profil peserta sudah dijalankan.");
@@ -110,17 +116,19 @@ export async function editParticipant(formData: FormData) {
   const displayName = String(formData.get("displayName") ?? "").trim();
   const commissariatId = String(formData.get("commissariatId") ?? "");
   const major = String(formData.get("major") ?? "").trim();
+  const studentNumber = String(formData.get("studentNumber") ?? "").trim();
+  const groupName = String(formData.get("groupName") ?? "").trim();
   const entryYear = Number(formData.get("entryYear"));
   const position = String(formData.get("position") ?? "").trim();
   const photo = formData.get("photo");
-  if (!uuidPattern.test(participantId) || !uuidPattern.test(commissariatId) || displayName.length < 2 || displayName.length > 120 || major.length < 2 || major.length > 120 || !Number.isInteger(entryYear) || entryYear < 1900 || entryYear > 2100 || position.length > 120) throw new Error("Data profil peserta tidak valid.");
+  if (!uuidPattern.test(participantId) || !uuidPattern.test(commissariatId) || displayName.length < 2 || displayName.length > 120 || major.length < 2 || major.length > 120 || !Number.isInteger(entryYear) || entryYear < 1900 || entryYear > 2100 || position.length > 120 || studentNumber.length > 40 || groupName.length > 100) throw new Error("Data profil peserta tidak valid.");
   const { data: commissariat, error: commissariatError } = await supabase.from("commissariats").select("name").eq("id", commissariatId).eq("is_active", true).maybeSingle();
   if (commissariatError || !commissariat) throw new Error("Pilih Komisariat yang masih aktif.");
   const { data: current, error: currentError } = await supabase.from("participants").select("id, event_id, photo_path").eq("id", participantId).maybeSingle();
   if (currentError || !current) throw new Error("Peserta tidak ditemukan atau akses ditolak.");
   const newPhoto = photo instanceof File && photo.size > 0;
   const newPhotoPath = newPhoto ? await uploadParticipantPhoto(supabase, photo, current.event_id, participantId) : current.photo_path;
-  const { error } = await supabase.from("participants").update({ display_name: displayName, commissariat: commissariat.name, commissariat_id: commissariatId, major, entry_year: entryYear, position: position || null, photo_path: newPhotoPath }).eq("id", participantId);
+  const { error } = await supabase.from("participants").update({ display_name: displayName, commissariat: commissariat.name, commissariat_id: commissariatId, student_number:studentNumber||null,group_name:groupName||null,major, entry_year: entryYear, position: position || null, photo_path: newPhotoPath }).eq("id", participantId);
   if (error) {
     if (newPhoto && newPhotoPath) await supabase.storage.from(photoBucket).remove([newPhotoPath]);
     throw new Error("Perubahan profil peserta gagal disimpan.");

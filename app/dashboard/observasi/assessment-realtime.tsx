@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
 export function AssessmentRealtime({ versionId }: { versionId: string }) {
+  const router = useRouter();
   const [status, setStatus] = useState("Menghubungkan Realtime…");
   useEffect(() => {
     const client = createClient();
@@ -13,11 +15,13 @@ export function AssessmentRealtime({ versionId }: { versionId: string }) {
     };
     const channel = client.channel(`assessment-version-${versionId}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "observations" }, (payload) => emit("observations", payload))
+      .on("postgres_changes", { event: "*", schema: "public", table: "assessment_ratings", filter: `rubric_version_id=eq.${versionId}` }, (payload) => { emit("assessment_ratings", payload); router.refresh(); })
+      .on("postgres_changes", { event: "*", schema: "public", table: "assessment_submissions", filter: `rubric_version_id=eq.${versionId}` }, (payload) => { emit("assessment_submissions", payload); router.refresh(); })
       .on("postgres_changes", { event: "*", schema: "public", table: "observer_notes", filter: `rubric_version_id=eq.${versionId}` }, (payload) => emit("observer_notes", payload))
       .subscribe((nextStatus) => {
         setStatus(nextStatus === "SUBSCRIBED" ? "Realtime tersambung" : nextStatus === "CHANNEL_ERROR" || nextStatus === "TIMED_OUT" ? "Realtime terputus · simpan otomatis tetap aktif" : "Menghubungkan Realtime…");
       });
     return () => { void client.removeChannel(channel); };
-  }, [versionId]);
+  }, [versionId, router]);
   return <span className="agenda-status live" aria-live="polite">{status}</span>;
 }

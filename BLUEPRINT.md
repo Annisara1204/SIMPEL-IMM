@@ -49,6 +49,27 @@ Pengguna pemula; gunakan bahasa Indonesia sederhana dan jelaskan istilah teknis 
 - Kategori nilai 0–100: 0–<60 **Perlu pengembangan**, 60–<75 **Cukup**, 75–<90 **Baik**, dan 90–100 **Sangat baik**.
 - Persetujuan/review Bidang Kader pada rapor ditunda dari versi awal sederhana; dapat ditambahkan pada pengembangan selanjutnya.
 
+### Phase 6 — scoring dan evaluasi kolektif (MVP)
+
+- Setiap Observer/Instruktur tetap memberi nilai independen pada Phase 5. Phase 6 menghitung rata-rata hanya dari rating berstatus Submitted/Finalized; draf tidak dihitung dan N/O tidak dianggap nol.
+- Agregasi dibuat per peserta, indikator, dan cakupan. Cakupan sesi dipisahkan dari cakupan `cross_session`. Sistem menampilkan jumlah rating valid, minimum, maksimum, rentang, N/O, pending, dan status moderasi.
+- Rentang skor minimal 2 memerlukan moderasi manual oleh Admin Sistem atau koordinator Instruktur yang ditugaskan (MoT, Vice MoT, Master Observer, Vice Observer). Rating Observer tidak ditimpa oleh moderasi.
+- Coverage minimal 80% berlaku untuk setiap aspek. Nilai aspek memakai bobot indikator; nilai keseluruhan memakai `Σ(nilai aspek / 5 × bobot aspek)`, tanpa menormalisasi ulang bobot aspek. Data yang belum memenuhi aturan tetap provisional.
+- Keputusan lulus/tidak lulus/perlu pembahasan lanjutan ditetapkan manual oleh koordinator, bukan oleh aturan skor otomatis. Finalisasi menyimpan snapshot bernomor dan sumber privat; snapshot tidak dapat diedit atau dihapus.
+- Bidang Kader melihat agregat dan snapshot yang aman. Skor mentah, bukti, dan pembahasan privat dibatasi ke Admin Sistem dan koordinator kegiatan.
+- Rekomendasi pengembangan perlu disetujui sebelum masuk snapshot/rekap yang boleh dibagikan.
+- Sistem boleh menyusun draf rekomendasi berbasis aturan dari indikator dengan rata-rata di bawah 3/5. Saran berupa latihan umum sesuai aspek, tidak membuat kesimpulan tentang karakter peserta, dan tetap harus ditinjau/disetujui instruktur. Fitur ini deterministik, bukan AI; penggunaan AI tetap ditunda.
+- Data profil peserta untuk pencocokan laporan dapat memuat NIM dan kelompok; NIM unik per kegiatan bila diisi.
+
+### Phase 7 — dashboard, rapor, dan ekspor
+
+- Dashboard/report resmi memakai snapshot Fase 6; Draft/Submitted tidak menjadi hasil final. Dashboard menampilkan status provisional/finalized/published, progres submit penilai, distribusi keputusan, dan agregat aspek.
+- Rapor peserta hanya tersedia setelah snapshot final diterbitkan secara eksplisit. Akun role Peserta harus ditautkan Admin Sistem ke satu record peserta; akses rapor peserta diperiksa lagi di basis data dan RPC hanya mengembalikan rapor Published miliknya.
+- Tema dan penyelenggara kegiatan bersifat opsional sampai datanya diisi. Nama pejabat pengesah tidak diisi otomatis; PDF menyediakan ruang pengesahan tanpa mengarang identitas.
+- PDF resmi dan ZIP massal hanya memuat rapor Published. Excel dan event report memakai data yang diizinkan per role; ekspor skor individual/evidence hanya untuk Admin Sistem/koordinator. Catatan deliberasi dan sumber privat tidak masuk snapshot publik.
+- Publikasi dan ekspor dicatat di audit table. Snapshot Phase 6 tetap immutable; rapor revisi menggunakan snapshot baru.
+- PDF dibuat di browser memakai generator internal ringan dan ZIP tanpa kompresi; tidak menambah dependency. Excel menggunakan `xlsx` yang sudah terpasang. Rapor peserta belum dapat dibuka sebelum akun ditautkan.
+
 ### Akses dan privasi
 
 - **Observer dan Instruktur yang ditugaskan** dapat melihat nilai bersama, riwayat perubahan, dan catatan per penulis untuk kegiatan tugasnya.
@@ -230,6 +251,14 @@ Nama tabel masih konsep dan dapat disesuaikan saat implementasi data dimulai:
 
 ## Status proyek saat ini
 
+### Keputusan terbaru Phase 5 — 11 November 2026
+
+- Prompt Phase 5 terbaru menggantikan keputusan lama untuk satu skor bersama: setiap Observer menyimpan skor, N/O, bukti, revisi, dan statusnya sendiri per peserta/indikator/versi rubrik. Penilaian observer lain ditampilkan baca-saja; catatan kategori tetap terpisah per penulis.
+- Status submission per peserta dan observer: Draft → Submitted → Finalized. Observer dapat mengirim dan membuka kembali kirimannya; hanya Admin Sistem dapat finalisasi setelah seluruh Observer yang ditugaskan mengirim peserta itu. Finalisasi mengunci revisi langsung; pembukaan kembali finalisasi belum tersedia pada MVP.
+- Nilai kolektif, nilai resmi, dan laporan belum dihitung di Phase 5; agregasi skor observer adalah Phase 6. Skor yang tampil di workspace hanya pratinjau milik observer.
+- Pada Pengaturan Penilaian, Admin Sistem dapat memilih subset aspek dan indikator master untuk tiap materi pada versi draf; pilihan disimpan sebagai snapshot versi rubrik, dengan anchor master dan bobot awal yang dapat disesuaikan sebelum aktivasi. Master framework Phase 2 dan mapping Phase 4 tetap read-only.
+- Kelompok belum memiliki model/tabel pada aplikasi. Workspace MVP sekarang memakai satu cakupan “Semua peserta”; pemisahan kelompok perlu ditambahkan sesudah rancangan kelompok disepakati.
+
 ### Tahap 1 — tampilan dasar dan navigasi: diterima pengguna
 
 - Dashboard simulasi enam role dibuat dengan warna utama merah marun.
@@ -285,7 +314,8 @@ Nama tabel masih konsep dan dapat disesuaikan saat implementasi data dimulai:
 - Tahap ini belum diperiksa di Supabase pengguna atau browser. Unduhan Excel/PDF serta tahap screening (termasuk tambahan peserta dan mandat tambahan) masih belum dibuat; implementasi saat ini mencakup pengajuan dan seleksi administrasi pertama.
 - Uji coba tetap harus memakai data simulasi. Jangan publikasi atau masukkan data pribadi sebelum pemeriksaan keamanan, privasi, backup dan biaya.
 - Status Phase 2 framework DAD: master v1 berisi enam aspek dan 27 indikator telah diterapkan di Supabase menurut konfirmasi pengguna; pemeriksaan SQL regression tersendiri belum dikonfirmasi.
-- Status Phase 3 rubric engine: migration lokal menyiapkan tujuh materi, 14 relasi materi-aspek, 36 relasi materi-indikator, 27 rubrik, dan 135 anchor perilaku; preview baca-saja ada di `/dashboard/kerangka`. Migrations Phase 3 dan SQL regression masih menunggu dijalankan di Supabase serta pemeriksaan browser. Review/approval aplikasi tetap ditunda sesuai keputusan pengguna.
+- Status Phase 3 rubric engine: tujuh materi, 14 relasi materi-aspek, 36 relasi materi-indikator, 27 rubrik, dan 135 anchor perilaku; pengguna mengonfirmasi migrations dan regression SQL berhasil serta halaman `/dashboard/kerangka` sudah tampil. Review/approval aplikasi tetap ditunda.
+- Status Phase 4: scope final mengikuti prompt pengguna: master mapping materi/aktivitas read-only; belum membangun form asesmen. Migration 1400 dan mapping `20261111150000_dad_material_activity_mapping_v1.sql` berhasil diterapkan menurut pengguna. Mapping mencakup 13 materi/aktivitas, satu konteks lintas sesi, 56 mapping, metode, panduan, required/optional, dan rubric-version FK. HUM-01/HUM-02 belum memiliki konteks. Regression Phase 2–4 dan uji tampilan masih menunggu pengguna.
 
 ### Berkas penting
 

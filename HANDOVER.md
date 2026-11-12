@@ -133,3 +133,13 @@ Perubahan & alur (diverifikasi end-to-end di browser + DB, data simulasi):
 - **Lint-debt = 0 peringatan** (perbaikan 2 exhaustive-deps + `location.assign` → `useRouter().push`). `npm run check` hijau; `npm run lint` tanpa output (bersih).
 - **Bug riwayat:** legacy evaluation draft (`02afc62c…`, kosong) tetap ada — sengaja tidak dihapus (terhubung ke tabel riwayat).
 - Production project `crrqlwlfndhugcqcnkex` TIDAK disentuh; 3 migration baru terpasang hanya di DEV via Management API.
+
+## Deploy produksi (13 November 2026)
+
+- **Live:** http://43.173.33.195:8080/ (IMM Observer; HTTP saja, belum ada domain/TLS)
+- **Server:** 43.173.33.195 (Ubuntu 24.04) — **workload produksi lain ikut berjalan** (`api-jkstok.my.id` + Docker `wms_prod_backend`); semua config/certificate/container mereka **tidak disentuh**. nginx kini juga mendengarkan 8080 (vhost baru `imm-8080`); ufw kini juga mengizinkan 8080/tcp (Nginx Full sudah diizinkan sebelum).
+- **Stack:** Node v22.23.5 (NodeSource), pm2 `imm` di `127.0.0.1:3000` (systemd-managed, `pm2 save` + `pm2 startup`), nginx sebagai reverse proxy, kode di `/home/ubuntu/imm-app`.
+- **SSH:** key khusus `~/.ssh/imm_prod_43-173-33-195` (ed25519) — private key tidak keluar dari workstation; password server hanya dipakai sekali untuk memasang key.
+- **Database produksi** `crrqlwlfndhugcqcnkex`: kosong sebelum deploy; **39/39 migration terpasang** (via Management API, semua OK). **Belum ada akun admin/user** — aplikasi render tapi login pertama belum mungkin. Halaman publik/login/daftar teruji HTTP 200.
+- **Belum ada** service-role key di server (fitur buat akun Instruktur akan gagal); tidak ada backup; tidak ada domain/TLS (sensitif terhadap penyadapan sampai ada TLS); regression SQL belum dijalankan di produksi.
+- Detail lengkap + prosedur redeploy/rollback: `docs/DEPLOYMENT.md`.

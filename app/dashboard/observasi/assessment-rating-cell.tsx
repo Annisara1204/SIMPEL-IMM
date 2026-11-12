@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { saveAssessmentRating } from "../penilaian/assessment-actions";
 import { SCORE_SCALE_LABELS } from "@/lib/scoring";
@@ -86,6 +86,12 @@ export function AssessmentRatingCell(props: Props) {
   });
   const [value, setValue] = useState(initialDraft.value);
   const [saved, setSaved] = useState(initial);
+  const valueRef = useRef(value);
+  const savedRef = useRef(saved);
+  useEffect(() => {
+    valueRef.current = value;
+    savedRef.current = saved;
+  }, [value, saved]);
   const [conflict, setConflict] = useState<Value | null>(initialDraft.conflict);
   const [status, setStatus] = useState(initialDraft.status);
   const [pending, startTransition] = useTransition();
@@ -130,8 +136,10 @@ export function AssessmentRatingCell(props: Props) {
         revision: Number(row.revision ?? 0),
         updated_at: typeof row.updated_at === "string" ? row.updated_at : null,
       };
-      if (next.revision <= saved.revision) return;
-      if (JSON.stringify(value) !== JSON.stringify(saved)) {
+      const latestSaved = savedRef.current;
+      const latestValue = valueRef.current;
+      if (next.revision <= latestSaved.revision) return;
+      if (JSON.stringify(latestValue) !== JSON.stringify(latestSaved)) {
         setConflict(next);
         setStatus("Konflik: penilaian Anda berubah di perangkat lain.");
       } else {
@@ -143,7 +151,7 @@ export function AssessmentRatingCell(props: Props) {
     window.addEventListener("assessment-realtime-change", onRemote);
     return () =>
       window.removeEventListener("assessment-realtime-change", onRemote);
-  }, [props.participantId, props.indicatorId, props.observerId, saved, value]);
+  }, [props.participantId, props.indicatorId, props.observerId]);
 
   useEffect(() => {
     if (JSON.stringify(value) === JSON.stringify(saved) || conflict || pending)

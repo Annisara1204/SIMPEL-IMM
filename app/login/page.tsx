@@ -9,6 +9,7 @@ export default function LoginPage() {
   const router = useRouter();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
@@ -62,13 +63,28 @@ export default function LoginPage() {
           </label>
           <label>
             Kata sandi
-            <input
-              name="password"
-              type="password"
-              autoComplete="current-password"
-              required
-              placeholder="Masukkan kata sandi"
-            />
+            <span className="password-field">
+              <input
+                name="password"
+                type={showPassword ? "text" : "password"}
+                autoComplete="current-password"
+                required
+                placeholder="Masukkan kata sandi"
+              />
+              <button
+                type="button"
+                className="password-toggle"
+                onClick={() => setShowPassword((value) => !value)}
+                aria-pressed={showPassword}
+                aria-label={
+                  showPassword
+                    ? "Sembunyikan kata sandi"
+                    : "Tampilkan kata sandi"
+                }
+              >
+                {showPassword ? "Sembunyikan" : "Tampilkan"}
+              </button>
+            </span>
           </label>
           {error && (
             <p className="login-error" role="alert">

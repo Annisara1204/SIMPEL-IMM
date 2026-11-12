@@ -41,31 +41,32 @@ export async function createTemporaryInstructor(formData: FormData) {
     redirect("/dashboard/pengguna?akun=invalid");
   }
 
+  let admin: ReturnType<typeof createAdminClient>;
   try {
-    const admin = createAdminClient();
-    const { data, error } = await admin.auth.admin.createUser({
-      email: `${username}@login.imm-observer.invalid`,
-      password,
-      email_confirm: true,
-      user_metadata: { display_name: displayName },
-    });
-    if (error || !data.user) redirect("/dashboard/pengguna?akun=failed");
-    const { error: profileError } = await admin
-      .from("profiles")
-      .update({
-        account_type: "temporary",
-        username,
-        display_name: displayName,
-      })
-      .eq("id", data.user.id);
-    if (profileError) {
-      await admin.auth.admin.deleteUser(data.user.id);
-      redirect("/dashboard/pengguna?akun=failed");
-    }
+    admin = createAdminClient();
   } catch (error) {
     if (error instanceof Error && error.message.includes("belum dikonfigurasi"))
       redirect("/dashboard/pengguna?akun=setup");
     throw error;
+  }
+  const { data, error } = await admin.auth.admin.createUser({
+    email: `${username}@login.imm-observer.invalid`,
+    password,
+    email_confirm: true,
+    user_metadata: { display_name: displayName },
+  });
+  if (error || !data.user) redirect("/dashboard/pengguna?akun=failed");
+  const { error: profileError } = await admin
+    .from("profiles")
+    .update({
+      account_type: "temporary",
+      username,
+      display_name: displayName,
+    })
+    .eq("id", data.user.id);
+  if (profileError) {
+    await admin.auth.admin.deleteUser(data.user.id);
+    redirect("/dashboard/pengguna?akun=failed");
   }
   revalidatePath("/dashboard/pengguna");
 }

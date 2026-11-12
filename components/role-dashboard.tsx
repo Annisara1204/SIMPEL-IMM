@@ -349,10 +349,9 @@ export function RoleDashboard({
           ))}
         </nav>
         <div className="sidebar-bottom">
-          <div className="help-icon">?</div>
           <div>
             <strong>Butuh bantuan?</strong>
-            <small>Panduan penggunaan</small>
+            <small>Hubungi Admin atau panitia kegiatan</small>
           </div>
         </div>
       </aside>

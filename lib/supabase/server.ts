@@ -8,10 +8,17 @@ export async function createClient() {
   if (!url || !key) throw new Error("Supabase belum dikonfigurasi.");
   return createServerClient(url, key, {
     cookies: {
-      getAll() { return cookieStore.getAll(); },
+      getAll() {
+        return cookieStore.getAll();
+      },
       setAll(cookiesToSet) {
-        try { cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options)); }
-        catch { /* Perubahan cookie dilakukan oleh Proxy saat merender halaman. */ }
+        try {
+          cookiesToSet.forEach(({ name, value, options }) =>
+            cookieStore.set(name, value, options),
+          );
+        } catch {
+          /* Perubahan cookie dilakukan oleh Proxy saat merender halaman. */
+        }
       },
     },
   });

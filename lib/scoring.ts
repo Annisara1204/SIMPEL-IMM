@@ -1,9 +1,18 @@
 export type ScoringIndicator = { id: string; weight: number };
-export type ScoringAspect = { id: string; weight: number; rubric_indicators: ScoringIndicator[] };
+export type ScoringAspect = {
+  id: string;
+  weight: number;
+  rubric_indicators: ScoringIndicator[];
+};
 export type ScoringObservation = { score: number | null };
 
 export const scoreCategories = [
-  { id: "development", label: "Perlu pengembangan", minimum: 0, exclusiveMaximum: 60 },
+  {
+    id: "development",
+    label: "Perlu pengembangan",
+    minimum: 0,
+    exclusiveMaximum: 60,
+  },
   { id: "adequate", label: "Cukup", minimum: 60, exclusiveMaximum: 75 },
   { id: "good", label: "Baik", minimum: 75, exclusiveMaximum: 90 },
   { id: "excellent", label: "Sangat baik", minimum: 90, exclusiveMaximum: 101 },
@@ -11,10 +20,20 @@ export const scoreCategories = [
 
 export function categorizeScore(score: number | null) {
   if (score === null || !Number.isFinite(score)) return null;
-  return scoreCategories.find((category) => score >= category.minimum && score < category.exclusiveMaximum) ?? scoreCategories.at(-1) ?? null;
+  return (
+    scoreCategories.find(
+      (category) =>
+        score >= category.minimum && score < category.exclusiveMaximum,
+    ) ??
+    scoreCategories.at(-1) ??
+    null
+  );
 }
 
-export function calculateWeightedScore(aspects: ScoringAspect[], observations: Map<string, ScoringObservation>) {
+export function calculateWeightedScore(
+  aspects: ScoringAspect[],
+  observations: Map<string, ScoringObservation>,
+) {
   let weightedAspects = 0;
   let observedAspectWeight = 0;
   const observedIndicatorIds = new Set<string>();
@@ -37,8 +56,13 @@ export function calculateWeightedScore(aspects: ScoringAspect[], observations: M
     includedAspects.push(aspect.id);
   }
 
-  if (!observedAspectWeight) return { value: null, observedIndicators: 0, includedAspects };
+  if (!observedAspectWeight)
+    return { value: null, observedIndicators: 0, includedAspects };
   const averageOnFivePointScale = weightedAspects / observedAspectWeight;
   const value = ((averageOnFivePointScale - 1) / 4) * 100;
-  return { value, observedIndicators: observedIndicatorIds.size, includedAspects };
+  return {
+    value,
+    observedIndicators: observedIndicatorIds.size,
+    includedAspects,
+  };
 }

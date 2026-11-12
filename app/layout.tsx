@@ -1,8 +1,17 @@
 import type { Metadata } from "next";
 import "./globals.css";
 
-export const metadata: Metadata = { title: "Observer DAD | IMM Kota Bandung", description: "Dashboard pemantauan Pelatihan Kader IMM Kota Bandung" };
+export const metadata: Metadata = {
+  title: "Observer DAD | IMM Kota Bandung",
+  description: "Dashboard pemantauan Pelatihan Kader IMM Kota Bandung",
+};
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="id"><body>{children}</body></html>;
+export default function RootLayout({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
+  return (
+    <html lang="id">
+      <body>{children}</body>
+    </html>
+  );
 }

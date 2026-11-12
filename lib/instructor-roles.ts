@@ -1,10 +1,40 @@
 export const instructorPositions = [
-  { id: "mot", label: "Master of Training (MoT)", dashboardTitle: "Koordinasi pelatihan", access: "assessment" },
-  { id: "vice_mot", label: "Vice MoT", dashboardTitle: "Dukungan koordinasi MoT", access: "assessment" },
-  { id: "iot", label: "Imam of Training (IoT)", dashboardTitle: "Agenda pembinaan ruhiyah", access: "duties" },
-  { id: "vice_iot", label: "Vice IoT", dashboardTitle: "Dukungan agenda IoT", access: "duties" },
-  { id: "master_observer", label: "Master of Observer", dashboardTitle: "Koordinasi Observer", access: "assessment" },
-  { id: "vice_observer", label: "Vice Observer", dashboardTitle: "Dukungan koordinator Observer", access: "assessment" },
+  {
+    id: "mot",
+    label: "Master of Training (MoT)",
+    dashboardTitle: "Koordinasi pelatihan",
+    access: "assessment",
+  },
+  {
+    id: "vice_mot",
+    label: "Vice MoT",
+    dashboardTitle: "Dukungan koordinasi MoT",
+    access: "assessment",
+  },
+  {
+    id: "iot",
+    label: "Imam of Training (IoT)",
+    dashboardTitle: "Agenda pembinaan ruhiyah",
+    access: "duties",
+  },
+  {
+    id: "vice_iot",
+    label: "Vice IoT",
+    dashboardTitle: "Dukungan agenda IoT",
+    access: "duties",
+  },
+  {
+    id: "master_observer",
+    label: "Master of Observer",
+    dashboardTitle: "Koordinasi Observer",
+    access: "assessment",
+  },
+  {
+    id: "vice_observer",
+    label: "Vice Observer",
+    dashboardTitle: "Dukungan koordinator Observer",
+    access: "assessment",
+  },
 ] as const;
 
 export type InstructorPosition = (typeof instructorPositions)[number]["id"];
@@ -55,5 +85,8 @@ export const instructorDuties: Record<InstructorPosition, string[]> = {
 };
 
 export function instructorPositionLabel(position: string) {
-  return instructorPositions.find((item) => item.id === position)?.label ?? "Instruktur";
+  return (
+    instructorPositions.find((item) => item.id === position)?.label ??
+    "Instruktur"
+  );
 }

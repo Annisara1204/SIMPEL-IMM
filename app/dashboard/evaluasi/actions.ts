@@ -34,6 +34,35 @@ async function requireModerator(eventId: string) {
 
 const uuidPattern = /^[0-9a-f-]{36}$/i;
 
+/**
+ * Filter rekap indikator ke satu jenis penilaian (satu rubrik versi aktif
+ * per kegiatan). Baris `cross_session` masuk hanya bila versi ini memuat
+ * indikator tersebut; seluruh baris `session:<id>` cocok persis.
+ */
+function scopedSummaryRows(
+  rows: AssessmentSummaryRow[],
+  rubricVersionId: string,
+  participantId: string,
+): AssessmentSummaryRow[] {
+  return rows.filter((row) => {
+    if (row.participant_id !== participantId) return false;
+    if (row.assessment_scope_key === `session:${rubricVersionId}`) return true;
+    return (
+      row.assessment_scope_key === "cross_session" &&
+      Array.isArray(row.source_rubric_version_ids) &&
+      row.source_rubric_version_ids.includes(rubricVersionId)
+    );
+  });
+}
+
+/** Baca & validasi rubricVersionId dari formData; wajib untuk aksi per jenis. */
+function requireRubricVersionId(formData: FormData): string {
+  const rubricVersionId = String(formData.get("rubricVersionId") ?? "");
+  if (!uuidPattern.test(rubricVersionId))
+    throw new Error("Jenis penilaian belum dipilih.");
+  return rubricVersionId;
+}
+
 export async function saveAssessmentModeration(formData: FormData) {
   const eventId = String(formData.get("eventId") ?? "");
   const participantId = String(formData.get("participantId") ?? "");
@@ -231,6 +260,7 @@ export async function saveCollectiveEvaluation(formData: FormData) {
   const participantId = String(formData.get("participantId") ?? "");
   if (![eventId, participantId].every((id) => uuidPattern.test(id)))
     throw new Error("Peserta atau kegiatan tidak valid.");
+  const rubricVersionId = requireRubricVersionId(formData);
   const { supabase, userId } = await requireModerator(eventId);
   const [{ data: participant }, { data: current }] = await Promise.all([
     supabase
@@ -243,6 +273,7 @@ export async function saveCollectiveEvaluation(formData: FormData) {
       .select("id,status")
       .eq("event_id", eventId)
       .eq("participant_id", participantId)
+      .eq("rubric_version_id", rubricVersionId)
       .maybeSingle(),
   ]);
   if (participant?.event_id !== eventId)
@@ -259,6 +290,7 @@ export async function saveCollectiveEvaluation(formData: FormData) {
   const fields = {
     event_id: eventId,
     participant_id: participantId,
+    rubric_version_id: rubricVersionId,
     updated_by: userId,
     strengths: String(formData.get("strengths") ?? "")
       .trim()
@@ -279,7 +311,9 @@ export async function saveCollectiveEvaluation(formData: FormData) {
   };
   const { error } = await supabase
     .from("collective_evaluations")
-    .upsert(fields, { onConflict: "event_id,participant_id" });
+    .upsert(fields, {
+      onConflict: "event_id,participant_id,rubric_version_id",
+    });
   if (error) throw new Error("Draf evaluasi kolektif gagal disimpan.");
   revalidatePath("/dashboard/evaluasi");
 }
@@ -311,6 +345,7 @@ export async function generateAutomaticRecommendations(formData: FormData) {
   const participantId = String(formData.get("participantId") ?? "");
   if (!uuidPattern.test(eventId) || !uuidPattern.test(participantId))
     throw new Error("Kegiatan atau peserta tidak valid.");
+  const rubricVersionId = requireRubricVersionId(formData);
   const { supabase, userId } = await requireModerator(eventId);
   const [
     { data: participant },
@@ -329,6 +364,7 @@ export async function generateAutomaticRecommendations(formData: FormData) {
         "rubric_aspects(rubric_indicator_aspects(rubric_indicators(id,name,competency_indicator_id)))",
       )
       .eq("event_id", eventId)
+      .eq("id", rubricVersionId)
       .eq("status", "active"),
   ]);
   if (participant?.event_id !== eventId)
@@ -340,8 +376,13 @@ export async function generateAutomaticRecommendations(formData: FormData) {
   const { data: evaluation, error: evaluationError } = await supabase
     .from("collective_evaluations")
     .upsert(
-      { event_id: eventId, participant_id: participantId, updated_by: userId },
-      { onConflict: "event_id,participant_id" },
+      {
+        event_id: eventId,
+        participant_id: participantId,
+        rubric_version_id: rubricVersionId,
+        updated_by: userId,
+      },
+      { onConflict: "event_id,participant_id,rubric_version_id" },
     )
     .select("id,status")
     .single();
@@ -359,12 +400,12 @@ export async function generateAutomaticRecommendations(formData: FormData) {
             indicator.name,
           );
   const summary = (summaryRows ?? []) as AssessmentSummaryRow[];
-  const lowIndicators = summary
-    .filter(
-      (row) =>
-        row.participant_id === participantId &&
-        Number(row.valid_rating_count) > 0,
-    )
+  const lowIndicators = scopedSummaryRows(
+    summary,
+    rubricVersionId,
+    participantId,
+  )
+    .filter((row) => Number(row.valid_rating_count) > 0)
     .map((row) => ({
       indicatorId: row.indicator_id,
       indicatorName: nameById.get(row.indicator_id) ?? "indikator kompetensi",
@@ -445,6 +486,7 @@ export async function approveDevelopmentRecommendation(formData: FormData) {
 }
 
 export async function finalizeCollectiveEvaluation(formData: FormData) {
+  const rubricVersionId = requireRubricVersionId(formData);
   const eventId = String(formData.get("eventId") ?? "");
   const participantId = String(formData.get("participantId") ?? "");
   if (![eventId, participantId].every((id) => uuidPattern.test(id)))
@@ -467,6 +509,7 @@ export async function finalizeCollectiveEvaluation(formData: FormData) {
       .select("id,status")
       .eq("event_id", eventId)
       .eq("participant_id", participantId)
+      .eq("rubric_version_id", rubricVersionId)
       .maybeSingle(),
     supabase.rpc("get_event_assessment_summary", { target_event_id: eventId }),
     supabase
@@ -476,14 +519,16 @@ export async function finalizeCollectiveEvaluation(formData: FormData) {
       .maybeSingle(),
   ]);
   if (current?.status === "finalized")
-    throw new Error("Evaluasi ini sudah difinalisasi.");
+    throw new Error("Evaluasi untuk jenis penilaian ini sudah difinalisasi.");
   if (summaryError || !policy)
     throw new Error(
       "Rekap skor belum tersedia. Jalankan seluruh migrasi basis data terlebih dahulu.",
     );
   const summaryRowsTyped = (summaryRows ?? []) as AssessmentSummaryRow[];
-  const rows = summaryRowsTyped.filter(
-    (row) => row.participant_id === participantId,
+  const rows = scopedSummaryRows(
+    summaryRowsTyped,
+    rubricVersionId,
+    participantId,
   );
   const aggregates = new Map<string, IndicatorAggregate>();
   const planned: PlannedIndicator[] = rows.map((row) => {
@@ -534,6 +579,7 @@ export async function finalizeCollectiveEvaluation(formData: FormData) {
     .select("id,status")
     .eq("event_id", eventId)
     .eq("participant_id", participantId)
+    .eq("rubric_version_id", rubricVersionId)
     .not("status", "in", "(reviewed,resolved)");
   if (openModerations?.length)
     throw new Error(
@@ -549,6 +595,7 @@ export async function finalizeCollectiveEvaluation(formData: FormData) {
   const fields = {
     event_id: eventId,
     participant_id: participantId,
+    rubric_version_id: rubricVersionId,
     updated_by: userId,
     strengths: String(formData.get("strengths") ?? "")
       .trim()
@@ -569,7 +616,9 @@ export async function finalizeCollectiveEvaluation(formData: FormData) {
   };
   const { data: evaluation, error: saveError } = await supabase
     .from("collective_evaluations")
-    .upsert(fields, { onConflict: "event_id,participant_id" })
+    .upsert(fields, {
+      onConflict: "event_id,participant_id,rubric_version_id",
+    })
     .select("id,status")
     .single();
   if (saveError || !evaluation || evaluation.status !== "draft")
@@ -585,12 +634,11 @@ export async function finalizeCollectiveEvaluation(formData: FormData) {
     throw new Error(
       "Pilih keputusan kelulusan dan isi alasan minimal 10 karakter.",
     );
+  const versionIds = [rubricVersionId];
   const { data: versions } = await supabase
     .from("rubric_versions")
     .select("id,competency_framework_version_id")
-    .eq("event_id", eventId)
-    .eq("status", "active");
-  const versionIds = (versions ?? []).map((version) => version.id);
+    .eq("id", rubricVersionId);
   const [{ data: submissions }, { data: ratings }, { data: recommendations }] =
     await Promise.all([
       versionIds.length
@@ -629,6 +677,7 @@ export async function finalizeCollectiveEvaluation(formData: FormData) {
         )
         .eq("event_id", eventId)
         .eq("participant_id", participantId)
+        .eq("rubric_version_id", rubricVersionId)
     ).data ?? [];
   const snapshot = {
     schemaVersion: 1,

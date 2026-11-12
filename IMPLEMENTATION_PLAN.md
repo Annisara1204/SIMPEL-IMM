@@ -38,3 +38,9 @@ Ditemukan audit 12 Nov 2026; detail di HANDOVER.md:
 - **Tahap 8 — implementasi v1 terpasang & diverifikasi di browser** (`/dashboard/analitik`; role admin_system & bidang_kader; agregat lintas kegiatan: jumlah kegiatan/peserta, peserta final, rapor terbit, distribusi keputusan — tanpa skor individu atau catatan pribadi). Menu "Analitik & Rekap" kini aktif untuk kedua role (admin_system & bidang_kader). Upgrade lanjutan (tren waktu, ekspor, lintas-event per aspek) masih terbuka.
 - **Tahap 10** — belum dimulai (bergantung 5–8 terverifikasi penuh).
 - **Tahap 11** — belum (menunggu BUG-003 + keputusan rilis manusia).
+
+## Update kedua 13 November 2026
+
+- **BUG-003 ditutup (per jenis penilaian).** Finalisasi/Rapor/Publish/Ekspor kini jalan end-to-end untuk Peserta 01 (2 penilaian, 2 snapshot, 2 publikasi, audit ekspor). Verifikasi penuh 6 migration Phase 5–7 + 3 migration baru (evaluasi per penilaian, gate moderasi per jenis, publish per evaluasi).
+- **Tahap 6/7 — verifikasi browser selesai untuk alur inti** (draft → submit → moderasi → finalisasi → snapshot immutability (trigger) → publish → rapor → ekspor + audit).
+- **Manajemen:** peserta masih belum punya akun; RPT-001..005 menunggu keputusan metode akses peserta.

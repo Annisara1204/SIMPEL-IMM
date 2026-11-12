@@ -3714,3 +3714,33 @@ summary:focus-visible,
     animation-duration: 0.01ms !important;
   }
 }
+
+.assessment-penilaian-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 14px 0 4px;
+}
+.assessment-penilaian-tab {
+  padding: 8px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface-soft);
+  color: #383034;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s,
+    background 0.15s;
+}
+.assessment-penilaian-tab:hover {
+  border-color: #bc8799;
+  box-shadow: 0 3px 10px #8b1e3f12;
+}
+.assessment-penilaian-tab.active {
+  background: var(--color-primary);
+  border-color: var(--color-primary-dark);
+  color: #fff;
+}

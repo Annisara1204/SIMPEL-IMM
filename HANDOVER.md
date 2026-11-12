@@ -107,3 +107,20 @@ Tujuan: menindaklanjuti `docs/GOAL.md` (otomasi penyelesaian aplikasi via `/goal
 ### Akun QA sintetik
 
 `.env.qa-test` (gitignored): `qa-auto-admin@qa.imm-observer.invalid`, `qa-auto-observer-{a,b}@qa.imm-observer.invalid` (ditugaskan `PK IMM FEB UM Bandung`), `qa-auto-instruktur@qa.imm-observer.invalid` (MoT), `qa-auto-kader@qa.imm-observer.invalid`. Semua password acak kuat. Project `production imm` (crrqlwlfndhugcqcnkex) TIDAK disentuh.
+
+## Finalisasi per jenis penilaian (13 November 2026, malam)
+
+Keputusan pengguna 13 Nov 2026: nilai resmi berakhir ("official") **per jenis penilaian** (per rubrik versi aktif per kegiatan — BLUEPRINT §Phase 6: status selesai terpisah per jenis).
+
+Perubahan & alur (diverifikasi end-to-end di browser + DB, data simulasi):
+
+- Migrasi `20261113000000_dad_collective_evaluation_per_penilaian_v1.sql` (terpasang di DEV): `collective_evaluations.rubric_version_id`, unique `(event_id, participant_id, rubric_version_id)` NULLS NOT DISTINCT; `assessment_snapshots` unique key jadi `(collective_evaluation_id, revision)`; `get_event_report_rows` mengembalikan satu baris per snapshot.
+- Migrasi `20261113120000_scope_finalize_moderation_to_penilaian_v1.sql` (terpasang di DEV): gate moderasi finalize dibatasi ke penilaian yang difinalisasi (sebelumnya satu selisih di mana pun mengunci semua penilaian).
+- Migrasi `20261113130000_publish_latest_per_evaluation_v1.sql` (terpasang di DEV): terbitkan rapor dibandingkan "latest revision" **per evaluasi (per jenis)**, bukan lintas peserta.
+- Evaluasi Kolektif: penilaian tabs (Screening · Interview / Pelatihan · Kognitif · AIK · …) per peserta; agregasi/coverage/overall dihitung hanya untuk penilaian terpilih (bobot = 100%, bukan 200%); aksi simpan draf/rekomendasi/finalisasi selalu membawa `rubricVersionId`; snapshot history memuat jenis; panel finalisasi menyebut jenis yang difinalisasi.
+- Screening Peserta 01: skor agregat **76.00/100**, coverage 100%, Finalisasi → snapshot revision 1 (decision `pass`). AIK Kognitif: **74.00/100**, moderasi dua selisih ditinjau & dipertahankan rata-rata, Finalisasi → snapshot revision 1 (decision `further_discussion`). Keduanya dipublikasikan (`published_at` 18:59 / 19:02); ekspor individual_pdf, bulk_pdf, assessment_excel×3 klik, observer_excel, event_report_pdf — semua tercatat di `assessment_export_audit`; ZIP "2 rapor Published" terunduh tanpa error.
+- Laporan & Rapor: dua baris per peserta per jenis (label "Screening v1" / "Pelatihan v1 · AIK"); checkbox bulk memakai `snapshot_id` (duplicate React key diperbaiki); "Terbitkan rapor" bekerja per snapshot.
+- Peserta 02 (B mengisi Screening tanpa sengaja) sengaja dibiarkan — data simulasi, belum difinalisasi.
+- Catatan: evaluasi kolektif lama (legacy draft id `02afc62c…`, tanpa versi) dibiarkan, tidak dihapus (terhubung ke `collective_evaluation_revisions`).
+- Peserta masih tidak punya akun (metode akses belum diputuskan pengguna) — rapor hanya bisa dibuka Admin/Kader/Instruktur; RPT-001..005 tetap belum teruji end-to-end.
+- Consensus: `assessment_moderations` berisi 2 record resolved (retain_average) untuk indikator menyimpang — dilakukan sebagai koordinator (simulasi).

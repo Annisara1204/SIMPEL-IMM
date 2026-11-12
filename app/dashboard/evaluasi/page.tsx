@@ -25,6 +25,7 @@ type Props = {
   searchParams: Promise<{
     eventId?: string | string[];
     participantId?: string | string[];
+    versionId?: string | string[];
   }>;
 };
 export default async function CollectiveEvaluationPage({
@@ -109,11 +110,14 @@ export default async function CollectiveEvaluationPage({
   }[];
   const selectedParticipant =
     participantRows.find((item) => item.id === participantId) ?? null;
+  const versionIdParam = Array.isArray(params.versionId)
+    ? params.versionId[0]
+    : params.versionId;
   const { data: versions } = eventId
     ? await supabase
         .from("rubric_versions")
         .select(
-          "id,version,stage,material_id,competency_framework_version_id,rubric_materials(name),rubric_aspects(id,name,weight,competency_aspect_id,rubric_indicator_aspects(weight,rubric_indicators(id,name,competency_indicator_id,competency_indicator_rubric_version_id)))",
+          "id,version,stage,material_id,assessment_type_id,rubric_assessment_types(name),competency_framework_version_id,rubric_materials(name),rubric_aspects(id,name,weight,competency_aspect_id,rubric_indicator_aspects(weight,rubric_indicators(id,name,competency_indicator_id,competency_indicator_rubric_version_id)))",
         )
         .eq("event_id", eventId)
         .eq("status", "active")
@@ -128,16 +132,35 @@ export default async function CollectiveEvaluationPage({
     .select("minimum_coverage,review_score_delta")
     .eq("id", true)
     .maybeSingle();
+  const versionListAll = (versions ?? []) as unknown as (RubricVersionJoined & {
+    assessment_type_id?: string | null;
+    rubric_assessment_types?: { name: string } | { name: string }[] | null;
+  })[];
+  const stageOrder: Record<string, number> = {
+    screening: 0,
+    training: 1,
+    follow_up: 2,
+  };
+  const activeVersions = [...versionListAll].sort(
+    (a, b) =>
+      (stageOrder[a.stage] ?? 9) - (stageOrder[b.stage] ?? 9) ||
+      a.version - b.version,
+  );
+  const selectedVersionId =
+    activeVersions.find((item) => item.id === versionIdParam)?.id ??
+    activeVersions[0]?.id ??
+    null;
   const [{ data: evaluation }, { data: moderations }, { data: snapshots }] =
-    selectedParticipant && eventId
+    selectedParticipant && eventId && selectedVersionId
       ? await Promise.all([
           supabase
             .from("collective_evaluations")
             .select(
-              "id,status,strengths,development_areas,evidence_references,discussion_notes,collective_summary,recommendation_summary,graduation_decision,decision_rationale,approved_at",
+              "id,status,strengths,development_areas,evidence_references,discussion_notes,collective_summary,recommendation_summary,graduation_decision,decision_rationale,approved_at,rubric_version_id",
             )
             .eq("event_id", eventId)
             .eq("participant_id", participantId)
+            .eq("rubric_version_id", selectedVersionId)
             .maybeSingle(),
           supabase
             .from("assessment_moderations")
@@ -148,10 +171,10 @@ export default async function CollectiveEvaluationPage({
             .eq("participant_id", participantId),
           supabase
             .from("assessment_snapshots")
-            .select("id,revision,finalized_at,snapshot_data")
+            .select("id,revision,finalized_at,snapshot_data,rubric_version_ids")
             .eq("event_id", eventId)
             .eq("participant_id", participantId)
-            .order("revision", { ascending: false }),
+            .order("finalized_at", { ascending: false }),
         ])
       : [{ data: null }, { data: [] }, { data: [] }];
   const { data: recommendations } = evaluation
@@ -204,8 +227,17 @@ export default async function CollectiveEvaluationPage({
   const rowsForParticipant = (
     (summaryRows ?? []) as AssessmentSummaryRow[]
   ).filter((row) => row.participant_id === participantId);
+  const scopedRows = selectedVersionId
+    ? rowsForParticipant.filter(
+        (row) =>
+          row.assessment_scope_key === `session:${selectedVersionId}` ||
+          (row.assessment_scope_key === "cross_session" &&
+            Array.isArray(row.source_rubric_version_ids) &&
+            row.source_rubric_version_ids.includes(selectedVersionId)),
+      )
+    : [];
   const indicatorMap = new Map<string, IndicatorAggregate>();
-  const planned: PlannedIndicator[] = rowsForParticipant.map((row) => {
+  const planned: PlannedIndicator[] = scopedRows.map((row) => {
     const key = `${row.indicator_id}:${row.assessment_scope_key}`;
     if (!indicatorMap.has(key))
       indicatorMap.set(key, {
@@ -343,6 +375,37 @@ export default async function CollectiveEvaluationPage({
               {displayParticipant.group_name ?? "Kelompok belum diisi"} ·{" "}
               {displayParticipant.commissariat} · {selectedEvent.name}
             </p>
+            <nav
+              className="assessment-penilaian-tabs"
+              aria-label="Jenis penilaian"
+            >
+              {activeVersions.map((version) => {
+                const typeName = firstRelated(
+                  version.rubric_assessment_types,
+                )?.name;
+                const materialName = firstRelated(
+                  version.rubric_materials,
+                )?.name;
+                const label = `${stageLabel(version.stage)}${
+                  typeName ? ` · ${typeName}` : ""
+                }${materialName ? ` · ${materialName}` : ""}`;
+                const active = version.id === selectedVersionId;
+                return (
+                  <a
+                    key={version.id}
+                    className={
+                      active
+                        ? "assessment-penilaian-tab active"
+                        : "assessment-penilaian-tab"
+                    }
+                    aria-current={active ? "true" : undefined}
+                    href={`/dashboard/evaluasi?eventId=${eventId}&participantId=${participantId}&versionId=${version.id}`}
+                  >
+                    {label}
+                  </a>
+                );
+              })}
+            </nav>
             {summaryError && (
               <p className="users-error">
                 Rekap skor belum tersedia. Jalankan seluruh migrasi basis data
@@ -646,6 +709,26 @@ export default async function CollectiveEvaluationPage({
             {isModerator && (
               <>
                 <h3>Evaluasi kolektif dan keputusan</h3>
+                <p className="data-caption">
+                  Jenis penilaian yang difinalisasi pada bagian ini:{" "}
+                  {(() => {
+                    const selected = activeVersions.find(
+                      (item) => item.id === selectedVersionId,
+                    );
+                    const typeName = firstRelated(
+                      selected?.rubric_assessment_types,
+                    )?.name;
+                    const material = firstRelated(
+                      selected?.rubric_materials,
+                    )?.name;
+                    return selected
+                      ? `${stageLabel(selected.stage)}${
+                          typeName ? ` · ${typeName}` : ""
+                        }${material ? ` · ${material}` : ""}`
+                      : "—";
+                  })()}
+                  . Penilaian lain difinalisasi terpisah.
+                </p>
                 {evaluation?.status === "finalized" && (
                   <p className="users-notice">
                     <strong>
@@ -672,6 +755,11 @@ export default async function CollectiveEvaluationPage({
                     type="hidden"
                     name="participantId"
                     value={participantId}
+                  />
+                  <input
+                    type="hidden"
+                    name="rubricVersionId"
+                    value={selectedVersionId ?? ""}
                   />
                   <label>
                     Kekuatan
@@ -737,6 +825,11 @@ export default async function CollectiveEvaluationPage({
                         name="participantId"
                         value={participantId}
                       />
+                      <input
+                        type="hidden"
+                        name="rubricVersionId"
+                        value={selectedVersionId ?? ""}
+                      />
                       <p>
                         Sistem membuat draf saran dari indikator dengan
                         rata-rata skor di bawah 3/5. Draf tidak otomatis
@@ -799,6 +892,11 @@ export default async function CollectiveEvaluationPage({
                       type="hidden"
                       name="participantId"
                       value={participantId}
+                    />
+                    <input
+                      type="hidden"
+                      name="rubricVersionId"
+                      value={selectedVersionId ?? ""}
                     />
                     <input
                       type="hidden"
@@ -882,9 +980,22 @@ export default async function CollectiveEvaluationPage({
                 <summary>Riwayat snapshot final</summary>
                 {snapshots?.map((snapshot) => {
                   const collective = snapshot.snapshot_data?.collective;
+                  const snapshotVersionIds = (snapshot.rubric_version_ids ??
+                    []) as string[];
+                  const snapshotVersion = activeVersions.find((item) =>
+                    snapshotVersionIds.includes(item.id),
+                  );
+                  const snapshotTypeName = firstRelated(
+                    snapshotVersion?.rubric_assessment_types,
+                  )?.name;
+                  const snapshotLabel = snapshotVersion
+                    ? `${stageLabel(snapshotVersion.stage)}${
+                        snapshotTypeName ? ` · ${snapshotTypeName}` : ""
+                      }`
+                    : "Penilaian";
                   return (
                     <article className="assignment-box" key={snapshot.id}>
-                      <strong>Revisi {snapshot.revision}</strong>
+                      <strong>{snapshotLabel}</strong>
                       <p>
                         {new Date(snapshot.finalized_at).toLocaleString(
                           "id-ID",

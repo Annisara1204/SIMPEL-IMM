@@ -270,3 +270,12 @@ Temuan baru (13 Nov 2026):
 - **BUG-004 (Low, tidak diperbaiki):** sesi kedaluwarsa (>1 jam) membuat `/dashboard` menampilkan "Profil belum tersedia" dengan satu tombol "Keluar" alih-alih redirect ke `/login`.
 - **Hydration mismatch dev-only (pre-existing):** "A tree hydrated but some attributes ... didn't match the client" di log dev (dicatat 03:13; telah ada sebelum perubahan 13 Nov). Bukan error produksi; perlu ditinjau terpisah.
 - Penilaian QA Observer A pada Indikator 1 (PELATIHAN AIK) telah diubah berkali-kali sebagai bagian pengujian (akhirnya 1 · Sangat Kurang, rev 8); Observer A/B juga mengisi Screening Interview Peserta 01 (A) dan Peserta 02 (B, tanpa sengaja — find-text melebar ke seksi peserta lain). Seluruhnya data simulasi; aman diabaikan.
+
+## Finalisasi per jenis penilaian (13 Nov 2026, lanjutan sesi otomasi)
+
+- **PEN-003** Lulus — finalisasi evaluasi kolektif per jenis (Screening: 76/100, snapshot rev 1, decision pass; AIK Kognitif: 74/100, snapshot rev 1, decision further_discussion setelah 2 moderasi resolved). Gate: coverage ≥80% per aspek (tanpa normalisasi lintas rubrik), moderasi reviewed/resolved per jenis, bobot harus Σ=100 per snapshot (diperiksa ulang di RPC).
+- **EVA-004** Lulus — status moderasi "Selesai" ×2 disimpan via UI (retain_average); RPC menolak finalisasi saat ada needs_review tanpa moderasi (diverifikasi sebelum review).
+- **FIN-001/003/005/006/007** Lulus — finalisasi per penilaian: RPC menolak snapshot dengan overall ≠ ready (coverage) / bobot ≠ 100 / aspek <80% / needs_review tanpa moderasi (diverifikasi historis); publikasi 2 rapor tercatat di audit; revisi publikasi naik (rev 1 → 2 untuk peserta).
+- **RPT-001/002** DIHENTIKAN — tidak ada akun peserta (metode akses belum diputuskan pengguna).
+- **RPT-003/004/005** — PDF terbangkit & audit terisi; isi PDF belum ditelaah manual. Pengesahan/ruang tanda tangan tidak diisi nama (tidak ada karangan identitas).
+- **COH-001/002/004 & EXP-001/002/003/004** Lulus — event report PDF, Excel rekap (assessment/observer excel ×4 klik teraudit), ZIP 2 rapor Published, audit ekspor tercatat (individual_pdf, bulk_pdf, assessment_excel, observer_excel, event_report_pdf), filter kegiatan/status berjalan.

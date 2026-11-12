@@ -181,8 +181,9 @@ export function Phase7ReportWorkspace(props: Props) {
   const publishedRows = filteredRows.filter(
     (row) => !!row.published_at && !!row.snapshot_data,
   );
-  const selectedPublishedRows = publishedRows.filter((row) =>
-    selectedBulkIds.includes(row.participant_id),
+  const selectedPublishedRows = publishedRows.filter(
+    (row) =>
+      row.snapshot_id !== null && selectedBulkIds.includes(row.snapshot_id),
   );
   const bulkRows = selectedPublishedRows.length
     ? selectedPublishedRows
@@ -308,13 +309,19 @@ export function Phase7ReportWorkspace(props: Props) {
         group: groupFilter,
         status: statusFilter,
         participantIds: selectedPublishedRows.length
-          ? selectedPublishedRows.map((row) => row.participant_id).join(",")
+          ? [
+              ...new Set(
+                selectedPublishedRows.map((row) => row.participant_id),
+              ),
+            ].join(",")
           : "all_published",
       });
       const skipped = filteredRows.filter((row) => !row.published_at);
       const unselected = selectedPublishedRows.length
         ? publishedRows.filter(
-            (row) => !selectedBulkIds.includes(row.participant_id),
+            (row) =>
+              row.snapshot_id === null ||
+              !selectedBulkIds.includes(row.snapshot_id),
           )
         : [];
       const notices = [
@@ -768,7 +775,7 @@ export function Phase7ReportWorkspace(props: Props) {
                   </thead>
                   <tbody>
                     {finalized.map((row) => (
-                      <tr key={row.participant_id}>
+                      <tr key={row.snapshot_id ?? row.participant_id}>
                         <th scope="row">{row.display_name}</th>
                         {aspectColumns.map((column) => {
                           const aspect = aspects(row.snapshot_data).find(
@@ -930,14 +937,18 @@ export function Phase7ReportWorkspace(props: Props) {
                         aria-label="Pilih semua rapor Published"
                         checked={
                           publishedRows.length > 0 &&
-                          publishedRows.every((row) =>
-                            selectedBulkIds.includes(row.participant_id),
+                          publishedRows.every(
+                            (row) =>
+                              row.snapshot_id !== null &&
+                              selectedBulkIds.includes(row.snapshot_id),
                           )
                         }
                         onChange={(change) =>
                           setSelectedBulkIds(
                             change.target.checked
-                              ? publishedRows.map((row) => row.participant_id)
+                              ? publishedRows
+                                  .map((row) => row.snapshot_id)
+                                  .filter((id): id is string => !!id)
                               : [],
                           )
                         }
@@ -958,16 +969,22 @@ export function Phase7ReportWorkspace(props: Props) {
                       : row.snapshot_id
                         ? "Finalized"
                         : "Provisional";
+                    const rowVersion = row.snapshot_id
+                      ? versionInfoBySnapshot[row.snapshot_id]?.[0]
+                      : undefined;
                     return (
-                      <tr key={row.participant_id}>
+                      <tr key={row.snapshot_id ?? row.participant_id}>
                         <td>
                           <input
                             type="checkbox"
-                            aria-label={`Pilih rapor ${row.display_name}`}
+                            aria-label={`Pilih rapor ${row.display_name}${
+                              rowVersion ? ` · ${rowVersion}` : ""
+                            }`}
                             disabled={!row.published_at}
                             checked={
                               !!row.published_at &&
-                              selectedBulkIds.includes(row.participant_id)
+                              row.snapshot_id !== null &&
+                              selectedBulkIds.includes(row.snapshot_id)
                             }
                             onChange={(change) =>
                               setSelectedBulkIds((current) =>
@@ -975,11 +992,11 @@ export function Phase7ReportWorkspace(props: Props) {
                                   ? [
                                       ...new Set([
                                         ...current,
-                                        row.participant_id,
+                                        row.snapshot_id ?? row.participant_id,
                                       ]),
                                     ]
                                   : current.filter(
-                                      (id) => id !== row.participant_id,
+                                      (id) => id !== row.snapshot_id,
                                     ),
                               )
                             }

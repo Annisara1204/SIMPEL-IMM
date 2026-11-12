@@ -169,3 +169,20 @@ Empat akun uji untuk trial produksi (data simulasi, hapus kapan pun, password ac
 | `qa-prod-kader@imm-observer.invalid` | Bidang Kader | — |
 
 Semuanya login terverifikasi di produksi (Observer melihat kegiatan tugasnya; Instruktur melihat monitoring + checklist MoT; Kader dashboard pemantauan). Kredensial tersimpan lokal di `.env.qa-test` (gitignored). Akun produksi nyata untuk anggota panitia belum dibuat — belum ada daftar email/peran.
+
+## Sesi refactor frontend (13 November 2026, dini hari — otonom)
+
+Instruksi pemilik (tidur): semua keputusan refactor didelegasikan; mulai dari aplikasi yang baru live di PROD dan terbuka untuk uji coba; frontend dinilai "sangat AI slop dan tidak efisien". Tiga subagent audit paralel (arsitektur & kualitas kode, UI/UX & desain, performa & Next.js) → rencana → implementasi. Laporan lengkap: `docs/FRONTEND_REFACTOR.md`.
+
+Hasil (commit di `main`):
+
+- `5dafa37` Konsolidasi: `SCORE_SCALE_LABELS`, `lib/decision-labels.ts`, `lib/validation.ts` (uuidPattern), `stageOrder`/`stageCards`; `categorizeScore` & `isModeratorPosition` dipakai ulang; file mati `observation-cell.tsx` (305 baris) dihapus.
+- `c54e546` CSS: ~1.110 baris aturan mati dihapus; duplikat disatukan; `h2` global Manrope 16/700; alias legacy `--ink/--muted/--line` netral-hangat; nav/hover aktif → token maroon; `font: Npx inherit` invalid diperbaiki; halaman `error.tsx`/`loading.tsx`/`not-found.tsx` (id); `<a>` internal → `<Link>` (52 tautan); jargon "migrasi" → pesan ramah; label basi SIMULASI di halaman berbasis DB dihapus; `robots noindex`; `poweredByHeader: false`; glyph Unicode → lucide.
+- `8ab9286` Performa: `createSignedUrls` batch (5 halaman, hapus N+1); query laporan diparalelkan (2× Promise.all); `rubric_versions` observasi difilter per event (non-admin); refresh realtime di-debounce 500 ms; derivasi `phase7-report-workspace` di-useMemo + build file ekspor hanya saat ekspor + Map per baris; 3 query instruktur → 1.
+- `d43e711` UX: toggle kata sandi login; listener realtime rating-cell tidak berlangganan ulang per ketikan; `redirect()` di luar try/catch; sidebar "Butuh bantuan?" bukan lagi mirip tombol.
+
+Verifikasi: `npm run check` hijau, `npm run build` hijau; browser lokal (3100, DB DEV): publik, login (toggle), dashboard admin, 7 halaman internal, 404 id, alur Observasi sampai grid penilaian + "Realtime tersambung". **Belum dideploy ke PROD** — menunggu keputusan deploy sesi ini (lihat di bawah).
+
+Yang sengaja TIDAK dikerjakan: migrasi shell dashboard ke `app/dashboard/layout.tsx`; pemisahan payload `snapshot_data` → DTO (temuan performa High #1) — keduanya butuh sesi khusus + regresi browser per peran; penyatuan pola `useActionState`; konsolidasi breakpoint; hapus `dashboard-results`; seragamkan lencana. Lihat `docs/FRONTEND_REFACTOR.md`.
+
+**Catatan deploy:** sebelum sesi tidur berakhir, frontend diuji di lokal saja. Bila sesi ini dilanjutkan ke deploy, ikuti `docs/DEPLOYMENT.md` (backup `cp -a /home/ubuntu/imm-app …` dulu, build di server, `pm2 restart imm`, verifikasi HTTP 200). PROD memakai DB `crrqlwlfndhugcqcnkex`; jangan jalankan pengujian yang menulis ke PROD.

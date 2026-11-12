@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { PrivateImg } from "@/components/private-img";
 
 export default async function InstructorProfilesPage() {
   if (
@@ -65,7 +66,7 @@ export default async function InstructorProfilesPage() {
           {instructors.map((person) => (
             <article className="panel instructor-duty-card" key={person.id}>
               {person.photoUrl ? (
-                <img
+                <PrivateImg
                   className="account-profile-photo directory-profile-photo"
                   src={person.photoUrl}
                   alt={`Foto ${person.fullName}`}

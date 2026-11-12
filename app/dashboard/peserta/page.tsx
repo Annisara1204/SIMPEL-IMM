@@ -5,6 +5,7 @@ import {
   editParticipant,
   removeParticipant,
 } from "../kegiatan/actions";
+import { PrivateImg } from "@/components/private-img";
 
 function CommissariatOptions({
   commissariats,
@@ -221,7 +222,7 @@ export default async function ParticipantsPage() {
                       <tr key={person.id}>
                         <td>
                           {person.photoUrl ? (
-                            <img
+                            <PrivateImg
                               className="participant-photo-thumb"
                               src={person.photoUrl}
                               alt={`Foto ${person.display_name}`}

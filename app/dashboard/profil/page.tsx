@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { updateOwnProfile } from "./actions";
+import { PrivateImg } from "@/components/private-img";
 
 export default async function ProfilePage({
   searchParams,
@@ -85,7 +86,7 @@ export default async function ProfilePage({
           </p>
         )}
         {photo?.signedUrl && (
-          <img
+          <PrivateImg
             className="account-profile-photo"
             src={photo.signedUrl}
             alt="Foto profil Anda"

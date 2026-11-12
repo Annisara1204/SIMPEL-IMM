@@ -9,6 +9,7 @@ import {
   submitSubmission,
   uploadMandate,
 } from "./actions";
+import { PrivateImg } from "@/components/private-img";
 
 const statusLabels: Record<string, string> = {
   draft: "Draf · dapat diedit",
@@ -331,7 +332,7 @@ export default async function CommissariatApplicationsPage() {
                       <tr key={person.id}>
                         <td>
                           {person.photoUrl ? (
-                            <img
+                            <PrivateImg
                               className="participant-photo-thumb"
                               src={person.photoUrl}
                               alt={`Foto ${person.display_name}`}

@@ -153,16 +153,21 @@ export function ObservationCell(props: Props) {
     router,
   ]);
 
-  useEffect(() => {
-    if (props.revision <= latest.revision) return;
-    receiveLatest({
-      score: props.score,
-      revision: props.revision,
-      updated_at: props.updatedAt,
-      updated_by_name: props.updatedByName,
-      updated_by: props.updatedById,
-    });
-  }, [props.revision, props.score, props.updatedAt, props.updatedByName]);
+  // Adjust derived state during render when the server revision advances;
+  // this replaces an effect that only synced props into state.
+  const [prevRevision, setPrevRevision] = useState(props.revision);
+  if (props.revision !== prevRevision) {
+    setPrevRevision(props.revision);
+    if (props.revision > latest.revision) {
+      receiveLatest({
+        score: props.score,
+        revision: props.revision,
+        updated_at: props.updatedAt,
+        updated_by_name: props.updatedByName,
+        updated_by: props.updatedById,
+      });
+    }
+  }
 
   const selectedDescription = score ? props.descriptors[score] : null;
   const useLatest = () => {

@@ -5,6 +5,7 @@ import {
   saveAdministrativeDecision,
   startReview,
 } from "./actions";
+import { PrivateImg } from "@/components/private-img";
 
 const labels: Record<string, string> = {
   submitted: "Menunggu tinjauan",
@@ -175,7 +176,7 @@ export default async function CommissariatReviewPage() {
                 >
                   {person.photoUrl && (
                     <a href={person.photoUrl} target="_blank" rel="noreferrer">
-                      <img
+                      <PrivateImg
                         className="participant-photo-thumb"
                         src={person.photoUrl}
                         alt={`Foto ${person.display_name}`}

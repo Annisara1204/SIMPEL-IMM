@@ -87,34 +87,38 @@ function NoteEditor({
   const [status, setStatus] = useState("Belum ada perubahan");
   const [pending, startTransition] = useTransition();
 
-  useEffect(() => {
-    if (!record || record.revision <= revision) return;
-    const next = {
-      content: record.content,
-      revision: record.revision,
-      author_name: record.author_name,
-    };
-    if (record.author_id === currentUserId && record.content === content) {
-      setContent(next.content);
-      setSyncedContent(next.content);
-      setRevision(next.revision);
-      setLatest(next);
-      setStatus("Tersimpan dan tersinkron ke perangkat lain");
-      setConflict(null);
-    } else if (content !== syncedContent || pending) {
-      setLatest(next);
-      setConflict(next);
-      setStatus(
-        "Catatan berubah di perangkat lain. Pilih versi yang akan dipakai.",
-      );
-    } else {
-      setContent(next.content);
-      setSyncedContent(next.content);
-      setRevision(next.revision);
-      setLatest(next);
-      setStatus(`Diperbarui di perangkat lain oleh ${next.author_name}`);
+  // Sync prop changes into local state during render (not in an effect).
+  const [prevRecord, setPrevRecord] = useState(record);
+  if (record !== prevRecord) {
+    setPrevRecord(record);
+    if (record && record.revision > revision) {
+      const next = {
+        content: record.content,
+        revision: record.revision,
+        author_name: record.author_name,
+      };
+      if (record.author_id === currentUserId && record.content === content) {
+        setContent(next.content);
+        setSyncedContent(next.content);
+        setRevision(next.revision);
+        setLatest(next);
+        setStatus("Tersimpan dan tersinkron ke perangkat lain");
+        setConflict(null);
+      } else if (content !== syncedContent || pending) {
+        setLatest(next);
+        setConflict(next);
+        setStatus(
+          "Catatan berubah di perangkat lain. Pilih versi yang akan dipakai.",
+        );
+      } else {
+        setContent(next.content);
+        setSyncedContent(next.content);
+        setRevision(next.revision);
+        setLatest(next);
+        setStatus(`Diperbarui di perangkat lain oleh ${next.author_name}`);
+      }
     }
-  }, [record?.id, record?.revision, record?.content, record?.author_name]);
+  }
 
   useEffect(() => {
     if (content === syncedContent || conflict || pending || locked) return;
@@ -249,7 +253,11 @@ function NoteEditor({
 
 export function ObserverNotes(props: Props) {
   const [notes, setNotes] = useState(props.notes);
-  useEffect(() => setNotes(props.notes), [props.notes]);
+  const [prevNotes, setPrevNotes] = useState(props.notes);
+  if (props.notes !== prevNotes) {
+    setPrevNotes(props.notes);
+    setNotes(props.notes);
+  }
   useEffect(() => {
     const listener = (event: Event) => {
       const detail = (

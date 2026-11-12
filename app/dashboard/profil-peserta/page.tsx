@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { DashboardAssessmentResults } from "@/components/dashboard-assessment-results";
 import { createClient } from "@/lib/supabase/server";
 import { loadDashboardAssessmentData } from "@/lib/dashboard-results";
+import { PrivateImg } from "@/components/private-img";
 
 export default async function InstructorParticipantProfilesPage({
   searchParams,
@@ -149,7 +150,7 @@ export default async function InstructorParticipantProfilesPage({
                     >
                       <div className="panel-heading">
                         {person.photoUrl ? (
-                          <img
+                          <PrivateImg
                             className="participant-photo-thumb"
                             src={person.photoUrl}
                             alt={`Foto ${person.display_name}`}

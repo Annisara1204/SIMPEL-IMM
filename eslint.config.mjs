@@ -9,18 +9,13 @@ const eslintConfig = defineConfig([
   prettier,
   {
     rules: {
-      // Baseline hutang yang diketahui; dikembalikan ke "error" setelah fase
-      // refactor tipe dan pemakaian <img> untuk foto privat selesai.
-      // (`no-explicit-any` sudah kembali ke aturan default = error sejak
-      // refactor tipe 12 Nov 2026.)
       // Foto privat Supabase memakai signed URL yang kedaluwarsa; <img> dipakai
-      // dengan sengaja. Tinjau lagi bila optimasi gambar ditambahkan.
-      "@next/next/no-img-element": "warn",
-      // Sel autosave/konflik offline memakai pola setState di dalam effect yang
-      // masih fungsional. Refactor ke pola lazy/event yang lolos rule ini
-      // dilakukan pada fase refactor komponen, dengan uji browser, lalu rule
-      // dikembalikan ke "error".
-      "react-hooks/set-state-in-effect": "warn",
+      // dengan sengaja. Pengecualian ada di 6 titik yang diberi eslint-disable
+      // dengan alasan spesifik; semua pemakaian lain wajib lolos rule ini.
+      "@next/next/no-img-element": "error",
+      // Sel autosave/konflik offline memakai lazy initializer/dispatch event;
+      // rule ini sudah kembali ke "error" sejak refactor 12 Nov 2026.
+      "react-hooks/set-state-in-effect": "error",
     },
   },
   // Override default ignores of eslint-config-next.

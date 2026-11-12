@@ -52,10 +52,14 @@ npm ci --include=dev && npm run build && pm2 restart imm
 ```
 Disarankan sebelum redeploy besar: `cp -a /home/ubuntu/imm-app /home/ubuntu/imm-app.bak-$(date +%F)`.
 
+## Bootstrap admin (13 November 2026)
+
+Akun admin produksi dibuat: `annisa@swamedia.co.id` (role `admin_system`, password acak kuat — diserahkan langsung kepada pemilik di luar dokumen ini). Terverifikasi login di http://43.173.33.195:8080 → dashboard Admin merender ("Ringkasan sistem", nilai 0 — database kosong). Ubah password setelah login pertama bila perlu; akun bisa membuat kegiatan lewat UI.
+
 ## TODO / pemblokir
 
-1. **Bootstrap admin** — produksi kosong, belum ada akun. Dibutuhkan email pemilik untuk dibuatkan admin (atau password yang Anda set sendiri); tanpa ini login pertama mustahil.
-2. **Domain + TLS** — mintalah domain (subdomain `imm.jkstok.my.id` atau domain baru) lalu Certbot, atau pertimbangkan CDN seperti Cloudflare untuk HTTPS otomatis. Sampai itu ada, jangan masukkan data nyata/sensitif.
-3. **Backup** — belum ada jadwal backup DB produksi; tinjau Paket Gratis Supabase & kebijakan retensi.
-4. **Service role key** — diperlukan bila fitur pembuatan akun Instruktur dipakai di produksi.
-5. **Monitoring** — belum ada alerting (uptime, error rate); pm2 restart otomatis hanya untuk crash.
+1. **Domain + TLS** — belum ada domain; akses hanya via reverse proxy HTTP di :8080. Jangan masukkan data peserta nyata sebelum HTTPS tersedia.
+2. **Backup** — belum ada jadwal backup DB produksi; tinjau Paket Gratis Supabase & kebijakan retensi.
+3. **Service role key** — diperlukan bila fitur pembuatan akun Instruktur dipakai di produksi.
+4. **Monitoring** — belum ada alerting (uptime, error rate); pm2 restart otomatis hanya untuk crash.
+5. **Seed data produksi** — database masih kosong (belum ada kegiatan/peserta/rubrik produksi).

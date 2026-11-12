@@ -143,3 +143,9 @@ Perubahan & alur (diverifikasi end-to-end di browser + DB, data simulasi):
 - **Database produksi** `crrqlwlfndhugcqcnkex`: kosong sebelum deploy; **39/39 migration terpasang** (via Management API, semua OK). **Belum ada akun admin/user** — aplikasi render tapi login pertama belum mungkin. Halaman publik/login/daftar teruji HTTP 200.
 - **Belum ada** service-role key di server (fitur buat akun Instruktur akan gagal); tidak ada backup; tidak ada domain/TLS (sensitif terhadap penyadapan sampai ada TLS); regression SQL belum dijalankan di produksi.
 - Detail lengkap + prosedur redeploy/rollback: `docs/DEPLOYMENT.md`.
+
+
+### Admin produksi dibuat (13 Nov 2026, malam)
+
+- `annisa@swamedia.co.id`, role `admin_system`, password acak (diserahkan ke pemilik, tidak disimpan di repo). Login produksi terverifikasi (dashboard Admin merender, nilai 0 — DB kosong). Regression SQL tetap di DEV.
+- TODO tertunda: domain+TLS, backup, service-role key, monitoring, seed data produksi.

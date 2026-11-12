@@ -63,3 +63,17 @@ Akun admin produksi dibuat: `annisa@swamedia.co.id` (role `admin_system`, passwo
 3. **Service role key** — diperlukan bila fitur pembuatan akun Instruktur dipakai di produksi.
 4. **Monitoring** — belum ada alerting (uptime, error rate); pm2 restart otomatis hanya untuk crash.
 5. **Seed data produksi** — database masih kosong (belum ada kegiatan/peserta/rubrik produksi).
+
+## Seed trial produksi (13 November 2026)
+
+Disalin terpilih dari DEV `thtwrkovcorgxzuqttal` ke PROD `crrqlwlfndhugcqcnkex` (tanpa akun, nilai, snapshot, moderasi, lampiran):
+
+- Kegiatan **PK IMM FEB UM Bandung** (84315272-…, 13–15 Nov 2026, SMA Muhammadiyah 4 Bandung)
+- 2 rubric material: "Materi umum" (kosong), "AIK" (7 indikator skala 1–5)
+- 6 rubrik versi dari DEV: **Interview (Screening) aktif** — 5 aspek 100%, 10 indikator; **Kognitif (Pelatihan AIK) aktif** — Pretest/Post-Test 50/50, 5 indikator; 4 versi draft (tidak terkait validasi nilai — tetap tersedia untuk pengujian UI sebagai draft)
+- 3 peserta simulasi: Peserta 01/02 (PK IMM FEB UM Bandung), R1 (Komisariat Simulasi 03)
+- `created_by` diremap ke admin produksi; tidak ada akun QA/nilai/snapshot/moderasi yang masuk
+
+Verifikasi: bobot aktif = 100 untuk kedua rubrik; kegiatan tampil di dashboard; Kerangka DAD (6 aspek, 27 indikator, 135 anchor) tampil di `/dashboard/kerangka`; event tampil di `/dashboard/kegiatan`.
+
+**Catatan:** DEV tidak berisi data uji; Salinan dilakukan dengan INSERT tervalidasi FK, satu transaksi. `/dashboard/pengguna` (buat akun) tetap belum berfungsi sampai `SUPABASE_SERVICE_ROLE_KEY` ditambahkan ke `.env.production`.

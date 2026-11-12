@@ -149,3 +149,9 @@ Perubahan & alur (diverifikasi end-to-end di browser + DB, data simulasi):
 
 - `annisa@swamedia.co.id`, role `admin_system`, password acak (diserahkan ke pemilik, tidak disimpan di repo). Login produksi terverifikasi (dashboard Admin merender, nilai 0 — DB kosong). Regression SQL tetap di DEV.
 - TODO tertunda: domain+TLS, backup, service-role key, monitoring, seed data produksi.
+
+## Seed trial PROD (13 Nov 2026)
+
+- PROD kini berisi trial set DEV: kegiatan PK IMM FEB UM Bandung + rubrik aktif (Interview/Screening 10 indikator, Kognitif/AIK Pre-Post 50/50) + 3 peserta simulasi. Tanpa akun/nilai/snapshot.
+- DEV tidak berubah (sumber dibaca saja). Apabila DEV perlu diperbarui, terpisah dari prosedur ini.
+- Produksi masih kosong untuk: akun penilai, pengajuan, nilai, snapshot.

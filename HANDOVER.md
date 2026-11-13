@@ -212,6 +212,16 @@ Setelah upload fix `X-Forwarded-Host` terpasang, aksi di `/dashboard/penilaian` 
 - Opsi: (a) diagnosis read-only via SQL Editor Supabase PROD (perlu akses owner atau query yang dijalankan owner); (b) seed/copy mapping dari DEV ke PROD (tulis ke PROD — butuh izin eksplisit + backup); (c) perbaiki UX: aksi mengembalikan error bisnis secara inline/redirect, bukan throw; (d) kerjakan hanya penjelasan.
 
 
+## Akar penyebab 500 "Buat versi (draf)" — embedded select gagal (13 November 2026, sore)
+
+Diagnosis dengan token personal Supabase (read-only; project PROD `crrqlwlfndhugcqcnkex`, cross-check schema DEV):
+
+- Event `48880b89` material `437e27d5` "Al-Islam Kemuhammadiyahan" → `competency_material_id` = master `KEISLAMAN` (`2c709293-…`, v1 trial). **Master mapping LENGKAP**: 2 aspect link (`REL`, `INT`), 4 indicator link (`REL-01`, `REL-04`, `INT-01`, `INT-02`). RLS: `admin_system` boleh SELECT; FK (aspects→aspects, indicators→indicator_aspects) ada; annisa = admin_system ✓.
+- **Embed `competency_indicators(...)` dari `competency_material_indicators` mustahil dieksekusi PostgREST**: tidak ada FK langsung dari `competency_material_indicators` ke `competency_indicators`. FK yang ada: `(indicator_id, aspect_id, framework_version_id)` → `competency_indicator_aspects`. PostgREST balas error (PGRST200 "relationship not found") → `indicatorLinkError` truthy di `createRubricVersion` (`rubric-actions.ts`) → melempar "Mapping materi belum lengkap…" (pesan **menyesatkan**: mapping ada, querynya yang gagal) → flight 500 → `error.tsx` "Halaman gagal dimuat".
+- Embed `competency_aspects(...)` di query aspek **valid** (FK langsung `aspect_id+framework_version_id` → `competency_aspects`).
+- Schema DEV identik (dicek) — jalur "draf dari master" ini tidak pernah berhasil di mana pun; rubrik seed dibuat di luar jalur UI. Tidak ada write ke PROD sepanjang diagnosis.
+- **Fix yang diusulkan (belum disetujui, belum dikerjakan):** ganti embedded select di `createRubricVersion` menjadi two-step fetch (ambil `indicator_id` dari `competency_material_indicators`, lalu `select … in (ids)` ke `competency_indicators`) — konsisten dengan pola `anchorVersions` yang sudah ada di fungsi yang sama. Build + deploy penuh setelahnya. Catatan: pesan error "Mapping belum lengkap" sebaiknya dibedakan (query error vs memang kosong). Follow-up terpisah: kegagalan validasi bisnis tidak seharusnya meruntuhkan halaman (error boundary), melainkan tampil inline.
+
 ## Deploy penuh (13 November 2026, sore)
 
 Pemilik meminta deploy penuh. Prod saat itu tanpa perubahan kode (hanya docs sejak deploy `f83bf7e`); tetap dijalankan sesuai prosedur `docs/DEPLOYMENT.md`: backup `/home/ubuntu/imm-app.bak-2026-11-13-1430-full` (765M) → rsync → `npm ci --include=dev` (376 paket, OK; 8 moderate vulnerabilities, belum ditindak) → `npm run build` OK → `pm2 restart imm` (pid 940896, restart ke-5) → smoke 200 untuk `/`, `/login`, `/daftar`, `/dashboard`, `/dashboard/kegiatan`, `/dashboard/peserta`, `/dashboard/kerangka` via 8080; header `X-Powered-By` tetap absen; `wms_prod_*` di Docker tidak tersentuh (semua healthy). Disk server tinggal ~15 GB (89%) — kandidat pembersihan backup lama, **belum dihapus**.

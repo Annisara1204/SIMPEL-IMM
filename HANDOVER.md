@@ -201,6 +201,17 @@ Pemilik melaporkan `/dashboard/kegiatan` tampil "Halaman gagal dimuat". Diagnosi
 - Catatan: dua error `Server Reference ID did not match the expected format. Received "x"` di `imm-error.log` (pra-existing) bukan penyebab; kemungkinan probe/request manual.
 - Akar jangka panjang (sudah TODO lama): domain + TLS di port standar.
 
+## 500 pada "Buat versi (draf)" di PROD (13 November 2026, sore) — BUKAN bug CSRF
+
+Setelah upload fix `X-Forwarded-Host` terpasang, aksi di `/dashboard/penilaian` berjalan (POST kegiatan 200 pada 14:11:05 → kegiatan baru `48880b89-de78-4e72-a82b-e2bb89f74fbd`; POST penilaian 200 pada 14:13:15 & 14:14:46). Tetapi tombol **"Buat versi 1 (draf)"** gagal dengan 500 berulang (14:15:02, 14:15:09, 14:16:14, 14:16:30, 14:18:14) dan memicu error boundary `error.tsx` ("Halaman gagal dimuat").
+
+- Bukan lagi `Invalid Server Actions request`; yang tampil di `imm-error.log`: `Error: Mapping materi belum lengkap sehingga rubrik draf tidak dapat dibuat.` (digest `4270062910`), asal `createRubricVersion` di `app/dashboard/penilaian/rubric-actions.ts:157`.
+- Sebab (deterministik, aplikasi menolak secara sengaja): belum ada `rubric_versions` untuk (event, tahap, jenis, materi); tahap training; materi punya `competency_material_id`; tetapi link master di `competency_material_aspects` / `competency_material_indicators` kosong (atau tidak terbaca), sehingga draf dari data master tidak dapat dibuat. Throw terjadi **sebelum** ada INSERT — tidak ada data setengah jadi.
+- UX defect terkait: `createRubricVersion` (dan form aksi lain yang "plain `<form action>`") melempar `Error` untuk kegagalan validasi bisnis yang **diharapkan**; rejection flight ditangkap error boundary terdekat → seluruh halaman tergantikan "Halaman gagal dimuat", bukan pesan inline yang ramah.
+- Belum diketahui produk/materi mana yang dipilih pengguna (nama materi tidak tercermin di URL) dan isi pasti master mapping di PROD. Seed PROD sebelumnya menyalin rubrik versi + materi ("AIK" 7 indikator; "Materi umum" kosong) dan menampilkan Kerangka DAD (6 aspek, 27 indikator, 135 anchor), tetapi **belum diverifikasi** bahwa tabel link materi→aspek/indikator terisi di PROD.
+- Opsi: (a) diagnosis read-only via SQL Editor Supabase PROD (perlu akses owner atau query yang dijalankan owner); (b) seed/copy mapping dari DEV ke PROD (tulis ke PROD — butuh izin eksplisit + backup); (c) perbaiki UX: aksi mengembalikan error bisnis secara inline/redirect, bukan throw; (d) kerjakan hanya penjelasan.
+
+
 ## Deploy penuh (13 November 2026, sore)
 
 Pemilik meminta deploy penuh. Prod saat itu tanpa perubahan kode (hanya docs sejak deploy `f83bf7e`); tetap dijalankan sesuai prosedur `docs/DEPLOYMENT.md`: backup `/home/ubuntu/imm-app.bak-2026-11-13-1430-full` (765M) → rsync → `npm ci --include=dev` (376 paket, OK; 8 moderate vulnerabilities, belum ditindak) → `npm run build` OK → `pm2 restart imm` (pid 940896, restart ke-5) → smoke 200 untuk `/`, `/login`, `/daftar`, `/dashboard`, `/dashboard/kegiatan`, `/dashboard/peserta`, `/dashboard/kerangka` via 8080; header `X-Powered-By` tetap absen; `wms_prod_*` di Docker tidak tersentuh (semua healthy). Disk server tinggal ~15 GB (89%) — kandidat pembersihan backup lama, **belum dihapus**.

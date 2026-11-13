@@ -206,3 +206,17 @@ Yang dikerjakan (commit `5d985aa`, lihat juga `docs/FRONTEND_REFACTOR.md`):
 ## Fix Kerangka overflow (13 November 2026, pagi — follow-up sesi kedua)
 
 Pemilik mengirim screenshot `/dashboard/kerangka` (prod): baris kartu aspek terpotong di tepi kanan (horizontal overflow). Diagnosis: `.competency-aspect-grid` memintakan **1527px** (min-content memaksa 6 kolom 1 baris) sementara kolom `.users-page` hanya **1100px**. Fix: `.competency-framework-page > * { min-width: 0; }` (commit `5a3464b`) — kartu aspek kini wrap 2 baris; `html.scrollWidth == clientWidth == 1920`. Build OK, pm2 restart, verifikasi prod (Kader QA, 1920px): grid 1058px, kartu "Kedisiplinan dan Tanggung Jawab" & "Komitmen dan Tindak Lanjut" tampil utuh di baris 2; tidak ada scroll horizontal. `.competency-matrix-scroll` memang sudah overflow:auto sejak awal.
+
+## Sweep layout serupa (13 November 2026, pagi — follow-up Kerangka fix)
+
+Permintaan pemilik: "sweep lagi untuk mencari masalah serupa" (overflow/grid-blowout ala Kerangka). Metode: ukur `document.documentElement.scrollWidth` vs `clientWidth` + scan seluruh elemen (`el.scrollWidth > el.clientWidth`, kecuali `overflow-x:auto/scroll/hidden`) di browser — 17 halaman × 5 peran × viewport 390/1280/1920 px; plus audit selector `minmax()` di `globals.css` dan semua `<table>` (semua punya wrapper scroll).
+
+Hasil: satu-satunya temuan page-level sebelumnya (Kerangka) sudah diperbaiki di `5a3464b`. Sweep ini menemukan dua titik `.participant-edit-form` (di editor baris `/dashboard/peserta`) yang menyembul secara visual:
+
+- `<input type="file">` punya min-width:auto → min-content ~256px memaksa label grid meluber 94px keluar track (`grid-template-columns: minmax(0,1fr)` + `input { min-width: 0 }` + anak form `min-width: 0`).
+- `white-space: nowrap` diwariskan dari `.participant-table td` ke `small` catatan → override scoped `white-space: normal`.
+- `participant-delete-form` tombol 110px menempel keluar form 49px → tombol diubah jadi "Hapus" (+aria-label), form `width: max-content`.
+
+Verifikasi (lokal 3100 & PROD): peserta 0 overflow di 3 viewport; kerangka (41 details terbuka) 0 overflow di 3 viewport; halaman lain bersih; tabel peserta/laporan tetap di dalam wrapper overflow-x:auto sesuai desain. Commit `f83bf7e`; prod: backup `imm-app.bak-2026-11-13-0856` → rsync → build OK → pm2 restart → smoke 3 viewport (peserta/kader-kerangka) bersih.
+
+Catatan desain peran: tidak ada regresi akses — sweep hanya membaca halaman sesuai izin role (observer/peserta/kader); tidak ada penulisan data.

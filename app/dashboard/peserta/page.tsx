@@ -336,8 +336,12 @@ export default async function ParticipantsPage() {
                                 name="participantId"
                                 value={person.id}
                               />
-                              <button className="remove-button" type="submit">
-                                Hapus peserta
+                              <button
+                                className="remove-button"
+                                type="submit"
+                                aria-label="Hapus peserta"
+                              >
+                                Hapus
                               </button>
                             </form>
                           </details>

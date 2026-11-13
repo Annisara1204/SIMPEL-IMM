@@ -1399,8 +1399,14 @@ p {
   border: 1px solid var(--color-border);
   border-radius: 8px;
 }
+.participant-edit-form > * {
+  /* Izinkan item grid menyusut di bawah min-content input file (Chrome ~256px). */
+  min-width: 0;
+}
 .participant-edit-form label {
   display: grid;
+  /* kolom implisit auto = max-content input file (~256px); paksa menyusut */
+  grid-template-columns: minmax(0, 1fr);
   gap: 5px;
   color: var(--color-label);
   font-size: 11px;
@@ -1409,6 +1415,8 @@ p {
 .participant-edit-form input {
   height: 34px;
   width: 100%;
+  /* width:100% tidak cukup — min-width:auto menginjak min-content input file (~248px) */
+  min-width: 0;
   border: 1px solid var(--color-border-input);
   border-radius: 6px;
   padding: 0 8px;
@@ -1425,6 +1433,7 @@ p {
 }
 .participant-delete-form {
   padding-top: 8px;
+  width: max-content;
 }
 .participant-table th,
 .participant-table td {
@@ -1465,6 +1474,8 @@ p {
 }
 .participant-profile-form label small,
 .participant-edit-form label small {
+  /* .participant-table td memaksa nowrap; biarkan catatan ini membungkus */
+  white-space: normal;
   font-size: 10px;
   font-weight: 400;
   color: var(--muted-warm);

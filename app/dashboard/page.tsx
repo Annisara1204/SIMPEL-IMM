@@ -1,6 +1,10 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { RoleDashboard, type AppRole } from "@/components/role-dashboard";
+import type { AppRole } from "@/lib/roles";
+import { HomeHero } from "@/components/home-hero";
+import { Phase7DashboardHome } from "@/components/phase7-dashboard-home";
+import { DashboardContent } from "@/components/simulated-panels";
+import { DashboardAssessmentResults } from "@/components/dashboard-assessment-results";
 import { createClient } from "@/lib/supabase/server";
 import { loadDashboardAssessmentData } from "@/lib/dashboard-results";
 import {
@@ -10,10 +14,11 @@ import {
   loadStaffPhase7Home,
   type Phase7Home,
 } from "@/lib/phase7-home";
-import type {
-  InstructorAssignment,
-  InstructorDuty,
-  InstructorParticipantEvent,
+import {
+  InstructorDutyDashboard,
+  type InstructorAssignment,
+  type InstructorDuty,
+  type InstructorParticipantEvent,
 } from "@/components/instructor-duty-dashboard";
 
 const allowedRoles: AppRole[] = [
@@ -166,14 +171,35 @@ export default async function DashboardPage() {
       }));
     }
   }
+  const role = profile.role as AppRole;
   return (
-    <RoleDashboard
-      role={profile.role as AppRole}
-      displayName={profile.display_name ?? undefined}
-      assessmentData={assessmentData}
-      instructorAssignments={instructorAssignments}
-      instructorParticipantEvents={instructorParticipantEvents}
-      phase7Home={phase7Home}
-    />
+    <>
+      <HomeHero role={role} />
+      {phase7Home ? (
+        <Phase7DashboardHome data={phase7Home} />
+      ) : (
+        <>
+          <DashboardContent
+            role={role}
+            instructorAssignments={instructorAssignments}
+          />
+          {assessmentData && (
+            <DashboardAssessmentResults data={assessmentData} />
+          )}
+        </>
+      )}
+      {role === "instruktur" && (
+        <InstructorDutyDashboard
+          assignments={instructorAssignments}
+          participantEvents={instructorParticipantEvents}
+        />
+      )}
+      <footer className="page-footer">
+        <span>
+          IMM Observer <b>·</b> Tahap uji coba
+        </span>
+        <span>Seluruh data pada fase ini bersifat simulasi</span>
+      </footer>
+    </>
   );
 }

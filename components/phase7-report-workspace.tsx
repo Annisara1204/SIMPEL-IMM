@@ -605,9 +605,6 @@ export function Phase7ReportWorkspace(props: Props) {
     if (!participantReport)
       return (
         <main className="users-page">
-          <Link className="users-back" href="/dashboard">
-            ← Dashboard
-          </Link>
           <h1>Rapor Saya</h1>
           <p className="users-notice">
             {reportError ??
@@ -625,9 +622,6 @@ export function Phase7ReportWorkspace(props: Props) {
     };
     return (
       <main className="users-page">
-        <Link className="users-back" href="/dashboard">
-          ← Dashboard
-        </Link>
         <div className="users-heading">
           <div>
             <p className="login-eyebrow">RAPOR PESERTA · PUBLISHED</p>
@@ -653,9 +647,6 @@ export function Phase7ReportWorkspace(props: Props) {
 
   return (
     <main className="users-page">
-      <Link className="users-back" href="/dashboard">
-        ← Kembali ke dashboard
-      </Link>
       <div className="users-heading">
         <div>
           <p className="login-eyebrow">LAPORAN, RAPOR & EKSPOR</p>

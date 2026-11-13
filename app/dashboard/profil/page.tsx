@@ -53,10 +53,7 @@ export default async function ProfilePage({
         .createSignedUrl(personalProfile.photo_path, 1800)
     : { data: null };
   return (
-    <main className="login-page">
-      <Link href="/dashboard" className="login-back">
-        ← Kembali ke dashboard
-      </Link>
+    <main className="login-page embedded">
       <section className="login-card personal-profile-card">
         <p className="login-eyebrow">PROFIL AKUN</p>
         <h1>Profil saya</h1>

@@ -86,9 +86,6 @@ export default async function ReportingPage({ searchParams }: Props) {
   if (!selectedEvent)
     return (
       <main className="users-page">
-        <Link className="users-back" href="/dashboard">
-          ← Dashboard
-        </Link>
         <h1>Laporan dan Rapor</h1>
         <p className="users-error">
           Data belum dapat dibaca. Hubungi Admin sistem bila masalah berulang.

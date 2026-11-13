@@ -55,6 +55,21 @@ Dokumen ini mencatat hasil tiga audit subagent paralel (kualitas kode & arsitekt
 - Browser (server lokal `npm run start` port 3100, DB DEV): `/`, `/login` (toggle kata sandi berfungsi), dashboard admin (data Phase 7 tampil), `/dashboard/kerangka` (kontainer `.users-page` baru), `/dashboard/observasi` → alur pilih kegiatan → tahap → jenis → grid penilaian terbuka; opsi skala "1 · Sangat Kurang… 5 · Sangat Baik" tampil; "Realtime tersambung" tampil; 7 halaman internal lain render tanpa galat; `/halaman-tidak-ada` → 404 Bahasa Indonesia.
 - Tidak ada perubahan skema database, RLS, RPC, atau berkas `.env*`.
 
+## Shell bersama untuk semua halaman (13 Nov, sesi kedua)
+
+Permintaan pemilik: "terkait sidebar dan halaman menurut saya ini aneh, inspect". Diagnosis dikonfirmasi di browser: `/dashboard` memakai app-shell penuh (sidebar + topbar), sedangkan 17 sub-halaman tampil polos tanpa navigasi — hanya teks "← Kembali ke dashboard" — dan beberapa menu adalah tombol mati yang menampilkan "MENU DALAM PENGEMBANGAN". Perbaikan (commit sesi kedua):
+
+- `components/app-shell.tsx` (baru): sidebar + scrim + topbar bersama; breadcrumb diturunkan dari `usePathname()` (`lib/navigation.ts: breadcrumbLabel`); semua item menu adalah `<Link>` nyata; item tanpa halaman disembunyikan (tidak ada tombol mati); aktif = pencocokan `pathname` + prefix.
+- `lib/navigation.ts` (baru): satu sumber `navDestinations` + `navHref` + `breadcrumbLabel` + `roleLabels` (dipakai server & client).
+- `app/dashboard/layout.tsx` (baru): seluruh `/dashboard/*` dirender di dalam shell (dengan gerbang profil/role masing-masing halaman tetap berlaku sebagai pertahanan berlapis). Akun tanpa role lewat pass-through agar `/dashboard/profil` tetap bisa diisi; `/dashboard` sendiri menampilkan layar "menunggu penetapan akses".
+- Portal publik `/` memakai shell yang sama (`AppShell role="public"`) — breadcrumb "Publik / Beranda", satu item menu Dashboard (dead buttons "Jadwal DAD"/"Profil Instruktur" dan "Pengaturan Sistem" dihapus; "Semua jadwal/profil →" publik juga dihapus).
+- `components/role-dashboard.tsx` dipecah: `app-shell.tsx` (shell), `home-hero.tsx` (hero H1), `phase7-dashboard-home.tsx` (konten Phase 7), `simulated-panels.tsx` (konten simulasi; `onNavigate` dihapus — tombol internal kini `<Link>`).
+- Menu dead-end dihapus/diperbaiki agar sesuai guard halaman: Bidang Kader kehilangan "Kegiatan DAD", "Peserta", "Observasi" (halaman menolak role-nya — nilai mentah memang tidak untuk Bidang Kader); Komisariat kehilangan "Analitik & Rekap" (khusus Admin/Bidang Kader).
+- 15 back-link generik "← Kembali ke dashboard" dihapus (sidebar sudah jadi navigasi); "← Pilih … lain" (alur) tetap.
+- `.users-page` padding mengikuti shell (`4px 0 0`); `/dashboard/profil` pakai `.login-page.embedded` (tidak lagi tinggi 100vh bersarang).
+
+Verifikasi: `npm run check` + `npm run build` hijau; browser lokal (3100, DEV): publik, dashboard, 6 halaman lain, mobile 390px + drawer (`sidebar-open` toggle) — semua render dalam shell dengan breadcrumb benar.
+
 ## Sengaja TIDAK dikerjakan (dan alasannya)
 
 1. **Migrasi shell dashboard ke `app/dashboard/layout.tsx`** (semua sub-halaman memakai sidebar/topbar yang sama, bukan hanya beranda). Perubahan struktural terbesar: menyentuh state sidebar (`mobileOpen`), routing grup, dan sekitar 17 halaman — berisiko tinggi tanpa regresi browser menyeluruh per peran. Rekomendasi: PR terpisah dengan checklist QA per role.

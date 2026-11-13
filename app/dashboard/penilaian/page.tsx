@@ -182,9 +182,6 @@ export default async function AssessmentSettingsPage({
   const canManageRubric = profile.role === "admin_system";
   return (
     <main className="users-page">
-      <Link className="users-back" href="/dashboard">
-        ← Kembali ke dashboard
-      </Link>
       <div className="users-heading">
         <div>
           <p className="login-eyebrow">PENGATURAN RUBRIK DAD</p>

@@ -67,9 +67,6 @@ export default async function ActivitiesPage({
   const error = eventResult.error ?? assignmentError;
   return (
     <main className="users-page">
-      <Link className="users-back" href="/dashboard">
-        ← Kembali ke dashboard
-      </Link>
       <div className="users-heading">
         <div>
           <p className="login-eyebrow">KEGIATAN</p>

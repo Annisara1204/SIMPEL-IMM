@@ -7,6 +7,7 @@
  * Panel ini bukan data nyata; ganti dengan konten berbasis database
  * sesuai BLUEPRINT.md sebelum pemakaian resmi.
  */
+import Link from "next/link";
 import { CalendarDays, ClipboardList, FileText, Sparkles } from "lucide-react";
 import { instructorPositionLabel } from "@/lib/instructor-roles";
 import type { AppRole } from "@/lib/roles";
@@ -42,11 +43,9 @@ function SampleTag() {
 
 export function DashboardContent({
   role,
-  onNavigate,
   instructorAssignments = [],
 }: {
   role: AppRole;
-  onNavigate: (page: string) => void;
   instructorAssignments?: InstructorAssignment[];
 }) {
   if (role === "instruktur")
@@ -91,12 +90,9 @@ export function DashboardContent({
                 <p>Komisariat FEB · 3 hari · 8 materi</p>
                 <small>Peran Anda: Observer · 12 peserta</small>
               </div>
-              <button
-                className="text-button"
-                onClick={() => onNavigate("Observasi")}
-              >
+              <Link className="text-button" href="/dashboard/observasi">
                 Buka penilaian →
-              </button>
+              </Link>
             </div>
             <div className="assigned-foot">
               Progres tugas Anda <strong>8 dari 12 peserta</strong>
@@ -152,12 +148,9 @@ export function DashboardContent({
                 <p>8 materi · 6 Observer</p>
               </div>
               <span className="agenda-status live">Berlangsung</span>
-              <button
-                className="text-button"
-                onClick={() => onNavigate("Kegiatan DAD")}
-              >
+              <Link className="text-button" href="/dashboard/kegiatan">
                 Detail →
-              </button>
+              </Link>
             </div>
             <div className="activity-foot">
               <span>Status penilaian Observer</span>
@@ -173,12 +166,9 @@ export function DashboardContent({
                 <h2>Ringkasan peserta</h2>
                 <p>DAD Simulasi 2026</p>
               </div>
-              <button
-                className="text-button"
-                onClick={() => onNavigate("Peserta")}
-              >
+              <Link className="text-button" href="/dashboard/peserta">
                 Lihat peserta →
-              </button>
+              </Link>
             </div>
             <div className="metric-row">
               <div>
@@ -317,12 +307,9 @@ export function DashboardContent({
                 <h2>Jumlah pengguna per role</h2>
                 <p>Data simulasi untuk rancangan</p>
               </div>
-              <button
-                className="text-button"
-                onClick={() => onNavigate("Pengguna")}
-              >
+              <Link className="text-button" href="/dashboard/pengguna">
                 Kelola pengguna →
-              </button>
+              </Link>
             </div>
             <div className="user-role-list">
               <div>
@@ -349,12 +336,6 @@ export function DashboardContent({
                 <h2>Status konfigurasi</h2>
                 <p>Komponen dasar sistem</p>
               </div>
-              <button
-                className="text-button"
-                onClick={() => onNavigate("Pengaturan Sistem")}
-              >
-                Pengaturan →
-              </button>
             </div>
             <div className="config-row">
               <span>Konfigurasi penilaian</span>
@@ -392,12 +373,6 @@ export function DashboardContent({
               <h2>Telah, sedang, dan akan berlangsung</h2>
               <p>Informasi kegiatan yang dibuka untuk publik</p>
             </div>
-            <button
-              className="text-button"
-              onClick={() => onNavigate("Jadwal DAD")}
-            >
-              Semua jadwal →
-            </button>
           </div>
           <div className="public-event">
             <span className="agenda-status done">Telah diselenggarakan</span>
@@ -421,12 +396,6 @@ export function DashboardContent({
               <h2>Profil instruktur</h2>
               <p>Kenali para pemateri DAD</p>
             </div>
-            <button
-              className="text-button"
-              onClick={() => onNavigate("Profil Instruktur")}
-            >
-              Semua profil →
-            </button>
           </div>
           <div className="instructor-row">
             <div className="instructor-photo">IF</div>

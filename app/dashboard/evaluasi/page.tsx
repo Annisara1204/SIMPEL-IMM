@@ -297,9 +297,6 @@ export default async function CollectiveEvaluationPage({
 
   return (
     <main className="users-page">
-      <Link className="users-back" href="/dashboard">
-        ← Kembali ke dashboard
-      </Link>
       <div className="users-heading">
         <div>
           <p className="login-eyebrow">EVALUASI KOLEKTIF</p>

@@ -48,9 +48,6 @@ export default async function CommissariatApplicationsPage() {
   if (!profile.commissariat_id)
     return (
       <main className="users-page">
-        <Link className="users-back" href="/dashboard">
-          ← Kembali ke dashboard
-        </Link>
         <div className="users-notice">
           <strong>Akun Komisariat belum ditautkan</strong>
           <p>
@@ -122,9 +119,6 @@ export default async function CommissariatApplicationsPage() {
 
   return (
     <main className="users-page">
-      <Link className="users-back" href="/dashboard">
-        ← Kembali ke dashboard
-      </Link>
       <div className="users-heading">
         <div>
           <p className="login-eyebrow">RUANG KERJA KOMISARIAT</p>

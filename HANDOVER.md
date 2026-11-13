@@ -190,6 +190,17 @@ Yang sengaja TIDAK dikerjakan: migrasi shell dashboard ke `app/dashboard/layout.
 **Catatan deploy:** PROD memakai DB `crrqlwlfndhugcqcnkex`; jangan jalankan pengujian yang menulis ke PROD. Regression SQL tetap di DEV. Backup aplikasi di server berupa direktori utuh; belum ada backup DB (masih TODO lama).
 
 
+## Fix Server Actions lewat port 8080 (13 November 2026, sore — hotfix produksi)
+
+Pemilik melaporkan `/dashboard/kegiatan` tampil "Halaman gagal dimuat". Diagnosis lewat log produksi:
+
+- Semua `GET /dashboard/kegiatan` → 200 (halaman tidak crash); yang 500 adalah **Server Action** (`POST /dashboard/kegiatan`, 13:59:09, 14:00:11, 14:02:01) → `error.tsx` tampil di browser.
+- Penyebab: vhost nginx `imm-8080` mem-proxy `proxy_set_header Host $host` — nginx `$host` **tidak membawa port** → Next.js menerima `x-forwarded-host: 43.173.33.195` (default dari `Host`, lihat `base-server.js`), sementara browser mengirim `Origin: http://43.173.33.195:8080`. Next.js menganggap cross-origin → aksi dibatalkan (`Invalid Server Actions request`, digest `3085324822`). **Berdampak ke semua Server Action lewat 8080**, bukan hanya Kegiatan (`POST /dashboard/penilaian` juga 500 pada 14:04:34).
+- Fix: satu baris `proxy_set_header X-Forwarded-Host $http_host;` di vhost `imm-8080` (backup `/etc/nginx/imm-8080.bak-2026-11-13-1430`), `nginx -t` + `systemctl reload nginx`. Tidak menyentuh vhost situs lain, tidak perlu rebuild.
+- Verifikasi: GET `/login` & `/dashboard/kegiatan` via 8080 → 200; POST uji dengan action ID palsu → 400 di tahap validasi action (bukan di gerbang host; gerbang lolos). Belum diverifikasi dengan submit form asli dari browser (akan menjalankan action sungguhan di PROD).
+- Catatan: dua error `Server Reference ID did not match the expected format. Received "x"` di `imm-error.log` (pra-existing) bukan penyebab; kemungkinan probe/request manual.
+- Akar jangka panjang (sudah TODO lama): domain + TLS di port standar.
+
 ## Shell bersama untuk semua halaman (13 November 2026, pagi — otonom sesi kedua)
 
 Instruksi pemilik: "terkait sidebar dan halaman menurut saya ini aneh, inspect" (kelanjutan refactor semalam). Diagnosis dikonfirmasi di browser: hanya `/dashboard` yang memakai app-shell; 17 sub-halaman polos tanpa navigasi (hanya "← Kembali ke dashboard"), item menu tanpa halaman adalah tombol mati, breadcrumb statis `Ruang kerja / {state}`.

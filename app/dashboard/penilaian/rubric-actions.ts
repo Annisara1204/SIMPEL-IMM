@@ -130,7 +130,7 @@ export async function createRubricVersion(formData: FormData) {
     if (material?.competency_material_id) {
       const [
         { data: aspectLinks, error: aspectLinkError },
-        { data: indicatorLinks, error: indicatorLinkError },
+        { data: indicatorLinkRows, error: indicatorLinkError },
       ] = await Promise.all([
         supabase
           .from("competency_material_aspects")
@@ -142,16 +142,41 @@ export async function createRubricVersion(formData: FormData) {
         supabase
           .from("competency_material_indicators")
           .select(
-            "indicator_id,aspect_id,position,competency_indicator_rubric_version_id,competency_indicators(id,code,name,position,description,observable_behaviors)",
+            "indicator_id,aspect_id,position,competency_indicator_rubric_version_id",
           )
           .eq("material_id", material.competency_material_id)
           .order("position"),
       ]);
+      const indicatorIds = [
+        ...new Set((indicatorLinkRows ?? []).map((row) => row.indicator_id)),
+      ];
+      const { data: indicatorMaster, error: indicatorError } =
+        indicatorIds.length
+          ? await supabase
+              .from("competency_indicators")
+              .select("id,code,name,position,description,observable_behaviors")
+              .in("id", indicatorIds)
+          : { data: null, error: null };
+      if (indicatorError) {
+        // Sengaja memakai jalur error yang sama dengan mapping kosong; detailnya di log server.
+        console.error(
+          "createRubricVersion indicator master query",
+          indicatorError,
+        );
+      }
+      const indicatorById = new Map(
+        (indicatorMaster ?? []).map((row) => [row.id, row]),
+      );
+      const indicatorLinks = (indicatorLinkRows ?? []).map((row) => ({
+        ...row,
+        competency_indicators: indicatorById.get(row.indicator_id) ?? null,
+      }));
       if (
         aspectLinkError ||
         indicatorLinkError ||
+        indicatorError ||
         !aspectLinks?.length ||
-        !indicatorLinks?.length
+        !indicatorLinks.length
       )
         throw new Error(
           "Mapping materi belum lengkap sehingga rubrik draf tidak dapat dibuat.",

@@ -201,6 +201,10 @@ Pemilik melaporkan `/dashboard/kegiatan` tampil "Halaman gagal dimuat". Diagnosi
 - Catatan: dua error `Server Reference ID did not match the expected format. Received "x"` di `imm-error.log` (pra-existing) bukan penyebab; kemungkinan probe/request manual.
 - Akar jangka panjang (sudah TODO lama): domain + TLS di port standar.
 
+## Deploy penuh (13 November 2026, sore)
+
+Pemilik meminta deploy penuh. Prod saat itu tanpa perubahan kode (hanya docs sejak deploy `f83bf7e`); tetap dijalankan sesuai prosedur `docs/DEPLOYMENT.md`: backup `/home/ubuntu/imm-app.bak-2026-11-13-1430-full` (765M) → rsync → `npm ci --include=dev` (376 paket, OK; 8 moderate vulnerabilities, belum ditindak) → `npm run build` OK → `pm2 restart imm` (pid 940896, restart ke-5) → smoke 200 untuk `/`, `/login`, `/daftar`, `/dashboard`, `/dashboard/kegiatan`, `/dashboard/peserta`, `/dashboard/kerangka` via 8080; header `X-Powered-By` tetap absen; `wms_prod_*` di Docker tidak tersentuh (semua healthy). Disk server tinggal ~15 GB (89%) — kandidat pembersihan backup lama, **belum dihapus**.
+
 ## Shell bersama untuk semua halaman (13 November 2026, pagi — otonom sesi kedua)
 
 Instruksi pemilik: "terkait sidebar dan halaman menurut saya ini aneh, inspect" (kelanjutan refactor semalam). Diagnosis dikonfirmasi di browser: hanya `/dashboard` yang memakai app-shell; 17 sub-halaman polos tanpa navigasi (hanya "← Kembali ke dashboard"), item menu tanpa halaman adalah tombol mati, breadcrumb statis `Ruang kerja / {state}`.

@@ -188,3 +188,17 @@ Yang sengaja TIDAK dikerjakan: migrasi shell dashboard ke `app/dashboard/layout.
 **Deploy produksi (13 Nov 2026, dini hari) — selesai & terverifikasi:** `cp -a /home/ubuntu/imm-app /home/ubuntu/imm-app.bak-2026-11-13-0317` (rollback siap) → rsync (tanpa `.git`, `.env*`, `.next`) → file mati `observation-cell.tsx` dihapus di server → `npm ci --include=dev` → `npm run build` OK → `pm2 restart imm` (pid baru, online). Verifikasi: `/`, `/login`, `/dashboard` HTTP 200; header `X-Powered-By` hilang; meta `robots noindex, nofollow` tampil; smoke browser di prod (home, login, dashboard Bidang Kader, Laporan & Rapor, Analitik, Kerangka) — semua merender tanpa galat. Tidak ada perubahan DB; `wms_prod_backend`/nginx/port 80/443 tidak tersentuh. Rollback: `ssh -i ~/.ssh/imm_prod_43-173-33-195 ubuntu@43.173.33.195 'rm -rf /home/ubuntu/imm-app && cp -a /home/ubuntu/imm-app.bak-2026-11-13-0317 /home/ubuntu/imm-app' && npm ci && npm run build && pm2 restart imm`.
 
 **Catatan deploy:** PROD memakai DB `crrqlwlfndhugcqcnkex`; jangan jalankan pengujian yang menulis ke PROD. Regression SQL tetap di DEV. Backup aplikasi di server berupa direktori utuh; belum ada backup DB (masih TODO lama).
+
+
+## Shell bersama untuk semua halaman (13 November 2026, pagi — otonom sesi kedua)
+
+Instruksi pemilik: "terkait sidebar dan halaman menurut saya ini aneh, inspect" (kelanjutan refactor semalam). Diagnosis dikonfirmasi di browser: hanya `/dashboard` yang memakai app-shell; 17 sub-halaman polos tanpa navigasi (hanya "← Kembali ke dashboard"), item menu tanpa halaman adalah tombol mati, breadcrumb statis `Ruang kerja / {state}`.
+
+Yang dikerjakan (commit `5d985aa`, lihat juga `docs/FRONTEND_REFACTOR.md`):
+
+- `components/app-shell.tsx` + `app/dashboard/layout.tsx`: shell sidebar+topbar membungkus seluruh `/dashboard/*`; portal publik `/` memakai shell yang sama. Breadcrumb diturunkan dari `usePathname()`. Semua item menu adalah `<Link>` nyata; item tanpa halaman (Jadwal DAD, Profil Instruktur publik, Pengaturan Sistem) disembunyikan.
+- Menu dead-end dihapus sesuai guard halaman: Bidang Kader kehilangan "Kegiatan DAD", "Peserta", "Observasi" (halaman menolak role-nya; nilai mentah memang bukan untuk Bidang Kader); Komisariat kehilangan "Analitik & Rekap" (khusus Admin Sistem/Bidang Kader).
+- `role-dashboard.tsx` dipecah → `app-shell.tsx` / `home-hero.tsx` / `phase7-dashboard-home.tsx` / `simulated-panels.tsx` (`onNavigate` dihapus; tombol internal jadi `<Link>`).
+- 15 back-link generik "← Kembali ke dashboard" dihapus; `.users-page` menyesuaikan shell; `/dashboard/profil` memakai `.login-page.embedded`.
+- Verifikasi: `npm run check`, `npm run build` hijau; browser lokal (3100): publik, dashboard, 6 halaman, mobile 390px + drawer; PROD: backup `imm-app.bak-2026-11-13-0818` → rsync → file sisa `role-dashboard.tsx` di server dihapus → build OK → pm2 restart → smoke browser (publik + login QA Kader + `/dashboard/penilaian` render dalam shell; menu bidang_kader tanpa dead-end). Prod sehat; `wms_prod_backend` tidak tersentuh.
+- Pelajaran: server deploy memakai rsync tanpa `--delete` — berkas yang dihapus dari repo tetap ada di server dan dapat menggagalkan build (stale TS error). Setelah setiap refactor yang menghapus berkas, cek `ls` di server atau hapus manual.

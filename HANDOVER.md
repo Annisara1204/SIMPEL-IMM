@@ -415,3 +415,11 @@ Tabel-per-tabel (53 tabel) dibandingkan antara dump lokal terbaru vs dump cloud 
 7. **Verdict**: tidak ada lagi data pengguna yang hilang; integritas FK terverifikasi (0 yatim).
 
 **Catatan untuk drift berikutnya:** aplikasi sekarang hanya membaca/menulis database lokal. Risiko tersisa: (a) cloud masih terbuka untuk siapa pun dengan key lama (sudah tercetak di chat) — disarankan di-pause/rotate; (b) tab lama browser panitia yang belum Ctrl+F5 masih menunjuk cloud; (c) backup harian 03:15 menembak database lokal — sudah benar.
+
+## Pause project cloud PROD (14 Nov 2026, 23:55)
+
+`POST /v1/projects/crrqlwlfndhugcqcnkex/pause` — disetujui pemilik. Status akhir `INACTIVE`. Sekarang:
+- API cloud tidak lagi melayani (semua request akan ditolak / tidak terjangkau).
+- Tidak ada yang bisa menulis/membaca cloud → drift lokal↔cloud mustahil lagi; backup lokal harian 03:15 tetap berjalan (menembak database self-hosted).
+- Cloud tetap ada sebagai cadangan beku; bisa di-restore kapan pun via `restore-a-project` (biaya: tidak ada; paket free).
+- Aplikasi PROD tidak terpengaruh (semua sudah menunjuk ke instance self-hosted).

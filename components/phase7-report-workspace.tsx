@@ -1024,6 +1024,7 @@ export function Phase7ReportWorkspace(props: Props) {
                         </td>
                         <th scope="row">
                           <Link
+                            prefetch={false}
                             href={`${eventHref(event.id)}&participantId=${row.participant_id}`}
                           >
                             {row.display_name}

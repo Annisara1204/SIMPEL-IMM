@@ -90,7 +90,11 @@ export function DashboardContent({
                 <p>Komisariat FEB · 3 hari · 8 materi</p>
                 <small>Peran Anda: Observer · 12 peserta</small>
               </div>
-              <Link className="text-button" href="/dashboard/observasi">
+              <Link
+                prefetch={false}
+                className="text-button"
+                href="/dashboard/observasi"
+              >
                 Buka penilaian →
               </Link>
             </div>
@@ -148,7 +152,11 @@ export function DashboardContent({
                 <p>8 materi · 6 Observer</p>
               </div>
               <span className="agenda-status live">Berlangsung</span>
-              <Link className="text-button" href="/dashboard/kegiatan">
+              <Link
+                prefetch={false}
+                className="text-button"
+                href="/dashboard/kegiatan"
+              >
                 Detail →
               </Link>
             </div>
@@ -166,7 +174,11 @@ export function DashboardContent({
                 <h2>Ringkasan peserta</h2>
                 <p>DAD Simulasi 2026</p>
               </div>
-              <Link className="text-button" href="/dashboard/peserta">
+              <Link
+                prefetch={false}
+                className="text-button"
+                href="/dashboard/peserta"
+              >
                 Lihat peserta →
               </Link>
             </div>
@@ -307,7 +319,11 @@ export function DashboardContent({
                 <h2>Jumlah pengguna per role</h2>
                 <p>Data simulasi untuk rancangan</p>
               </div>
-              <Link className="text-button" href="/dashboard/pengguna">
+              <Link
+                prefetch={false}
+                className="text-button"
+                href="/dashboard/pengguna"
+              >
                 Kelola pengguna →
               </Link>
             </div>

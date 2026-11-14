@@ -311,6 +311,7 @@ export default async function CollectiveEvaluationPage({
           <h2>Pilih kegiatan</h2>
           {(events ?? []).map((event) => (
             <Link
+              prefetch={false}
               className="assessment-event-option"
               key={event.id}
               href={`/dashboard/evaluasi?eventId=${event.id}`}
@@ -329,13 +330,18 @@ export default async function CollectiveEvaluationPage({
       )}
       {selectedEvent && !selectedParticipant && (
         <section className="event-manage-card">
-          <Link className="users-back" href="/dashboard/evaluasi">
+          <Link
+            prefetch={false}
+            className="users-back"
+            href="/dashboard/evaluasi"
+          >
             ← Pilih kegiatan lain
           </Link>
           <h2>{selectedEvent.name}</h2>
           <h3>Pilih peserta</h3>
           {participantRows.map((person) => (
             <Link
+              prefetch={false}
               className="assessment-event-option"
               key={person.id}
               href={`/dashboard/evaluasi?eventId=${eventId}&participantId=${person.id}`}
@@ -355,6 +361,7 @@ export default async function CollectiveEvaluationPage({
         <>
           <section className="event-manage-card">
             <Link
+              prefetch={false}
               className="users-back"
               href={`/dashboard/evaluasi?eventId=${eventId}`}
             >
@@ -383,6 +390,7 @@ export default async function CollectiveEvaluationPage({
                 const active = version.id === selectedVersionId;
                 return (
                   <Link
+                    prefetch={false}
                     key={version.id}
                     className={
                       active

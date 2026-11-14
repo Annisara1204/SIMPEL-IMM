@@ -13,7 +13,9 @@ export default async function TestImportPage() {
       <main className="setup-message">
         <h1>Supabase belum dikonfigurasi</h1>
         <p>Aplikasi belum siap digunakan. Hubungi Admin sistem.</p>
-        <Link href="/login">Kembali ke login</Link>
+        <Link prefetch={false} href="/login">
+          Kembali ke login
+        </Link>
       </main>
     );
   const supabase = await createClient();

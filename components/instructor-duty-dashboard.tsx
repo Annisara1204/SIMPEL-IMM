@@ -145,6 +145,7 @@ export function InstructorDutyDashboard({
                     <p>{event.participants.length} peserta</p>
                   </div>
                   <Link
+                    prefetch={false}
                     className="text-button"
                     href={`/dashboard/profil-peserta?eventId=${event.id}`}
                   >

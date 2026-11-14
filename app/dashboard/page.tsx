@@ -39,7 +39,9 @@ export default async function DashboardPage() {
       <main className="setup-message">
         <h1>Login belum dikonfigurasi</h1>
         <p>Aplikasi belum siap digunakan. Hubungi Admin sistem.</p>
-        <Link href="/login">Kembali ke login</Link>
+        <Link prefetch={false} href="/login">
+          Kembali ke login
+        </Link>
       </main>
     );
   const supabase = await createClient();
@@ -69,7 +71,9 @@ export default async function DashboardPage() {
           Dashboard belum menampilkan fitur. Superadmin akan menetapkan role
           dan, untuk Instruktur, subrole serta penugasan kegiatan.
         </p>
-        <Link href="/dashboard/profil">Lengkapi profil saya</Link>
+        <Link prefetch={false} href="/dashboard/profil">
+          Lengkapi profil saya
+        </Link>
         <form action="/auth/signout" method="post">
           <button>Keluar</button>
         </form>
@@ -99,7 +103,9 @@ export default async function DashboardPage() {
             Role Instruktur sudah ditetapkan, tetapi dashboard baru terbuka
             setelah Superadmin menetapkan subrole dan kegiatan.
           </p>
-          <Link href="/dashboard/profil">Buka Profil saya</Link>
+          <Link prefetch={false} href="/dashboard/profil">
+            Buka Profil saya
+          </Link>
           <form action="/auth/signout" method="post">
             <button>Keluar</button>
           </form>

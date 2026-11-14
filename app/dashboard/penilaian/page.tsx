@@ -52,7 +52,9 @@ export default async function AssessmentSettingsPage({
       <main className="setup-message">
         <h1>Supabase belum dikonfigurasi</h1>
         <p>Aplikasi belum siap digunakan. Hubungi Admin sistem.</p>
-        <Link href="/login">Kembali ke login</Link>
+        <Link prefetch={false} href="/login">
+          Kembali ke login
+        </Link>
       </main>
     );
   const supabase = await createClient();
@@ -225,6 +227,7 @@ export default async function AssessmentSettingsPage({
                 ).length;
                 return (
                   <Link
+                    prefetch={false}
                     className="assessment-event-option"
                     href={`/dashboard/penilaian?eventId=${encodeURIComponent(event.id)}`}
                     key={event.id}
@@ -279,14 +282,22 @@ export default async function AssessmentSettingsPage({
             Pilih kegiatan dari daftar agar pengaturan dan penugasan Observer
             terhubung ke kegiatan yang benar.
           </p>
-          <Link className="text-button" href="/dashboard/penilaian">
+          <Link
+            prefetch={false}
+            className="text-button"
+            href="/dashboard/penilaian"
+          >
             Kembali ke daftar kegiatan
           </Link>
         </div>
       )}
       {selectedEvent && (
         <>
-          <Link className="users-back" href="/dashboard/penilaian">
+          <Link
+            prefetch={false}
+            className="users-back"
+            href="/dashboard/penilaian"
+          >
             ← Kembali ke daftar kegiatan DAD
           </Link>
           {assignmentStatus === "success" && (
@@ -560,6 +571,7 @@ export default async function AssessmentSettingsPage({
                         { id: "follow_up", label: "3. Rencana Tindak Lanjut" },
                       ].map((stage) => (
                         <Link
+                          prefetch={false}
                           className="assessment-event-option"
                           key={stage.id}
                           href={`/dashboard/penilaian?eventId=${event.id}&stage=${stage.id}`}
@@ -586,6 +598,7 @@ export default async function AssessmentSettingsPage({
                   ) && (
                     <>
                       <Link
+                        prefetch={false}
                         className="users-back"
                         href={`/dashboard/penilaian?eventId=${event.id}`}
                       >
@@ -623,6 +636,7 @@ export default async function AssessmentSettingsPage({
                                       key={material.id}
                                     >
                                       <Link
+                                        prefetch={false}
                                         className="assessment-event-option"
                                         href={`/dashboard/penilaian?eventId=${event.id}&stage=training&materialId=${material.id}`}
                                       >
@@ -744,6 +758,7 @@ export default async function AssessmentSettingsPage({
                                 selectedMaterial && (
                                   <>
                                     <Link
+                                      prefetch={false}
                                       className="users-back"
                                       href={`/dashboard/penilaian?eventId=${event.id}&stage=training`}
                                     >
@@ -757,6 +772,7 @@ export default async function AssessmentSettingsPage({
                               </p>
                               {eventTypes.map((type) => (
                                 <Link
+                                  prefetch={false}
                                   className="assessment-event-option"
                                   key={type.id}
                                   href={`/dashboard/penilaian?eventId=${event.id}&stage=${selectedStage}${selectedStage === "training" ? `&materialId=${selectedMaterialId}` : ""}&typeId=${type.id}`}

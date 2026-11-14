@@ -34,7 +34,9 @@ export default async function ObservationsPage({
       <main className="setup-message">
         <h1>Supabase belum dikonfigurasi</h1>
         <p>Aplikasi belum siap digunakan. Hubungi Admin sistem.</p>
-        <Link href="/login">Kembali ke login</Link>
+        <Link prefetch={false} href="/login">
+          Kembali ke login
+        </Link>
       </main>
     );
   const supabase = await createClient();
@@ -254,6 +256,7 @@ export default async function ObservationsPage({
             <div className="assessment-event-list">
               {events.map((event) => (
                 <Link
+                  prefetch={false}
                   className="assessment-event-option"
                   href={`/dashboard/observasi?eventId=${event.id}`}
                   key={event.id}
@@ -284,7 +287,11 @@ export default async function ObservationsPage({
 
       {selectedEvent && (
         <>
-          <Link className="users-back" href="/dashboard/observasi">
+          <Link
+            prefetch={false}
+            className="users-back"
+            href="/dashboard/observasi"
+          >
             ← Pilih kegiatan lain
           </Link>
           {!selectedStage && (
@@ -298,6 +305,7 @@ export default async function ObservationsPage({
               <div className="assessment-event-list">
                 {stageOrder.map((stage) => (
                   <Link
+                    prefetch={false}
                     className="assessment-event-option"
                     key={stage.id}
                     href={`/dashboard/observasi?eventId=${selectedEvent.id}&stage=${stage.id}`}
@@ -321,6 +329,7 @@ export default async function ObservationsPage({
             !selectedMaterialId && (
               <section className="event-manage-card">
                 <Link
+                  prefetch={false}
                   className="users-back"
                   href={`/dashboard/observasi?eventId=${selectedEvent.id}`}
                 >
@@ -332,6 +341,7 @@ export default async function ObservationsPage({
                   <div className="assessment-event-list">
                     {eventMaterials.map((material) => (
                       <Link
+                        prefetch={false}
                         className="assessment-event-option"
                         href={`/dashboard/observasi?eventId=${selectedEvent.id}&stage=training&materialId=${material.id}`}
                         key={material.id}
@@ -363,6 +373,7 @@ export default async function ObservationsPage({
             !selectedTypeId && (
               <section className="event-manage-card">
                 <Link
+                  prefetch={false}
                   className="users-back"
                   href={
                     selectedStage === "training"
@@ -384,6 +395,7 @@ export default async function ObservationsPage({
                   <div className="assessment-event-list">
                     {eventTypes.map((type) => (
                       <Link
+                        prefetch={false}
                         className="assessment-event-option"
                         href={`/dashboard/observasi?eventId=${selectedEvent.id}&stage=${selectedStage}${selectedMaterial ? `&materialId=${selectedMaterial.id}` : ""}&typeId=${type.id}`}
                         key={type.id}
@@ -430,6 +442,7 @@ export default async function ObservationsPage({
             (selectedStage !== "training" || selectedMaterial) && (
               <>
                 <Link
+                  prefetch={false}
                   className="users-back"
                   href={`/dashboard/observasi?eventId=${selectedEvent.id}&stage=${selectedStage}${selectedMaterial ? `&materialId=${selectedMaterial.id}` : ""}`}
                 >

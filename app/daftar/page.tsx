@@ -9,7 +9,7 @@ export default async function RegisterPage({
   const query = await searchParams;
   return (
     <main className="login-page">
-      <Link href="/login" className="login-back">
+      <Link prefetch={false} href="/login" className="login-back">
         ← Kembali ke login
       </Link>
       <section className="login-card">

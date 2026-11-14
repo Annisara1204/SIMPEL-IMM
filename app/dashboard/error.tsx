@@ -24,7 +24,7 @@ export default function DashboardError({
       <button type="button" onClick={reset}>
         Muat ulang
       </button>{" "}
-      <Link className="users-back" href="/dashboard">
+      <Link prefetch={false} className="users-back" href="/dashboard">
         Kembali ke Ringkasan
       </Link>
     </main>

@@ -24,7 +24,7 @@ export default function GlobalError({
       <button type="button" onClick={reset}>
         Muat ulang
       </button>{" "}
-      <Link className="users-back" href="/">
+      <Link prefetch={false} className="users-back" href="/">
         Kembali ke beranda
       </Link>
     </main>

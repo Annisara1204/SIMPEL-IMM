@@ -105,6 +105,7 @@ export function Phase7DashboardHome({ data }: { data: Phase7Home }) {
                   </small>
                 </div>
                 <Link
+                  prefetch={false}
                   className="text-button"
                   href={`/dashboard/laporan?eventId=${item.id}`}
                 >
@@ -187,7 +188,11 @@ export function Phase7DashboardHome({ data }: { data: Phase7Home }) {
             Untuk melanjutkan atau melengkapi penilaian, buka menu Observasi.
             Dashboard ini tidak menampilkan catatan atau nilai Observer lain.
           </p>
-          <Link className="text-button" href="/dashboard/observasi">
+          <Link
+            prefetch={false}
+            className="text-button"
+            href="/dashboard/observasi"
+          >
             Buka penilaian →
           </Link>
         </section>
@@ -230,7 +235,9 @@ export function Phase7DashboardHome({ data }: { data: Phase7Home }) {
             </strong>
           </article>
           <article>
-            <Link href="/dashboard/laporan">Buka rapor dan unduh PDF →</Link>
+            <Link prefetch={false} href="/dashboard/laporan">
+              Buka rapor dan unduh PDF →
+            </Link>
           </article>
         </div>
       ) : (

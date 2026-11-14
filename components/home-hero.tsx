@@ -34,7 +34,7 @@ export function HomeHero({
         </p>
       </div>
       {isPublic && (
-        <Link className="period-button" href="/login">
+        <Link prefetch={false} className="period-button" href="/login">
           Login pengguna <span>→</span>
         </Link>
       )}

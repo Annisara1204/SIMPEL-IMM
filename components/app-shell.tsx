@@ -177,6 +177,7 @@ export function AppShell({
                       pathname.startsWith(href));
                   return (
                     <Link
+                      prefetch={false}
                       key={item.label}
                       className={`nav-link ${isCurrent ? "active" : ""}`}
                       href={href}

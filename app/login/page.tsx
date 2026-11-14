@@ -39,7 +39,7 @@ export default function LoginPage() {
   }
   return (
     <main className="login-page">
-      <Link href="/" className="login-back">
+      <Link prefetch={false} href="/" className="login-back">
         ← Kembali ke informasi publik
       </Link>
       <section className="login-card">
@@ -95,8 +95,10 @@ export default function LoginPage() {
         </form>
         <p className="login-footnote">
           Instruktur tetap dapat{" "}
-          <Link href="/daftar">mendaftar dengan email</Link>. Instruktur
-          perbantuan memakai username yang diberikan Superadmin.
+          <Link prefetch={false} href="/daftar">
+            mendaftar dengan email
+          </Link>
+          . Instruktur perbantuan memakai username yang diberikan Superadmin.
         </p>
       </section>
     </main>

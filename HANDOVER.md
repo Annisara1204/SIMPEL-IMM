@@ -321,3 +321,27 @@ Konteks lengkap investigasi: lihat entri "Insiden error massal saat demo" di ata
 - **Rotasi PAT + service-role key** (keduanya terekspos di output sesi ini & riwayat chat 13 Nov).
 - 502 tidak dijamin hilang bila header sesi jauh lebih besar dari 32k — jika terulang, naikkan buffer / ukur cookie.
 - SOP pemakaian: satu tab per akun; bila banner muncul → tombol "muat ulang halaman"; bila masih gagal → keluar & login ulang.
+
+## Sapuan & perbaikan lanjutan (14 November 2026, sore/malam)
+
+**Tinjauan pasca-insiden (read-only):** DB 17 MB (jauh di bawah batas 500 MB paket gratis); 53 tabel public **semuanya RLS-aktif** (126 policy); 4 bucket storage **semuanya privat** + policy ada; grants anon SELECT di 2 tabel moderasi (`assessment_moderation_revisions`, `collective_evaluation_revisions`) — RLS menahan (`set role anon` → 0 baris; dua tabel kosong) → tidak bocor, tapi grant tetap sebaiknya dicabut (belum disetujui, menunggu pemilik); `disable_signup: false` di Auth PROD (siapa pun bisa mendaftar akun tanpa role — menunggu keputusan pemilik, juga A1 usulan yang belum dikerjakan).
+
+**Serangan sampah hari ini:** 4 probe (`/etc/passwd`, `/wp-*`, `.env`) — semuanya 400/404; `wms_prod_frontend/backend/postgres` healthy; disk 19% (setelah pembersihan); logrotate nginx harian ×14; tidak ada error 5xx baru di log setelah deploy sore (409 = stale action ID tab lama setelah deploy, sembuh setelah refresh — 1 laptop Safari, 36× 409 jam 17:15, **bukan** bug kode).
+
+**Selesai dikerjakan (persetujuan pemilik):**
+- A4 — symlink duplikat `sites-enabled/imm-8080.bak-2026-11-14` (→ `sites-available/imm-8080`, memicu warning `conflicting server name "_" ignored`) dihapus; `nginx -t` bersih; reload; 8080 tetap 200.
+- A3 — 4 backup aplikasi tertua di server dihapus (`imm-app.bak-2026-11-13-0317/0818/0856/1430-full`, ~3 GB); tersisa `imm-app.bak-2026-11-13-1436-full` dan `imm-app.bak-2026-11-14-1705-full`. `.env.production` aman (dipulihkan saat insiden rsync — sha256 cocok).
+- Backup database **harian 03:15** dipasang: `/etc/cron.d/imm-db-backup` (user `ubuntu`) → `/home/ubuntu/imm-db-backup.py` → `/home/ubuntu/imm-db-backups/imm-prod-YYYY-MM-DD/` (retensi 14 hari). Script dump JSON via PostgREST dengan service key di `.env.production` (dibaca saat runtime, tidak disalin), 53 tabel publik; **schema `auth` tidak termasuk** (akun 7 orang re-create via dashboard/pengguna). Run pertama sukses: 53/53 tabel, 2.374 baris, 0 error.
+- Salinan lengkap (termasuk **auth.users + auth.identities**, berisi hash kata sandi — rahasia) ada di komputer workstation: `~/Documents/backup-prod-2026-11-14/` (57 berkas, 1.3 MB, sha256 cocok; lihat `README-BACKUP.md` untuk prosedur restore). File ini **di luar repo**; jangan di-commit/dibagikan.
+
+**Belum dikerjakan / menunggu pemilik:** A1 (`disable_signup=true`), A5 (revoke grant anon di 2 tabel moderasi), A7 (rotasi PAT + service-role key), A8 (8 moderate npm audit), A9 (AUTH-005: sesi kedaluwarsa → "Profil belum tersedia", bukan redirect login), domain+TLS (HTTP polos + IP terbuka), backup `auth.*` harian (saat ini tidak; cukup re-create akun), monitoring/alert 5xx.
+
+## Hotfix: Disk IO budget Supabase habis karena prefetch RSC (14 Nov 2026, malam, DEPLOYED)
+
+Gejala berulang sepanjang hari (termasuk screenshot Salma 20:11 — banner instruksi tetap tampil, kueri gagal). Email Supabase 17:30: **"Your Supabase project production imm is running out of Disk IO Budget"**.
+
+**Akar penyebab:** 60.041 dari 65.851 request hari ini (91%) adalah `?_rsc=` — prefetch otomatis Next.js untuk **setiap tautan sidebar di setiap halaman** (~6.000 per rute per hari: kegiatan 6.264, peserta 6.237, kerangka 6.217, seleksi-komisariat 6.130, profil-instruktur 5.982, profil 5.825, observasi 14.111). Tiap prefetch = render server penuh = 3–10 kueri ke Nano instance → IO budget habis → instance intermiten unresponsive → banner/error di semua halaman.
+
+**Fix terdeploy (21:15):** `prefetch={false}` ditambahkan pada **semua 51 `<Link>`** (23 berkas) — Next.js tidak lagi memuat halaman di belakang layar; data hanya dimuat saat diklik. Verifikasi: `npm run check` exit 0 (12/12 tes, lint 0 error/5 warning pra-ada), build lokal hijau, backup `imm-app.bak-2026-11-14-2115-full`, deploy tanpa `--delete`, smoke 8080 200 semua, pm2 restart #10 (pid 2056839). 6× 502 pada 21:18 adalah blip restart (`connect() failed`), bukan regresi; error "too big header" tidak terulang sejak A3 (buffer 32k). **Pengguna harus refresh halaman** agar mendapat bundle JS baru (halaman lama masih mem-prefetch sendiri).
+
+**Belum dikerjakan:** upgrade Compute add-on Supabase (Nano→Micro/Small, berbayar — keputusan pemilik) sebagai pengaman hari demo; revoke anon grant 2 tabel moderasi (A5); `disable_signup=true` (A1); rotasi PAT + service-role key (A7); `AUTH-005` ("Profil belum tersedia"); domain+TLS; monitoring 5xx.

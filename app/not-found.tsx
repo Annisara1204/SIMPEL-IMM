@@ -5,7 +5,7 @@ export default function NotFound() {
     <main className="setup-message">
       <h1>Halaman tidak ditemukan</h1>
       <p>Alamat yang Anda buka tidak tersedia atau sudah dipindahkan.</p>
-      <Link className="users-back" href="/">
+      <Link prefetch={false} className="users-back" href="/">
         Kembali ke beranda
       </Link>
     </main>

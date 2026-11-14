@@ -18,7 +18,9 @@ export default async function ProfilePage({
     return (
       <main className="setup-message">
         <h1>Supabase belum dikonfigurasi</h1>
-        <Link href="/login">Kembali ke login</Link>
+        <Link prefetch={false} href="/login">
+          Kembali ke login
+        </Link>
       </main>
     );
   const supabase = await createClient();

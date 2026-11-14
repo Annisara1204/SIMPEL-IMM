@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createEvent, updateEvent } from "./actions";
+import { DataUnavailable } from "@/components/data-unavailable";
 
 const statusNames = {
   planned: "Direncanakan",
@@ -90,11 +91,7 @@ export default async function ActivitiesPage({
           Periksa kembali nama, komisariat, lokasi, dan tanggal kegiatan.
         </p>
       )}
-      {createStatus === "failed" && (
-        <p className="users-error">
-          Data belum dapat dibaca. Hubungi Admin sistem bila masalah berulang.
-        </p>
-      )}
+      {createStatus === "failed" && <DataUnavailable />}
       {profile.role === "admin_system" && (
         <section className="event-manage-card">
           <div className="event-manage-title">
@@ -166,9 +163,7 @@ export default async function ActivitiesPage({
         </section>
       )}
       {error ? (
-        <p className="users-error">
-          Data belum dapat dibaca. Hubungi Admin sistem bila masalah berulang.
-        </p>
+        <DataUnavailable />
       ) : !events?.length ? (
         <p className="users-empty">
           {profile.role === "observer"

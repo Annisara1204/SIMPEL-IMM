@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { signMany } from "@/lib/signed-urls";
 import { PrivateImg } from "@/components/private-img";
+import { DataUnavailable } from "@/components/data-unavailable";
 
 export default async function InstructorProfilesPage() {
   if (
@@ -53,9 +54,7 @@ export default async function InstructorProfilesPage() {
         <span className="sample-tag">UNTUK PENGGUNA MASUK</span>
       </div>
       {error ? (
-        <p className="users-error">
-          Data belum dapat dibaca. Hubungi Admin sistem bila masalah berulang.
-        </p>
+        <DataUnavailable />
       ) : !instructors.length ? (
         <p className="users-empty">
           Belum ada Instruktur yang melengkapi profil.

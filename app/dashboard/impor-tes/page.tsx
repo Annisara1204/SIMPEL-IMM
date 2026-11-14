@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ImportWizard } from "./import-wizard";
+import { DataUnavailable } from "@/components/data-unavailable";
 
 export default async function TestImportPage() {
   if (
@@ -53,11 +54,7 @@ export default async function TestImportPage() {
         </div>
         <span className="sample-tag">PRETEST · POSTTEST</span>
       </div>
-      {(eventError || importError) && (
-        <p className="users-error">
-          Data belum dapat dibaca. Hubungi Admin sistem bila masalah berulang.
-        </p>
-      )}
+      {(eventError || importError) && <DataUnavailable />}
       {events?.length ? (
         <ImportWizard events={events} />
       ) : (

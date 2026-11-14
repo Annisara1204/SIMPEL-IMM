@@ -12,6 +12,7 @@ import {
   uploadMandate,
 } from "./actions";
 import { PrivateImg } from "@/components/private-img";
+import { DataUnavailable } from "@/components/data-unavailable";
 
 const statusLabels: Record<string, string> = {
   draft: "Draf · dapat diedit",
@@ -136,11 +137,7 @@ export default async function CommissariatApplicationsPage() {
           ulang.
         </p>
       </div>
-      {(eventError || submissionError) && (
-        <p className="users-error">
-          Data belum dapat dibaca. Hubungi Admin sistem bila masalah berulang.
-        </p>
-      )}
+      {(eventError || submissionError) && <DataUnavailable />}
       {!commissariat?.is_active && (
         <p className="users-error">
           Komisariat Anda sedang nonaktif. Hubungi Admin Sistem.

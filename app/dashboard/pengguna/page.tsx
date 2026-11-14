@@ -6,6 +6,7 @@ import {
   createTemporaryInstructor,
   updateUserRole,
 } from "./actions";
+import { DataUnavailable } from "@/components/data-unavailable";
 
 const roles = [
   ["admin_system", "Admin Sistem"],
@@ -133,9 +134,7 @@ export default async function UsersPage({
         <button type="submit">Buat akun perbantuan</button>
       </form>
       {error ? (
-        <p className="users-error">
-          Data belum dapat dibaca. Hubungi Admin sistem bila masalah berulang.
-        </p>
+        <DataUnavailable />
       ) : !users?.length ? (
         <p className="users-empty">Belum ada profil pengguna.</p>
       ) : (

@@ -8,6 +8,7 @@ import {
   startReview,
 } from "./actions";
 import { PrivateImg } from "@/components/private-img";
+import { DataUnavailable } from "@/components/data-unavailable";
 
 const labels: Record<string, string> = {
   submitted: "Menunggu tinjauan",
@@ -99,11 +100,7 @@ export default async function CommissariatReviewPage() {
           </p>
         </div>
       </div>
-      {error && (
-        <p className="users-error">
-          Data belum dapat dibaca. Hubungi Admin sistem bila masalah berulang.
-        </p>
-      )}
+      {error && <DataUnavailable />}
       {!rows.length && !error && (
         <p className="users-empty">
           Belum ada pengajuan yang menunggu atau memiliki hasil.

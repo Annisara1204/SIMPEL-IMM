@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { applyFrameworkRubricSelection } from "./rubric-actions";
+import { DataUnavailable } from "@/components/data-unavailable";
 
 export type FrameworkAspectChoice = {
   id: string;
@@ -63,12 +64,7 @@ export function FrameworkRubricPicker({
     if (checked)
       setSelectedAspects((current) => [...new Set([...current, aspectId])]);
   };
-  if (!aspects.length)
-    return (
-      <p className="assessment-assignment-empty">
-        Data belum dapat dibaca. Hubungi Admin sistem bila masalah berulang.
-      </p>
-    );
+  if (!aspects.length) return <DataUnavailable />;
   return (
     <details className="framework-rubric-picker" open>
       <summary>Pilih aspek dan indikator dari Kerangka DAD</summary>

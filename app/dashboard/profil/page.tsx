@@ -3,6 +3,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { updateOwnProfile } from "./actions";
 import { PrivateImg } from "@/components/private-img";
+import { DataUnavailable } from "@/components/data-unavailable";
 
 export default async function ProfilePage({
   searchParams,
@@ -42,9 +43,7 @@ export default async function ProfilePage({
     return (
       <main className="setup-message">
         <h1>Profil belum tersedia</h1>
-        <p>
-          Data belum dapat dibaca. Hubungi Admin sistem bila masalah berulang.
-        </p>
+        <DataUnavailable />
       </main>
     );
   const { data: photo } = personalProfile?.photo_path
@@ -78,11 +77,7 @@ export default async function ProfilePage({
             Foto harus berformat JPG atau PNG dengan ukuran maksimal 5 MB.
           </p>
         )}
-        {query.status === "failed" && (
-          <p className="login-error" role="alert">
-            Data belum dapat dibaca. Hubungi Admin sistem bila masalah berulang.
-          </p>
-        )}
+        {query.status === "failed" && <DataUnavailable />}
         {photo?.signedUrl && (
           <PrivateImg
             className="account-profile-photo"

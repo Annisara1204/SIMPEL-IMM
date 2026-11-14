@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { signMany } from "@/lib/signed-urls";
 import { loadDashboardAssessmentData } from "@/lib/dashboard-results";
 import { PrivateImg } from "@/components/private-img";
+import { DataUnavailable } from "@/components/data-unavailable";
 
 export default async function InstructorParticipantProfilesPage({
   searchParams,
@@ -124,10 +125,7 @@ export default async function InstructorParticipantProfilesPage({
             </button>
           </form>
           {error ? (
-            <p className="users-error">
-              Data belum dapat dibaca. Hubungi Admin sistem bila masalah
-              berulang.
-            </p>
+            <DataUnavailable />
           ) : (
             <section className="event-manage-card">
               <div className="event-manage-title">

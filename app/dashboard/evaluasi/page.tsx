@@ -22,6 +22,7 @@ import {
   saveAssessmentModeration,
   saveCollectiveEvaluation,
 } from "./actions";
+import { DataUnavailable } from "@/components/data-unavailable";
 
 type Props = {
   searchParams: Promise<{
@@ -40,9 +41,7 @@ export default async function CollectiveEvaluationPage({
     return (
       <main className="setup-message">
         <h1>Evaluasi belum dikonfigurasi</h1>
-        <p>
-          Data belum dapat dibaca. Hubungi Admin sistem bila masalah berulang.
-        </p>
+        <DataUnavailable />
       </main>
     );
   const supabase = await createClient();
@@ -398,12 +397,7 @@ export default async function CollectiveEvaluationPage({
                 );
               })}
             </nav>
-            {summaryError && (
-              <p className="users-error">
-                Data belum dapat dibaca. Hubungi Admin sistem bila masalah
-                berulang.
-              </p>
-            )}
+            {summaryError && <DataUnavailable />}
             <div className="users-notice">
               <strong>
                 {overall.status === "provisional"

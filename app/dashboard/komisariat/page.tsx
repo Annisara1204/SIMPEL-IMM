@@ -6,6 +6,7 @@ import {
   editCommissariat,
   setCommissariatActive,
 } from "./actions";
+import { DataUnavailable } from "@/components/data-unavailable";
 
 const messages: Record<string, string> = {
   added: "Komisariat berhasil ditambahkan.",
@@ -78,9 +79,7 @@ export default async function CommissariatsPage({
         <button type="submit">Tambah Komisariat</button>
       </form>
       {error ? (
-        <p className="users-error">
-          Data belum dapat dibaca. Hubungi Admin sistem bila masalah berulang.
-        </p>
+        <DataUnavailable />
       ) : !commissariats?.length ? (
         <p className="users-empty">
           Belum ada Komisariat. Tambahkan nama simulasi di atas.

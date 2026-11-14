@@ -12,6 +12,7 @@ import {
   categorizeScore,
   type ScoringAspect,
 } from "@/lib/scoring";
+import { DataUnavailable } from "@/components/data-unavailable";
 
 type ObservationsPageProps = {
   searchParams: Promise<{
@@ -237,11 +238,7 @@ export default async function ObservationsPage({
         ratingError ||
         submissionError ||
         notesError ||
-        mappingError) && (
-        <p className="users-error">
-          Data belum dapat dibaca. Hubungi Admin sistem bila masalah berulang.
-        </p>
-      )}
+        mappingError) && <DataUnavailable />}
 
       {!requestedEventId && (
         <section className="event-manage-card">

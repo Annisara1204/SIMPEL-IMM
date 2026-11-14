@@ -14,6 +14,7 @@ import type {
   PrivateSourceRow,
   RubricVersionJoined,
 } from "@/lib/supabase-rows";
+import { DataUnavailable } from "@/components/data-unavailable";
 
 type Props = {
   searchParams: Promise<{
@@ -32,9 +33,7 @@ export default async function ReportingPage({ searchParams }: Props) {
     return (
       <main className="setup-message">
         <h1>Laporan belum dikonfigurasi</h1>
-        <p>
-          Data belum dapat dibaca. Hubungi Admin sistem bila masalah berulang.
-        </p>
+        <DataUnavailable />
       </main>
     );
   const supabase = await createClient();
@@ -87,9 +86,7 @@ export default async function ReportingPage({ searchParams }: Props) {
     return (
       <main className="users-page">
         <h1>Laporan dan Rapor</h1>
-        <p className="users-error">
-          Data belum dapat dibaca. Hubungi Admin sistem bila masalah berulang.
-        </p>
+        <DataUnavailable />
       </main>
     );
   const [{ data: moderator }, { data: rows, error: reportError }] =

@@ -20,6 +20,7 @@ import {
   type InstructorDuty,
   type InstructorParticipantEvent,
 } from "@/components/instructor-duty-dashboard";
+import { DataUnavailable } from "@/components/data-unavailable";
 
 const allowedRoles: AppRole[] = [
   "admin_system",
@@ -54,9 +55,7 @@ export default async function DashboardPage() {
     return (
       <main className="setup-message">
         <h1>Profil belum tersedia</h1>
-        <p>
-          Data belum dapat dibaca. Hubungi Admin sistem bila masalah berulang.
-        </p>
+        <DataUnavailable />
         <form action="/auth/signout" method="post">
           <button>Keluar</button>
         </form>

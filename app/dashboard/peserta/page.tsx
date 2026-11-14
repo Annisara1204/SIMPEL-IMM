@@ -8,6 +8,7 @@ import {
   removeParticipant,
 } from "../kegiatan/actions";
 import { PrivateImg } from "@/components/private-img";
+import { DataUnavailable } from "@/components/data-unavailable";
 
 function CommissariatOptions({
   commissariats,
@@ -96,9 +97,7 @@ export default async function ParticipantsPage() {
         </div>
       </div>
       {error ? (
-        <p className="users-error">
-          Data belum dapat dibaca. Hubungi Admin sistem bila masalah berulang.
-        </p>
+        <DataUnavailable />
       ) : !eventsWithPhotos.length ? (
         <p className="users-empty">Belum ada kegiatan untuk ditampilkan.</p>
       ) : (

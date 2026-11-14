@@ -243,6 +243,13 @@ Yang dikerjakan (commit `5d985aa`, lihat juga `docs/FRONTEND_REFACTOR.md`):
 - Verifikasi: `npm run check`, `npm run build` hijau; browser lokal (3100): publik, dashboard, 6 halaman, mobile 390px + drawer; PROD: backup `imm-app.bak-2026-11-13-0818` → rsync → file sisa `role-dashboard.tsx` di server dihapus → build OK → pm2 restart → smoke browser (publik + login QA Kader + `/dashboard/penilaian` render dalam shell; menu bidang_kader tanpa dead-end). Prod sehat; `wms_prod_backend` tidak tersentuh.
 - Pelajaran: server deploy memakai rsync tanpa `--delete` — berkas yang dihapus dari repo tetap ada di server dan dapat menggagalkan build (stale TS error). Setelah setiap refactor yang menghapus berkas, cek `ls` di server atau hapus manual.
 
+## Service-role key terpasang di PROD (13 November 2026, sore)
+
+- Pemicu: pemilik mengirim screenshot `/dashboard/pengguna?akun=setup` — banner merah "Pembuatan akun sementara perlu SUPABASE_SERVICE_ROLE_KEY di konfigurasi server." (redirect dari `createTemporaryInstructor` saat `createAdminClient()` melempar karena env belum ada).
+- Pemilik memberikan `service_role` key project PROD `crrqlwlfndhugcqcnkex` (disalin dari Supabase Dashboard → Settings → API). Key **tidak** ditulis ke repo/git/frontend; hanya ditambahkan ke `/home/ubuntu/imm-app/.env.production` di server lewat stdin (mode tetap 600, nilai tidak dicetak). **Key terekam di riwayat chat** — jangan dibagikan; rotate dari dashboard Supabase bila perlu, lalu perbarui file yang sama.
+- `pm2 restart imm --update-env`; aplikasi online, log bersih (error lama `refresh_token_not_found` pra-existing, tidak terkait). Tidak ada perubahan DB/kode.
+- Belum diuji end-to-end: tombol "Buat akun perbantuan" belum ditekan (akan membuat akun Instruktur nyata di PROD — butuh keputusan pemilik). Catatan: banner merah `?akun=setup` tampil murni dari query param URL — setelah perbaikan, mengunjungi URL itu tetap menampilkan banner; yang menentukan berhasil/gagal adalah hasil submit formulir.
+
 ## Fix Kerangka overflow (13 November 2026, pagi — follow-up sesi kedua)
 
 Pemilik mengirim screenshot `/dashboard/kerangka` (prod): baris kartu aspek terpotong di tepi kanan (horizontal overflow). Diagnosis: `.competency-aspect-grid` memintakan **1527px** (min-content memaksa 6 kolom 1 baris) sementara kolom `.users-page` hanya **1100px**. Fix: `.competency-framework-page > * { min-width: 0; }` (commit `5a3464b`) — kartu aspek kini wrap 2 baris; `html.scrollWidth == clientWidth == 1920`. Build OK, pm2 restart, verifikasi prod (Kader QA, 1920px): grid 1058px, kartu "Kedisiplinan dan Tanggung Jawab" & "Komitmen dan Tindak Lanjut" tampil utuh di baris 2; tidak ada scroll horizontal. `.competency-matrix-scroll` memang sudah overflow:auto sejak awal.
@@ -260,3 +267,57 @@ Hasil: satu-satunya temuan page-level sebelumnya (Kerangka) sudah diperbaiki di 
 Verifikasi (lokal 3100 & PROD): peserta 0 overflow di 3 viewport; kerangka (41 details terbuka) 0 overflow di 3 viewport; halaman lain bersih; tabel peserta/laporan tetap di dalam wrapper overflow-x:auto sesuai desain. Commit `f83bf7e`; prod: backup `imm-app.bak-2026-11-13-0856` → rsync → build OK → pm2 restart → smoke 3 viewport (peserta/kader-kerangka) bersih.
 
 Catatan desain peran: tidak ada regresi akses — sweep hanya membaca halaman sesuai izin role (observer/peserta/kader); tidak ada penulisan data.
+
+## Insiden error massal saat demo (14 November 2026, pagi) — investigasi read-only
+
+Lapor pemilik: banyak error hari ini ~jam 11 siang (WIB), kemarin malam nampak aman. Screenshot: banner "Data belum dapat dibaca" + "Kegiatan tidak ditemukan" di Observasi & `/dashboard/penilaian` (akun Annisa admin, 10:51/11:51 WIB).
+
+**Tidak ada kerusakan permanen** — diverifikasi hari ini (14 Nov, ~15:00 WIB): database sehat (3 kegiatan, 46 peserta, 5 observer_assignments, 15 rubric_versions, 7 profil), data utuh; kunci API (legacy anon/service + sb_publishable/secret) **tidak diputar** sejak 10 Nov; kedua project Supabase ACTIVE_HEALTHY; login QA sintetik PROD + replay kueri persis halaman Observasi (termasuk embed rubrik lengkap) semuanya 200; koneksi VPS→Supabase ~16 ms connect / 65–90 ms total; halaman (GET) mayoritas 200.
+
+**Gejala hari ini (log nginx `imm.access.log`, server UTC+8):**
+- 00:29 (+0800): POST `/dashboard/penilaian` → 500 (189 B).
+- 11:03:26 (+0800; = 10:03 WIB): POST `/dashboard/observasi` (eventId `48880b89-…`) → **502** "upstream sent too big header" (166 B).
+- 12:00–12:09 (+0800; = 11:00–11:09 WIB): **1.345 request semuanya 200** — sistem sehat tepat jam 11 WIB.
+- 12:42–12:44 (+0800; = 11:42–11:44 WIB, bertepatan chat WhatsApp 11.44): burst POST autosave Observasi → **500 bertubi** (×6, 252 B) dari beberapa laptop Windows (IP 114.10.145.85 / .148.85) dan Mac Safari (114.10.146.10: 12:43/12:44 500; 499 12:40).
+- Error berselang dengan 200 setelahnya (13:17–13:21 200, 13:33 200, 13:42 500, 13:55 ×4 500, 15:56/16:10 200); 499 = klien menutup koneksi duluan. Total hari ini: 14 × 500, 1 × 502, 4 × 499, 13 × 400.
+- 502 yang sama juga terjadi kemarin 23:04 (+0800) pada POST `/dashboard/penilaian`; 500 pada penilaian 00:29 hari ini → masalah sudah ada sejak kemarin malam, baru terasa saat demo.
+
+**Akar penyebab:** sesi Supabase — access token berlaku **3600 detik**; setelah kedaluwarsa, SETIAP request perlu refresh token (single-use/rotasi). Autosave yang konkuren (per indikator/ketikan, plus tab ganda di laptop demo — screenshot menunjukkan dua tab Observasi) memicu **race refresh**: request yang menang me-rotasi refresh token; yang kalah mendapat `Invalid Refresh Token: Refresh Token Not Found` (8× di `imm-error.log`, terselang dengan 13× `Error: Akses ditolak.` dari `staffClient` di `app/dashboard/penilaian/internal.ts`). Client lalu mengirim kueri PostgREST dengan JWT kedaluwarsa/invalid → 401 → kueri error → banner "Data belum dapat dibaca"; `observer_assignments`/events yang 401 menghasilkan list kosong tanpa error → teks "Kegiatan tidak ditemukan atau Anda tidak ditugaskan padanya."; aksi server gagal → 500. Kueri GET tetap 200 karena halaman merender apa adanya (banner adalah hasil query error, bukan crash).
+
+**Penyebab pendukung:**
+1. `proxy_buffer_size` default nginx (vhost `imm-8080`) terlalu kecil untuk response Server Action yang membawa cookie sesi hasil refresh → "upstream sent too big header" (502). Terjadi 2× total (13 Nov 23:04, 14 Nov 11:03).
+2. Insiden Supabase 13 Nov 03:35–06:40 WIB ("Database Connection Errors", semua region, Postgres) + "Elevated Error rates for All Supabase project APIs" 05:13 WIB — mungkin turut memperburuk stabilitas sesi; jam 11 WIB hari ini tidak ada di status page (sehat).
+3. App kurang ramah kegagalan sesi: banner tidak menyebut penyebab (kueri mana/401), aksi server melempar Error polos → 500 tanpa fallback inline.
+4. Autosave tidak di-debounce cukup (burst cepat).
+5. Tab ganda pada satu akun menggandakan race.
+
+**Belum terbukti/berarti:** bukan rotasi kunci, bukan penghapusan data, bukan RLS berubah, bukan disk penuh (60G bebas, pm2 online 21 jam, tidak ada restart 11:00), bukan error kode build terbaru (deploy 13 Nov sore sehat; `npm run check` hijau sebelumnya).
+
+**Status:** diagnosis read-only; BELUM ada perbaikan yang diterapkan. Pemulihan sementara bagi pengguna: tutup tab ganda, login ulang (sesi fresh bekerja — diverifikasi). Usulan perbaikan (menunggu persetujuan pemilik): (a) perpanjang `exp` JWT di settings Supabase (mis. 8–12 jam untuk periode trial) → refresh jauh lebih jarang → race hampir hilang; (b) debounce autosave ~700 ms + serialisasi refresh/retry-once di `staffClient`; (c) nginx `proxy_buffer_size 32k; proxy_buffers 8 32k;` (hilangkan 502); (d) banner/500 inline yang menyebut "sesi kedaluwarsa — muat ulang/login ulang"; (e) rotasi PAT & service-role key (terekspos di output sesi ini & riwayat chat 13 Nov).
+
+## Perbaikan insiden demo + deploy (14 November 2026, sore)
+
+Konteks lengkap investigasi: lihat entri "Insiden error massal saat demo" di atas. Ringkasan eksekusi:
+
+**A1 — JWT expiry tetap 3600 s** (keputusan pemilik; rekomendasi dokumen Supabase). Tidak ada perubahan.
+
+**A2 — RS256 DIBATALKAN: signing key ES256 `in_use` sudah aktif sejak project dibuat (10 Nov 2026; HS256 = `previously_used`)**. Diverifikasi via Management API (`GET /config/auth/signing-keys`), login QA PROD (header token: `alg=ES256, kid=d4af74c2-…`), dan JWKS (`/.well-known/jwks.json` terbit). `getClaims()` sudah terverifikasi **lokal** (WebCrypto + JWKS edge-cache) — tidak ada network call per request seperti yang diasumsikan di investigasi awal. Membuat key baru hanya menambah perubahan tanpa manfaat — tidak dilakukan.
+
+**A3 — nginx `imm-8080`**: `proxy_buffer_size` 16k→**32k**, `proxy_buffers 8 16k`→**8 32k**, `proxy_busy_buffers_size` 32k→**64k** (backup `/etc/nginx/imm-8080.bak-2026-11-14-1701`). `nginx -t` OK + reload. (Mencatat: buffer 16k sudah ada di vhost tapi 502 tetap terjadi 2× — penyebab persis besarnya header tidak bisa diukur dari luar; jika 502 berulang, langkah berikutnya adalah mengukur ukuran cookie sesi atau menaikkan buffer lagi.)
+
+**B1 — `app/dashboard/penilaian/internal.ts` (`staffClient`)**: kueri profil kini `retry 1×` (300 ms) saat error; error kueri (±bukan "tidak berhak") melempar `Layanan data sedang bermasalah. Muat ulang halaman; bila masih gagal, keluar lalu login ulang.` + `console.error` detail; `"Akses ditolak."` hanya jika profil memang tidak berhak/tidak ada. Semua Server Action nilai/catatan (`assessment-actions.ts`) lewat sini.
+
+**B2 — banner "Data belum dapat dibaca" disatukan ke komponen bersama `components/data-unavailable.tsx`** (`<DataUnavailable />`, `role="alert"`): teks kini "…Sesi atau layanan mungkin bermasalah — muat ulang halaman; bila masih gagal, keluar lalu login ulang. Hubungi Admin sistem bila masalah berulang." 21 kemunculan di 17 berkas diganti; teks "muat ulang halaman" adalah link reload (`href=""`). `proxy.ts` sengaja tidak diubah.
+
+**Verifikasi**
+- `npm run check` exit 0 (typecheck OK, lint 0 error/5 warning pra-ada — termasuk `analitik`/`eventError` yang tidak disentuh), format OK, tes **12/12**. Build lokal OK.
+- **Uji sesi kedaluwarsa di DEV** (`jwt_exp` DEV → 60 s sementara, lalu **dikembalikan ke 3600**, terverifikasi via GET config): dev server lokal, login QA `qa-auto-observer-a`, buka Observasi (Kognitif PK IMM FEB & Screening Interview), token sudah kedaluwarsa → klik skor Screening Peserta 02 → **"Tersimpan · 16.11.11"**; halaman sebelum/sesudah tanpa banner/error boundary. Sel dikembalikan ke "Belum dinilai". TIDAK ADA perubahan data permanen di DEV.
+- **PROD deploy**: backup `/home/ubuntu/imm-app.bak-2026-11-14-1705-full` → rsync → `npm ci --include=dev` → `npm run build` OK → `pm2 restart imm` (restart #9, pid 1903175). Smoke 8080: `/`, `/login`, `/dashboard`, `/dashboard/observasi`, `/dashboard/penilaian` → **200**; POST dengan action ID palsu → 400 (gerbang validasi, bukan 502). Build memuat `muat ulang halaman` (kode baru live). Tidak ada error baru di `imm-error.log`/`imm.error.log` setelah restart.
+- **Kecelakaan deploy yang harus diperhatikan**: rsync deploy pertama memakai `--delete-excluded` (menyimpang dari prosedur) → **menghapus `.env.production` (+`.env.example`, `HANDOVER.md.bak-2026-11-13-1430`) di server**. Semua **dipulihkan dari backup** (`.env.production` sha256 cocok persis, mode 600 utuh); `node_modules`/`.next` terhapus juga tapi itu memang di-rebuild. Pelajaran: **JANGAN PERNAH pakai `--delete`/`--delete-excluded` pada deploy rsync PROD**; ikuti prosedur `docs/DEPLOYMENT.md` (tanpa delete). Baru setelah build di-verify, pm2 restart.
+
+**Sisa risiko / tindak lanjut pemilik**
+- Akar-detail mengapa sebagian kueri gagal saat burst 11:42 (sejauh ini: race refresh token + kemungkinan degradasi mikro Supabase) tidak bisa dibuktikan dari luar secara definitif; kedua jalur sudah ditangani (B1/B2 + R4 fix). Pantau 24 jam: `grep -E " (500|502) " /var/log/nginx/imm.access.log`.
+- Setelah demo/ujian berikutnya, cek `auth.refresh_tokens` yang `revoked` (reuse detection) — bila masih sering, evaluasi SOP satu-tab-per-akun.
+- **Rotasi PAT + service-role key** (keduanya terekspos di output sesi ini & riwayat chat 13 Nov).
+- 502 tidak dijamin hilang bila header sesi jauh lebih besar dari 32k — jika terulang, naikkan buffer / ukur cookie.
+- SOP pemakaian: satu tab per akun; bila banner muncul → tombol "muat ulang halaman"; bila masih gagal → keluar & login ulang.

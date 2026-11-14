@@ -8,6 +8,7 @@ import {
   type CompetencyMappingContext,
 } from "@/components/competency-material-mapping";
 import { createClient } from "@/lib/supabase/server";
+import { DataUnavailable } from "@/components/data-unavailable";
 
 const allowedRoles = ["admin_system", "bidang_kader", "observer", "instruktur"];
 
@@ -219,11 +220,7 @@ export default async function CompetencyFrameworkPage() {
           ini. Aspek berbobot total {totalWeight.toFixed(2)}%.
         </p>
       </div>
-      {(materialsError || materialMappingsError) && (
-        <p className="users-error">
-          Data belum dapat dibaca. Hubungi Admin sistem bila masalah berulang.
-        </p>
-      )}
+      {(materialsError || materialMappingsError) && <DataUnavailable />}
       <section className="event-manage-card">
         <h2>Aspek kompetensi</h2>
         <div className="competency-aspect-grid">

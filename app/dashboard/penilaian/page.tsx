@@ -29,6 +29,7 @@ import {
 } from "@/lib/instructor-roles";
 import { FrameworkRubricPicker } from "./framework-rubric-picker";
 import { SCORE_SCALE_LABELS } from "@/lib/scoring";
+import { DataUnavailable } from "@/components/data-unavailable";
 
 type AssessmentSettingsPageProps = {
   searchParams: Promise<{
@@ -204,11 +205,7 @@ export default async function AssessmentSettingsPage({
         versionsError ||
         typesError ||
         materialsError ||
-        instructorAssignmentsError) && (
-        <p className="users-error">
-          Data belum dapat dibaca. Hubungi Admin sistem bila masalah berulang.
-        </p>
-      )}
+        instructorAssignmentsError) && <DataUnavailable />}
       {!requestedEventId && (
         <section className="event-manage-card">
           <div className="event-manage-title">

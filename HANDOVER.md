@@ -401,3 +401,17 @@ Pemulihan (merge aman "cloud lebih baru menang" ke DB lokal):
 Hasil verifikasi (psql): ratings 1020 → **2308**, submissions 83 → **201**, rating_revisions 417 → **654**, submission_revisions 84 → **218**, participants 51 → **53**, dev_recommendations 12, report_publications 1, collective_evaluations (finalized) restored. Browser: halaman Observasi memuat "DAD PK IMM FEB 2026" tanpa banner error.
 
 **Pelajaran untuk cutover/backup antar lingkungan:** JANGAN restore dari dump yang diambil jauh sebelum cutover. Dump tepat sebelum/menempel pada cutover; atau merge dump segar pasca-cutover seperti tadi. Saat ini cloud asli tetap ada (tidak disentuh) sebagai cadangan.
+
+## Audit pasca-migrasi: rekonsiliasi penuh lokal vs dump cloud (14 Nov 2026, 23:40)
+
+Tabel-per-tabel (53 tabel) dibandingkan antara dump lokal terbaru vs dump cloud 23:00. Temuan & tindakan:
+
+1. **Duplikat master/seed lokal** (kerangka kompetensi & rubrik: lokal 2 rantai seed+impor, 54 vs 27 indikator dll.) — id berbeda, isi sama. Bukan kehilangan data; kosmetik. Dibiarkan supaya demo tetap jalan; pembersihan bisa sesi terpisah.
+2. **Framework cloud `b29a2df2…` tidak ada di lokal** → 1 baris `competency_framework_versions` yatim → **diperbaiki**: di-repoint ke framework lokal `fa1c3e32…` (isi identik), `version=2`; `versions_orphan=0`.
+3. **Komisariat `a3200000-…0003` tertimpa seed lokal** (`Komisariat Simulasi 03` vs cloud `PK IMM UPI`; 2 peserta terdampak) → **diperbaiki**: `PK IMM UPI` (sesuai cloud).
+4. **Instructor assignment & commissariats** perbedaan timestamp saja (seed time vs cloud) — konten identik.
+5. **`competency_indicator_rubrics`** 27 lokal vs 27 cloud, id berbeda, isi sama — kosmetik.
+6. **Semua tabel data pengguna**: `cld-only = 0` (tidak ada satu pun baris cloud yang hilang di lokal setelah merge+fix). `loc-only` = input panitia pasca-cutover — baik, dan sekarang terus bertambah (ratings 2259+).
+7. **Verdict**: tidak ada lagi data pengguna yang hilang; integritas FK terverifikasi (0 yatim).
+
+**Catatan untuk drift berikutnya:** aplikasi sekarang hanya membaca/menulis database lokal. Risiko tersisa: (a) cloud masih terbuka untuk siapa pun dengan key lama (sudah tercetak di chat) — disarankan di-pause/rotate; (b) tab lama browser panitia yang belum Ctrl+F5 masih menunjuk cloud; (c) backup harian 03:15 menembak database lokal — sudah benar.

@@ -388,3 +388,16 @@ Setelah investigasi mendalam (3 subagent + audit DB/logs):
 Gejala: klik "Keluar" mengarah ke `http://localhost:3000/`. Akar masalah: Next.js `next start` selalu menghasilkan `request.url`/`request.nextUrl` sebagai `http://localhost:3000/...` dan **mengabaikan header Host/X-Forwarded-Host**; semua redirect absolut dari route handler yang memakai `request.url` rusak (`/auth/signout` dan `/auth/callback` — callback konfirmasi email juga terkena).
 
 Fix: `lib/request-base-url.ts` — susun base URL dari header `x-forwarded-host` → `host` → `x-forwarded-proto` (nginx sudah mengirim `$http_host` + `$scheme`); dipakai di `app/auth/signout/route.ts` dan `app/auth/callback/route.ts`. Verifikasi: `POST /auth/signout` via nginx → `location: http://43.173.33.195:8080/`; browser login QA Kader → klik Keluar → URL = `http://43.173.33.195:8080/` + halaman publik tampil. Deploy: backup `imm-app.bak-2026-11-14-2235-full` → rsync (tanpa --delete) → npm ci → build → pm2 restart #13. Catatan: akses langsung 127.0.0.1:3000 memberi location `http://127.0.0.1:3000/` — benar, port itu tidak dibuka publik.
+
+## Insiden: data hilang 83→50 (input Salma) — AWAS: cutover dengan dump basi (14 Nov 2026, 23:00, DIPULIHKAN)
+
+Gejala: pengguna (Salma) melapor jumlah input nilai berkurang (“83 → 50”). Penyebab: migrasi ke self-hosted di-restore dari dump 17:29, sementara app baru dipakai sampai cutover ~22:16 — **semua input antara 17:29 → 22:16 hanya ada di cloud, tidak terimpor ke lokal** (~1.288 rating, 111 submission, +2 peserta, dst).
+
+Pemulihan (merge aman "cloud lebih baru menang" ke DB lokal):
+1. Dump fresh cloud via Management API → `/home/ubuntu/cloud-dump-2300/` (53 tabel, 4.048 baris).
+2. `/home/ubuntu/merge-cloud.py` — per tabel: baris yang tidak ada lokal INSERT; baris ada di keduanya hanya bila `updated_at|changed_at|created_at` versi cloud lebih baru (baris lokal yang lebih baru, mis. input setelah cutover, TIDAK disentuh). Master/seed statis (framework/rubrik/kompetensi) **sengaja di-skip** (id berbeda antara cloud & lokal; isinya sama). ON CONFLICT tanpa target utk toleransi unique constraint lain.
+3. Apply via psql ON_ERROR_STOP=1 dalam satu transaksi; `setval` identity columns diulang.
+
+Hasil verifikasi (psql): ratings 1020 → **2308**, submissions 83 → **201**, rating_revisions 417 → **654**, submission_revisions 84 → **218**, participants 51 → **53**, dev_recommendations 12, report_publications 1, collective_evaluations (finalized) restored. Browser: halaman Observasi memuat "DAD PK IMM FEB 2026" tanpa banner error.
+
+**Pelajaran untuk cutover/backup antar lingkungan:** JANGAN restore dari dump yang diambil jauh sebelum cutover. Dump tepat sebelum/menempel pada cutover; atau merge dump segar pasca-cutover seperti tadi. Saat ini cloud asli tetap ada (tidak disentuh) sebagai cadangan.

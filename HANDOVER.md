@@ -382,3 +382,9 @@ Setelah investigasi mendalam (3 subagent + audit DB/logs):
 - Peringatan: 8081 publik adalah permukaan API (PostgREST/Auth) — sama sifatnya dengan Supabase cloud yang dulu publik; diterima untuk trial.
 - **Pemakai/panitia harus refresh (F5/Ctrl+F5)** — bundle JS baru memuat URL+key baru; sesi lama bisa gagal sampai refresh.
 - Jika ingin menghapus cloud project: tunggu beberapa hari dan HANYA setelah diverifikasi tidak ada tim lain yang memakainya; atau cukup biarkan (tidak ditagih).
+
+## Fix: redirect logout (dan auth callback) ke http://localhost:3000 (14 Nov 2026, 22:35, DEPLOYED)
+
+Gejala: klik "Keluar" mengarah ke `http://localhost:3000/`. Akar masalah: Next.js `next start` selalu menghasilkan `request.url`/`request.nextUrl` sebagai `http://localhost:3000/...` dan **mengabaikan header Host/X-Forwarded-Host**; semua redirect absolut dari route handler yang memakai `request.url` rusak (`/auth/signout` dan `/auth/callback` — callback konfirmasi email juga terkena).
+
+Fix: `lib/request-base-url.ts` — susun base URL dari header `x-forwarded-host` → `host` → `x-forwarded-proto` (nginx sudah mengirim `$http_host` + `$scheme`); dipakai di `app/auth/signout/route.ts` dan `app/auth/callback/route.ts`. Verifikasi: `POST /auth/signout` via nginx → `location: http://43.173.33.195:8080/`; browser login QA Kader → klik Keluar → URL = `http://43.173.33.195:8080/` + halaman publik tampil. Deploy: backup `imm-app.bak-2026-11-14-2235-full` → rsync (tanpa --delete) → npm ci → build → pm2 restart #13. Catatan: akses langsung 127.0.0.1:3000 memberi location `http://127.0.0.1:3000/` — benar, port itu tidak dibuka publik.

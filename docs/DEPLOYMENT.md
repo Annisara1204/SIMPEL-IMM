@@ -20,7 +20,7 @@
 
 ## Isi `.env.production` (server)
 
-`/home/ubuntu/imm-app/.env.production` (mode 600): `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_ANON_KEY` dari project Supabase **produksi** `crrqlwlfndhugcqcnkex` ("production imm"), plus `NEXT_PUBLIC_SITE_URL=http://43.173.33.195:8080`. Tidak ada service-role key — fitur pembuatan akun Instruktur (`/dashboard/pengguna`) akan gagal sampai `SUPABASE_SERVICE_ROLE_KEY` ditambahkan (server-only).
+`/home/ubuntu/imm-app/.env.production` (mode 600): `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_ANON_KEY` dari project Supabase **produksi** `crrqlwlfndhugcqcnkex` ("production imm"), `NEXT_PUBLIC_SITE_URL=http://43.173.33.195:8080`, plus `SUPABASE_SERVICE_ROLE_KEY` (ditambahkan 13 Nov 2026, sore; server-only — dipakai `lib/supabase/admin.ts` untuk membuat akun Instruktur perbantuan; tidak pernah masuk repo/git/frontend).
 
 ## Database produksi (`crrqlwlfndhugcqcnkex`)
 
@@ -60,7 +60,7 @@ Akun admin produksi dibuat: `annisa@swamedia.co.id` (role `admin_system`, passwo
 
 1. **Domain + TLS** — belum ada domain; akses hanya via reverse proxy HTTP di :8080. Jangan masukkan data peserta nyata sebelum HTTPS tersedia.
 2. **Backup** — belum ada jadwal backup DB produksi; tinjau Paket Gratis Supabase & kebijakan retensi.
-3. **Service role key** — diperlukan bila fitur pembuatan akun Instruktur dipakai di produksi.
+3. ~~Service role key~~ — **selesai** (13 Nov 2026): `SUPABASE_SERVICE_ROLE_KEY` terpasang di `.env.production` (mode 600), pm2 restart `--update-env`, aplikasi online. Fitur pembuatan akun Instruktur perbantuan di `/dashboard/pengguna` aktif (belum diuji dengan pembuatan akun sungguhan).
 4. **Monitoring** — belum ada alerting (uptime, error rate); pm2 restart otomatis hanya untuk crash.
 5. **Seed data produksi** — database masih kosong (belum ada kegiatan/peserta/rubrik produksi).
 
@@ -76,7 +76,7 @@ Disalin terpilih dari DEV `thtwrkovcorgxzuqttal` ke PROD `crrqlwlfndhugcqcnkex` 
 
 Verifikasi: bobot aktif = 100 untuk kedua rubrik; kegiatan tampil di dashboard; Kerangka DAD (6 aspek, 27 indikator, 135 anchor) tampil di `/dashboard/kerangka`; event tampil di `/dashboard/kegiatan`.
 
-**Catatan:** DEV tidak berisi data uji; Salinan dilakukan dengan INSERT tervalidasi FK, satu transaksi. `/dashboard/pengguna` (buat akun) tetap belum berfungsi sampai `SUPABASE_SERVICE_ROLE_KEY` ditambahkan ke `.env.production`.
+**Catatan:** DEV tidak berisi data uji; Salinan dilakukan dengan INSERT tervalidasi FK, satu transaksi. `/dashboard/pengguna` (buat akun) aktif sejak `SUPABASE_SERVICE_ROLE_KEY` ditambahkan ke `.env.production` (13 Nov 2026, sore; pm2 restart).
 
 
 ## Akun sintetik PROD (13 November 2026, malam)

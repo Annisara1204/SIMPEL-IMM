@@ -361,3 +361,24 @@ Setelah investigasi mendalam (3 subagent + audit DB/logs):
 **Verifikasi:** `npm run check` exit 0 (12/12 tes; lint 0 error/5 warning pra-ada), build lokal hijau; backup `imm-app.bak-2026-11-14-2130-full`; `.env.production` sha256 cocok setelah rsync; deploy restart #11 (pid 2071112); smoke 8080 200 semua. Commit a658af2 → push. **Pengguna WAJIB refresh (F5/Ctrl+F5)** agar bundle baru berlaku; sesi lama masih menjalankan JS lama (reload menyelesaikan).
 
 **Sisa pekerjaan (prioritas berikutnya, belum dikerjakan):** P3 (React `cache()` getClaims+profiles; embed score_descriptors hanya versi terpilih; revisions `limit 8`; staff home pakai RPC agregat, bukan `snapshot_data` semua peserta), P4 (standardisasi `revalidatePath`; hilangkan `revalidatePath("/dashboard")` di aksi kecil), index FK terpilih (hygiene, bukan akar masalah), monitoring 5xx harian, upgrade instance Supabase (Pro ~Rp 410 rb/bln) bila hari demo tetap berat, `AUTH-005`, domain+TLS, A1/A5/A7/A8.
+
+## MIGRASI KE SELF-HOSTED SUPABASE (Jalur B) — SELESAI & TERVERIFIKASI (14 Nov 2026, malam)
+
+**Arsitektur baru (PROD, 43.173.33.195):**
+- Stack di `/home/ubuntu/supabase/` (docker-compose resmi Supabase, image fixed): `db` (supabase/postgres 17.6.1.136), `auth` (gotrue v2.197.0), `rest` (postgrest v14.18), `realtime` (v2.148.3), `storage` (v1.89.12), `imgproxy`, `meta`, `studio`, `api-gw` (Envoy v1.39.6), `pooler` (supavisor), edge-functions **dicabut** (tidak dipakai).
+- Semua port terikat ke `127.0.0.1` (api-gw 8180, studio 8181 internal, pooler 5433/5434) KECUALI **8081** publik (nginx → 127.0.0.1:8180) supaya browser bisa Realtime & login; ufw mengizinkan 8081/tcp.
+- `.env` self-hosted (`/home/ubuntu/supabase/.env`, mode 600): secret saya generate (JWT_SECRET HS256, Postgres password, dst). API key lama cloud TIDAK dipakai lagi.
+- Aplikasi `/home/ubuntu/imm-app/.env.production` kini menunjuk ke `http://43.173.33.195:8081` (url app tetap 8080; hanya url Supabase + anon/service key yang berubah). SEBELUM swap: backup `.env.production.pre-selfhost-2026-11-14` (rollback = restore + rebuild + pm2 restart).
+- `next.config` TIDAK berubah; kode aplikasi TIDAK diubah sama sekali (Jalur B = nol rewrite).
+
+**Migrasi data:** 39/39 migrasi dari repo terpasang (53 tabel); 2.374 baris dari backup 17:29/14 Nov terimport (`import.sql` dari dump Management API; pola: skip `users/identities` (auth schema), skip kolom generated (`observer_notes.scope_id`, `auth.users.confirmed_at`, `identities.email`), identity `ALWAYS`→`BY DEFAULT` + setval). `auth.users`+`auth.identities` (7 akun, hash password utuh) terimport interseksi kolom cloud∩lokal.
+
+**Verifikasi:** daftar tabel 53; ratings 1020; peserta 51; akun 7/7; login QA (qa-prod-observer-a) OK via jalur internal; PostgREST RLS membalas profil dengan benar; smoke 8080 semua 200; **browser login QA Kader menampilkan data PROD (3 kegiatan / 51 peserta / 9 rubrik / 6 penilai / 51 provisional)** — data benar-benar dibaca dari database lokal.
+
+**Operasional:**
+- App PROD sekarang 100% mandiri — tidak tergantung cloud Supabase (cloud tetap ada, tidak disentuh; bisa dihapus/di-*pause* nanti jika diinginkan).
+- Backup harian 03:15 (`/etc/cron.d/imm-db-backup`) kini otomatis menembak instance lokal (baca URL dari `.env.production`). Retensi 14 hari di `/home/ubuntu/imm-db-backups/`.
+- Restart/rebuild prosedur biasa (docs/DEPLOYMENT.md). Tidak ada migrasi cloud yang perlu dijalankan ulang.
+- Peringatan: 8081 publik adalah permukaan API (PostgREST/Auth) — sama sifatnya dengan Supabase cloud yang dulu publik; diterima untuk trial.
+- **Pemakai/panitia harus refresh (F5/Ctrl+F5)** — bundle JS baru memuat URL+key baru; sesi lama bisa gagal sampai refresh.
+- Jika ingin menghapus cloud project: tunggu beberapa hari dan HANYA setelah diverifikasi tidak ada tim lain yang memakainya; atau cukup biarkan (tidak ditagih).

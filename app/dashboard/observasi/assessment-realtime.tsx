@@ -9,11 +9,12 @@ export function AssessmentRealtime({ versionId }: { versionId: string }) {
   const [status, setStatus] = useState("Menghubungkan Realtime…");
   const refreshTimer = useRef<number | null>(null);
   useEffect(() => {
-    // Coalesce bursts of realtime events into satu refresh di belakang
-    // (autosave 700 ms × beberapa observer = banyak event per detik).
+    // Nilai/catatan sel diperbarui lokal per sel (event "assessment-realtime-change");
+    // jangan re-render seluruh halaman per simpan. Status submit berubah jarang —
+    // tetap menyegarkan untuk router.refresh (debounced) agar terlihat semua klien.
     const scheduleRefresh = () => {
       if (refreshTimer.current) window.clearTimeout(refreshTimer.current);
-      refreshTimer.current = window.setTimeout(() => router.refresh(), 500);
+      refreshTimer.current = window.setTimeout(() => router.refresh(), 1000);
     };
     const client = createClient();
     let channel: ReturnType<typeof client.channel> | null = null;
@@ -39,21 +40,13 @@ export function AssessmentRealtime({ versionId }: { versionId: string }) {
         .channel(`assessment-version-${versionId}`)
         .on(
           "postgres_changes",
-          { event: "*", schema: "public", table: "observations" },
-          (payload) => emit("observations", payload),
-        )
-        .on(
-          "postgres_changes",
           {
             event: "*",
             schema: "public",
             table: "assessment_ratings",
             filter: `rubric_version_id=eq.${versionId}`,
           },
-          (payload) => {
-            emit("assessment_ratings", payload);
-            scheduleRefresh();
-          },
+          (payload) => emit("assessment_ratings", payload),
         )
         .on(
           "postgres_changes",

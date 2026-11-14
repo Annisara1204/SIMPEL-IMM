@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { saveAssessmentRating } from "../penilaian/assessment-actions";
 import { SCORE_SCALE_LABELS } from "@/lib/scoring";
 
@@ -33,7 +32,6 @@ type Props = {
 };
 
 export function AssessmentRatingCell(props: Props) {
-  const router = useRouter();
   const initial: Value = props.rating ?? {
     score: null,
     response_status: "unrated",
@@ -193,7 +191,6 @@ export function AssessmentRatingCell(props: Props) {
         setStatus(
           `Tersimpan · ${new Date(next.updated_at ?? Date.now()).toLocaleTimeString("id-ID")}`,
         );
-        router.refresh();
       });
     }, 700);
     return () => window.clearTimeout(timer);
@@ -207,7 +204,6 @@ export function AssessmentRatingCell(props: Props) {
     props.participantId,
     props.rubricVersionId,
     props.indicatorId,
-    router,
   ]);
 
   const chooseScore = (raw: string) =>

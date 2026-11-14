@@ -345,3 +345,19 @@ Gejala berulang sepanjang hari (termasuk screenshot Salma 20:11 — banner instr
 **Fix terdeploy (21:15):** `prefetch={false}` ditambahkan pada **semua 51 `<Link>`** (23 berkas) — Next.js tidak lagi memuat halaman di belakang layar; data hanya dimuat saat diklik. Verifikasi: `npm run check` exit 0 (12/12 tes, lint 0 error/5 warning pra-ada), build lokal hijau, backup `imm-app.bak-2026-11-14-2115-full`, deploy tanpa `--delete`, smoke 8080 200 semua, pm2 restart #10 (pid 2056839). 6× 502 pada 21:18 adalah blip restart (`connect() failed`), bukan regresi; error "too big header" tidak terulang sejak A3 (buffer 32k). **Pengguna harus refresh halaman** agar mendapat bundle JS baru (halaman lama masih mem-prefetch sendiri).
 
 **Belum dikerjakan:** upgrade Compute add-on Supabase (Nano→Micro/Small, berbayar — keputusan pemilik) sebagai pengaman hari demo; revoke anon grant 2 tabel moderasi (A5); `disable_signup=true` (A1); rotasi PAT + service-role key (A7); `AUTH-005` ("Profil belum tersedia"); domain+TLS; monitoring 5xx.
+
+## Hotfix P1+P2: hilangkan re-render halaman per simpan (14 Nov 2026, 21:30, DEPLOYED)
+
+Setelah investigasi mendalam (3 subagent + audit DB/logs):
+
+**Akar masalah "kenapa masalah terjadi":** instance free Nano (250 IOPS baseline) dibombardir 60.041 dari 68.223 request (91%) berupa prefetch RSC Next.js (diperbaiki sebelumnya) PLUS setiap autosave (debounce 700 ms per sel × observer yang mengetik) memicu `router.refresh()` → render penuh `/dashboard/observasi` (12 query + ±3 rondetp Auth + JSONB `score_descriptors` semua versi aktif + revisions embed) oleh pengirim DAN oleh semua observer lain yang membuka rubrik yang sama (realtime broadcast → `router.refresh()` di semua klien). ~500–760 ribu query/hari → Disk IO budget habis → instance unresponsive → banner/error acak (termasuk screenshot Salma 20:11).
+
+**P1 — hapus `router.refresh()` per autosave:** `assessment-rating-cell.tsx` (score & evidence) dan `observer-notes.tsx` (catatan) — state lokal sudah di-update dari return value action (`setSaved`/`setRevision`); setiap sel juga sudah mendengarkan `assessment-realtime-change` untuk perubahan lokal & remote. Tidak ada ketergantungan UI lain pada re-render per simpan (status Submit/Reopen tetap direfresh via `SubmissionControls`).
+
+**P2 — realtime:** listener `observations` tanpa filter (tidak dipakai siapa pun) **dihapus**; `assessment_ratings` remote kini hanya `emit()` ke sel (tidak memicu re-render klien mana pun); `assessment_submissions` tetap memicu `router.refresh()` debounce **1000 ms** (jarang terjadi, diperlukan agar semua klien melihat status submit/reopen). `assessment-realtime.tsx` mengekspos status tetap sama.
+
+**Endpoint UI yang ditinggalkan:** "Pratinjau penilaian Anda" (agregat di atas sel) sekarang mengikuti realtime (dibuang dari re-render per action; sel membaca ulang lokal) — tetap akurat karena setiap simpan mem-broadcast ke semua klien.
+
+**Verifikasi:** `npm run check` exit 0 (12/12 tes; lint 0 error/5 warning pra-ada), build lokal hijau; backup `imm-app.bak-2026-11-14-2130-full`; `.env.production` sha256 cocok setelah rsync; deploy restart #11 (pid 2071112); smoke 8080 200 semua. Commit a658af2 → push. **Pengguna WAJIB refresh (F5/Ctrl+F5)** agar bundle baru berlaku; sesi lama masih menjalankan JS lama (reload menyelesaikan).
+
+**Sisa pekerjaan (prioritas berikutnya, belum dikerjakan):** P3 (React `cache()` getClaims+profiles; embed score_descriptors hanya versi terpilih; revisions `limit 8`; staff home pakai RPC agregat, bukan `snapshot_data` semua peserta), P4 (standardisasi `revalidatePath`; hilangkan `revalidatePath("/dashboard")` di aksi kecil), index FK terpilih (hygiene, bukan akar masalah), monitoring 5xx harian, upgrade instance Supabase (Pro ~Rp 410 rb/bln) bila hari demo tetap berat, `AUTH-005`, domain+TLS, A1/A5/A7/A8.

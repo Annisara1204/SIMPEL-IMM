@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { saveObserverNote } from "../penilaian/assessment-actions";
 
 type NoteType = "observation" | "strength" | "development" | "special";
@@ -74,7 +73,6 @@ function NoteEditor({
   onSaved: (record: NoteRecord) => void;
   locked?: boolean;
 }) {
-  const router = useRouter();
   const [content, setContent] = useState(record?.content ?? "");
   const [syncedContent, setSyncedContent] = useState(record?.content ?? "");
   const [revision, setRevision] = useState(record?.revision ?? 0);
@@ -161,7 +159,6 @@ function NoteEditor({
         setSyncedContent(saved.content);
         onSaved(saved);
         setStatus("Tersimpan");
-        router.refresh();
       });
     }, 700);
     return () => window.clearTimeout(timer);
@@ -176,7 +173,6 @@ function NoteEditor({
     noteType,
     onSaved,
     locked,
-    router,
   ]);
 
   const acceptLatest = () => {

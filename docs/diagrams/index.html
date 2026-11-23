@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Panduan Visual IMM Observer</title>
+    <style>
+      :root {
+        --maroon: #8b1e3f;
+        --maroon-dark: #64142d;
+        --ink: #2b2b2b;
+        --muted: #56665d;
+        --line: #e3dadd;
+        --bg: #fbf8f9;
+        --card: #ffffff;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font:
+          15px/1.6 -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          Roboto,
+          Arial,
+          sans-serif;
+      }
+      header {
+        background: var(--maroon-dark);
+        color: #fff;
+        padding: 28px 20px 24px;
+      }
+      header .inner {
+        max-width: 1100px;
+        margin: 0 auto;
+      }
+      h1 {
+        margin: 0 0 8px;
+        font-size: 26px;
+      }
+      header p {
+        margin: 0;
+        max-width: 820px;
+        color: #f3dfe6;
+      }
+      nav {
+        background: var(--card);
+        border-bottom: 1px solid var(--line);
+        position: sticky;
+        top: 0;
+        z-index: 2;
+      }
+      nav .inner {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 10px 20px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px 18px;
+      }
+      nav a {
+        color: var(--maroon);
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 600;
+      }
+      nav a:hover {
+        text-decoration: underline;
+      }
+      main {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 28px 20px 60px;
+      }
+      .intro {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-left: 4px solid var(--maroon);
+        border-radius: 8px;
+        padding: 18px 22px;
+        margin-bottom: 28px;
+      }
+      .intro h2 {
+        margin: 0 0 8px;
+        font-size: 18px;
+        color: var(--maroon-dark);
+      }
+      .intro p {
+        margin: 0;
+        color: var(--muted);
+      }
+      section {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 18px 22px 24px;
+        margin-bottom: 24px;
+        scroll-margin-top: 70px;
+      }
+      section h2 {
+        margin: 0 0 6px;
+        font-size: 20px;
+        color: var(--maroon-dark);
+      }
+      section .tanya {
+        margin: 0 0 14px;
+        color: var(--muted);
+        font-size: 14px;
+      }
+      figure {
+        margin: 0;
+      }
+      img {
+        width: 100%;
+        height: auto;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: #fff;
+      }
+      figcaption {
+        margin-top: 10px;
+        font-size: 13px;
+        color: var(--muted);
+      }
+      .links {
+        margin-top: 10px;
+        font-size: 13px;
+      }
+      .links a {
+        color: var(--maroon);
+        margin-right: 14px;
+      }
+      footer {
+        text-align: center;
+        color: var(--muted);
+        font-size: 13px;
+        padding: 0 20px 40px;
+      }
+      @media print {
+        nav {
+          display: none;
+        }
+        section {
+          break-inside: avoid;
+          page-break-inside: avoid;
+        }
+        body {
+          background: #fff;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="inner">
+        <h1>Panduan Visual IMM Observer</h1>
+        <p>
+          Tujuh diagram untuk memahami aplikasi observasi dan penilaian
+          Pelatihan Kader IMM Kota Bandung. Data yang dipakai masih simulasi.
+        </p>
+      </div>
+    </header>
+
+    <nav>
+      <div class="inner">
+        <a href="#arsitektur">1. Arsitektur</a>
+        <a href="#akses">2. Peran &amp; akses</a>
+        <a href="#pengajuan">3. Pengajuan</a>
+        <a href="#penilaian">4. Penilaian</a>
+        <a href="#skor">5. Perhitungan skor</a>
+        <a href="#data">6. Model data</a>
+        <a href="#halaman">7. Peta halaman</a>
+      </div>
+    </nav>
+
+    <main>
+      <div class="intro">
+        <h2>Intinya</h2>
+        <p>
+          Komisariat mengajukan peserta, Observer menyeleksi, Observer dan
+          Instruktur memberi nilai secara independen, hasilnya digabung dan
+          dimoderasi, lalu koordinator menetapkan keputusan. Rapor hanya bisa
+          dibuka setelah hasil difinalisasi dan diterbitkan. Publik melihat
+          angka agregat tanpa identitas.
+        </p>
+      </div>
+
+      <section id="arsitektur">
+        <h2>1. Arsitektur sistem</h2>
+        <p class="tanya">
+          Aplikasi ini dibangun dari apa, dan siapa yang mengaksesnya?
+        </p>
+        <figure>
+          <img
+            src="01-arsitektur-sistem.png"
+            alt="Diagram arsitektur sistem IMM Observer"
+          />
+          <figcaption>
+            Browser dan Server Action Next.js berbicara dengan Supabase (Auth,
+            PostgreSQL, Storage, Realtime), dijalankan lewat nginx dan pm2 di
+            VPS.
+          </figcaption>
+        </figure>
+        <div class="links">
+          <a href="01-arsitektur-sistem.png">Buka PNG</a
+          ><a href="01-arsitektur-sistem.drawio">Unduh .drawio</a>
+        </div>
+      </section>
+
+      <section id="akses">
+        <h2>2. Peran dan batas akses</h2>
+        <p class="tanya">
+          Siapa boleh melihat data agregat, rekap, dan data mentah?
+        </p>
+        <figure>
+          <img
+            src="02-peran-dan-akses.png"
+            alt="Diagram peran dan tingkat akses data"
+          />
+          <figcaption>
+            Akses dibagi tiga tingkat. Izin sebenarnya dicek di server dan basis
+            data, bukan hanya dengan menyembunyikan menu.
+          </figcaption>
+        </figure>
+        <div class="links">
+          <a href="02-peran-dan-akses.png">Buka PNG</a
+          ><a href="02-peran-dan-akses.drawio">Unduh .drawio</a>
+        </div>
+      </section>
+
+      <section id="pengajuan">
+        <h2>3. Alur pengajuan dan seleksi peserta</h2>
+        <p class="tanya">
+          Bagaimana peserta masuk sampai dinyatakan lolos screening?
+        </p>
+        <figure>
+          <img
+            src="03-alur-pengajuan-seleksi.png"
+            alt="Diagram alur pengajuan dan seleksi peserta"
+          />
+          <figcaption>
+            Pengajuan terkunci saat peninjauan dimulai. Hasil baru terlihat
+            Komisariat setelah Observer menekan "Terbitkan hasil".
+          </figcaption>
+        </figure>
+        <div class="links">
+          <a href="03-alur-pengajuan-seleksi.png">Buka PNG</a
+          ><a href="03-alur-pengajuan-seleksi.drawio">Unduh .drawio</a>
+        </div>
+      </section>
+
+      <section id="penilaian">
+        <h2>4. Alur penilaian hingga rapor</h2>
+        <p class="tanya">Bagaimana nilai diamankan sampai rapor bisa dibuka?</p>
+        <figure>
+          <img
+            src="04-alur-penilaian-laporan.png"
+            alt="Diagram alur penilaian dan pelaporan"
+          />
+          <figcaption>
+            Tersedia cabang untuk konflik revisi, submit yang belum lengkap,
+            coverage yang kurang, dan moderasi. Snapshot hasil bersifat final
+            dan tidak bisa diubah.
+          </figcaption>
+        </figure>
+        <div class="links">
+          <a href="04-alur-penilaian-laporan.png">Buka PNG</a
+          ><a href="04-alur-penilaian-laporan.drawio">Unduh .drawio</a>
+        </div>
+      </section>
+
+      <section id="skor">
+        <h2>5. Aturan perhitungan skor</h2>
+        <p class="tanya">
+          Bagaimana angka 0-100 dan kategori nilainya dihitung?
+        </p>
+        <figure>
+          <img
+            src="05-aturan-perhitungan-skor.png"
+            alt="Diagram aturan perhitungan skor"
+          />
+          <figcaption>
+            N/O bukan nol, draft tidak dihitung, coverage minimal 80%, dan
+            keputusan akhir tetap ditetapkan manual oleh koordinator.
+          </figcaption>
+        </figure>
+        <div class="links">
+          <a href="05-aturan-perhitungan-skor.png">Buka PNG</a
+          ><a href="05-aturan-perhitungan-skor.drawio">Unduh .drawio</a>
+        </div>
+      </section>
+
+      <section id="data">
+        <h2>6. Model data</h2>
+        <p class="tanya">
+          Di mana data disimpan dan bagaimana tabelnya saling terhubung?
+        </p>
+        <figure>
+          <img src="06-model-data.png" alt="Diagram model data atau ERD" />
+          <figcaption>
+            Lima kelompok tabel: identitas dan master kompetensi, rubrik dan
+            penugasan, penilaian individu, hasil dan audit, serta pengajuan dan
+            impor tes.
+          </figcaption>
+        </figure>
+        <div class="links">
+          <a href="06-model-data.png">Buka PNG</a
+          ><a href="06-model-data.drawio">Unduh .drawio</a>
+        </div>
+      </section>
+
+      <section id="halaman">
+        <h2>7. Peta halaman per peran</h2>
+        <p class="tanya">Menu apa yang tersedia untuk setiap peran?</p>
+        <figure>
+          <img
+            src="07-peta-halaman-per-role.png"
+            alt="Diagram peta menu per peran"
+          />
+          <figcaption>
+            Evaluasi Kolektif dan Laporan hanya untuk subrole moderator. IoT dan
+            Vice IoT dialihkan ke dashboard.
+          </figcaption>
+        </figure>
+        <div class="links">
+          <a href="07-peta-halaman-per-role.png">Buka PNG</a
+          ><a href="07-peta-halaman-per-role.drawio">Unduh .drawio</a>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      Panduan ini mengikuti kondisi proyek per November 2026. Rincian dan status
+      terbaru ada di PANDUAN-DIAGRAM.md, HANDOVER.md, dan BLUEPRINT.md.
+    </footer>
+  </body>
+</html>

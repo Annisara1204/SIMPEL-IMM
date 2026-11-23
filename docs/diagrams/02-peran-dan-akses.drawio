@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" version="26.0.0">
+  <diagram name="Peran dan Akses">
+    <mxGraphModel>
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="l1" value="TINGKAT 1 — AGREGAT AMAN&#xa;(boleh ditampilkan ke publik)" style="swimlane;startSize=44;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=15;fontColor=#2d5a27;" vertex="1" parent="1">
+          <mxGeometry x="40" y="40" width="600" height="780" as="geometry" />
+        </mxCell>
+        <mxCell id="p1" value="Publik&#xa;Lihat dashboard agregat. Tanpa nama, skor individu, atau catatan privat." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;align=left;spacingLeft=12;fontSize=13;" vertex="1" parent="l1">
+          <mxGeometry x="25" y="70" width="550" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="p2" value="Peserta&#xa;Lihat ringkasan nilai sementara miliknya dan catatan pengembangan/perhatian. Tidak melihat nilai mentah Observer. Akun belum dibuat." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;align=left;spacingLeft=12;fontSize=13;" vertex="1" parent="l1">
+          <mxGeometry x="25" y="205" width="550" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="p3" value="Komisariat&#xa;Lihat status pengajuan, jumlah peserta tiap tahap, dan hasil seleksi milik komisariatnya sendiri. Berkas privat tetap terbatas." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;align=left;spacingLeft=12;fontSize=13;" vertex="1" parent="l1">
+          <mxGeometry x="25" y="360" width="550" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="p4" value="Contoh tampilan aman:&#xa;• jumlah kegiatan &amp; peserta&#xa;• distribusi kategori nilai&#xa;• jadwal dan profil instruktur (dengan izin)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#82b366;align=left;spacingLeft=12;fontSize=12;dashed=1;" vertex="1" parent="l1">
+          <mxGeometry x="25" y="515" width="550" height="140" as="geometry" />
+        </mxCell>
+
+        <mxCell id="l2" value="TINGKAT 2 — REKAP &amp; KEPUTUSAN&#xa;(tanpa bukti dan catatan privat)" style="swimlane;startSize=44;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;fontSize=15;fontColor=#7a5b00;" vertex="1" parent="1">
+          <mxGeometry x="660" y="40" width="600" height="780" as="geometry" />
+        </mxCell>
+        <mxCell id="q1" value="Bidang Kader&#xa;Pantau kegiatan, progres penilaian, evaluasi kolektif, analitik, dan laporan. Bisa menugaskan Observer, tidak mengubah rubrik." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d6b656;align=left;spacingLeft=12;fontSize=13;" vertex="1" parent="l2">
+          <mxGeometry x="25" y="70" width="550" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="q2" value="Instruktur — Master Observer &amp; Vice Observer&#xa;Checklist koordinasi Observer, rekap agregat, moderasi. Tidak menyebarkan catatan privat." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d6b656;align=left;spacingLeft=12;fontSize=13;" vertex="1" parent="l2">
+          <mxGeometry x="25" y="225" width="550" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="q3" value="Instruktur — MoT &amp; Vice MoT&#xa;Koordinasi program, jadwal, kendala, evaluasi pasca kegiatan; melihat rekap hasil." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d6b656;align=left;spacingLeft=12;fontSize=13;" vertex="1" parent="l2">
+          <mxGeometry x="25" y="380" width="550" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="q4" value="Instruktur — IoT &amp; Vice IoT&#xa;Checklist agenda ibadah dan ruhiyah. Tidak menampilkan nilai peserta di dashboard." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d6b656;align=left;spacingLeft=12;fontSize=13;" vertex="1" parent="l2">
+          <mxGeometry x="25" y="535" width="550" height="130" as="geometry" />
+        </mxCell>
+
+        <mxCell id="l3" value="TINGKAT 3 — SKOR MENTAH &amp; CATATAN PRIVAT&#xa;(hanya untuk yang ditugaskan)" style="swimlane;startSize=44;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1;fontSize=15;fontColor=#64142d;" vertex="1" parent="1">
+          <mxGeometry x="1280" y="40" width="600" height="780" as="geometry" />
+        </mxCell>
+        <mxCell id="r1" value="Admin Sistem / Superadmin&#xa;Kelola akun, role, kegiatan, rubrik, penugasan, finalisasi, publikasi, ekspor. Satu-satunya yang mengubah rubrik dan impor tes." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;align=left;spacingLeft=12;fontSize=13;" vertex="1" parent="l3">
+          <mxGeometry x="25" y="70" width="550" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="r2" value="Observer&#xa;Nilai dan catatan independen pada kegiatan tugasnya. Baca riwayat perubahan dan penilaian Observer lain (baca-saja). Tidak bisa mengubah rubrik." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;align=left;spacingLeft=12;fontSize=13;" vertex="1" parent="l3">
+          <mxGeometry x="25" y="235" width="550" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="r3" value="Instruktur yang ditugaskan&#xa;Keenam subrole boleh mengisi skor, bukti, dan catatan sendiri pada kegiatan tugasnya. Catatan penulis lain tidak dapat diakses." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;align=left;spacingLeft=12;fontSize=13;" vertex="1" parent="l3">
+          <mxGeometry x="25" y="400" width="550" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="r4" value="Aturan penting:&#xa;• catatan tidak otomatis masuk rapor&#xa;• rekomendasi perlu persetujuan&#xa;• revisi menyimpan pelaku, waktu, nilai anteseden" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#b85450;align=left;spacingLeft=12;fontSize=12;dashed=1;" vertex="1" parent="l3">
+          <mxGeometry x="25" y="565" width="550" height="140" as="geometry" />
+        </mxCell>
+
+        <mxCell id="foot" value="Izin diperiksa di server dan kebijakan akses basis data (RLS). Menyembunyikan menu saja bukan pengamanan.&#xa;Semua perubahan nilai, catatan, publikasi, dan ekspor tercatat di tabel riwayat/audit." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=center;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="40" y="855" width="1840" height="70" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

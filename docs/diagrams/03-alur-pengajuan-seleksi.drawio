@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" version="26.0.0">
+  <diagram name="Alur Pengajuan dan Seleksi">
+    <mxGraphModel>
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="laneK" value="KOMISARIAT" style="swimlane;startSize=36;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=15;fontColor=#2d5a27;" vertex="1" parent="1">
+          <mxGeometry x="40" y="40" width="600" height="1060" as="geometry" />
+        </mxCell>
+        <mxCell id="laneO" value="OBSERVER / ADMIN SISTEM" style="swimlane;startSize=36;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=15;fontColor=#1a3d6b;" vertex="1" parent="1">
+          <mxGeometry x="660" y="40" width="600" height="1060" as="geometry" />
+        </mxCell>
+        <mxCell id="laneH" value="HASIL &amp; UNDUHAN" style="swimlane;startSize=36;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;fontSize=15;fontColor=#7a5b00;" vertex="1" parent="1">
+          <mxGeometry x="1280" y="40" width="600" height="1060" as="geometry" />
+        </mxCell>
+
+        <mxCell id="k1" value="Buat draf pengajuan&#xa;beberapa peserta, 1 Surat Mandat,&#xa;foto peserta opsional" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontSize=13;" vertex="1" parent="laneK">
+          <mxGeometry x="40" y="70" width="520" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="k2" value="Kirim pengajuan&#xa;(sebelum ditinjau boleh dibatalkan &amp; diubah)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontSize=13;" vertex="1" parent="laneK">
+          <mxGeometry x="40" y="240" width="520" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="k3" value="Lihat status&#xa;Hasil belum terlihat sampai Observer menekan&quot;Terbitkan hasil&quot;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontSize=13;" vertex="1" parent="laneK">
+          <mxGeometry x="40" y="400" width="520" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="k4" value="Perbaiki &amp; kirim ulang&#xa;(hanya sebelum peninjauan dimulai)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#82b366;dashed=1;fontSize=13;" vertex="1" parent="laneK">
+          <mxGeometry x="40" y="560" width="520" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="o1" value="Mulai tinjauan&#xa;Pengajuan terkunci, tidak bisa diedit Komisariat" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=13;" vertex="1" parent="laneO">
+          <mxGeometry x="40" y="240" width="520" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="o2" value="Seleksi administrasi&#xa;Validasi berkas, tetapkan Lolos / Tidak Lolos,&#xa;isi alasan singkat bila perlu" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=13;" vertex="1" parent="laneO">
+          <mxGeometry x="40" y="400" width="520" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="o3" value="Terbitkan hasil administrasi&#xa;(aksi eksplisit Observer)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=13;" vertex="1" parent="laneO">
+          <mxGeometry x="40" y="560" width="520" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="d1" value="Lolos administrasi?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;" vertex="1" parent="laneO">
+          <mxGeometry x="110" y="700" width="380" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="o4" value="Screening peserta&#xa;Boleh tambah peserta baru; tetapkan&#xa;Lolos / Tidak Lolos" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=13;" vertex="1" parent="laneO">
+          <mxGeometry x="40" y="850" width="520" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="o5" value="Terbitkan hasil screening&#xa;Daftar peserta final untuk penilaian" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=13;" vertex="1" parent="laneO">
+          <mxGeometry x="40" y="1000" width="520" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="h1" value="Hasil administrasi&#xa;dapat diunduh&#xa;(Excel / PDF)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d6b656;fontSize=13;" vertex="1" parent="laneH">
+          <mxGeometry x="40" y="560" width="520" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="h2" value="Tidak Lolos&#xa;Alasan singkat tampil di web&#xa;dan berkas unduhan" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=13;" vertex="1" parent="laneH">
+          <mxGeometry x="40" y="700" width="520" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="h3" value="Hasil screening&#xa;dapat diunduh&#xa;(Excel / PDF)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d6b656;fontSize=13;" vertex="1" parent="laneH">
+          <mxGeometry x="40" y="1000" width="520" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e1" value="kirim" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;fontSize=12;endArrow=block;" edge="1" parent="1" source="k1" target="k2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" value="mulai tinjau" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;fontSize=12;endArrow=block;" edge="1" parent="1" source="k2" target="o1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;endArrow=block;" edge="1" parent="1" source="o1" target="o2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;endArrow=block;" edge="1" parent="1" source="o2" target="o3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" value="terbitkan" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;fontSize=12;endArrow=block;" edge="1" parent="1" source="o3" target="h1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e7" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;endArrow=block;" edge="1" parent="1" source="o3" target="d1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e8" value="Ya" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;fontSize=12;endArrow=block;" edge="1" parent="1" source="d1" target="o4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e9" value="Tidak" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;fontSize=12;endArrow=block;" edge="1" parent="1" source="d1" target="h2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e10" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;endArrow=block;" edge="1" parent="1" source="o4" target="o5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e11" value="terbitkan" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;fontSize=12;endArrow=block;" edge="1" parent="1" source="o5" target="h3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="foot" value="Catatan: hanya peserta berstatus Lolos pada seleksi administrasi yang diteruskan ke screening.&#xa;Perubahan jumlah peserta saat screening wajib dicatat. Surat Mandat tambahan diperlukan bila ada peserta baru." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;align=center;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="40" y="1190" width="1840" height="70" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

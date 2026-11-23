@@ -276,4 +276,8 @@ Jangan mengarang keputusan di bawah. Tanyakan satu per satu saat diperlukan:
 - Retensi/penghapusan data dan backup untuk penggunaan resmi.
 - Pilihan username/password atau token bagi peserta.
 
+## Koreksi alur 23 November 2026
+
+Keputusan pemilik atas koreksi alur tercatat lengkap di `docs/KEPUTUSAN-KOREKSI-ALUR.md` dan mengubah sebagian rancangan di atas: sinkronisasi tampilan antar penilai tanpa penyatuan nilai, pelaku persetujuan dibatasi Admin dan empat subrole koordinator, satu rekomendasi per peserta per jenis penilaian, aksi setuju hingga terbit rapor digabung, satu tombol finalisasi semua materi dengan snapshot tetap per jenis, perapian rapor hanya di web, serta cara input nilai tidak diubah. Beberapa hal masih terbuka dan tercantum di dokumen tersebut.
+
 

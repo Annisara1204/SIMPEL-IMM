@@ -1600,13 +1600,17 @@ p {
   background: var(--color-surface);
 }
 .observation-participant {
-  border-top: 1px solid var(--color-border-soft);
-  padding: 12px 0;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-surface);
+  padding: 12px 14px;
+  margin-bottom: 12px;
 }
 .observation-participant summary {
   cursor: pointer;
   font-weight: 700;
-  color: #46393f;
+  color: var(--color-primary-dark);
+  list-style-position: inside;
 }
 .observation-aspect {
   padding: 10px 0;
@@ -1625,10 +1629,13 @@ p {
 .observation-indicator {
   display: grid;
   grid-template-columns: minmax(160px, 0.8fr) minmax(250px, 1.2fr);
-  gap: 14px;
+  gap: 16px;
   align-items: start;
-  border-top: 1px solid #f1edef;
-  padding: 12px 0;
+  border-top: 1px solid var(--color-border-soft);
+  padding: 14px 0;
+}
+.observation-indicator:first-of-type {
+  border-top: 0;
 }
 .observation-indicator > div:first-child {
   display: grid;
@@ -1642,7 +1649,8 @@ p {
 .observation-cell {
   display: grid;
   grid-template-columns: 160px 1fr;
-  gap: 8px;
+  column-gap: 12px;
+  row-gap: 10px;
   align-items: start;
 }
 .observation-cell label {
@@ -2445,8 +2453,13 @@ p {
   grid-column: 1/-1;
   border: 1px solid var(--color-border);
   border-radius: 8px;
-  padding: 10px;
+  background: var(--color-surface-soft);
+  padding: 10px 12px;
   font-size: 11px;
+}
+.rubric-score-guide > summary,
+.observer-notes > summary {
+  letter-spacing: 0.01em;
 }
 .rubric-score-guide summary,
 .observer-notes > summary {
@@ -2459,10 +2472,23 @@ p {
   color: var(--color-label);
   line-height: 1.5;
 }
+.peer-submission-status {
+  color: var(--muted-warm);
+  font-size: 11px;
+}
+.assessment-save-status {
+  grid-column: 1/-1;
+  color: var(--muted-warm);
+  font-size: 10px;
+}
 .rubric-selected-description {
   grid-column: 1/-1;
   margin: 0;
-  color: #51454a;
+  padding: 8px 10px;
+  border-left: 3px solid var(--color-primary);
+  border-radius: 4px;
+  background: var(--color-primary-wash);
+  color: var(--color-label);
   font-size: 11px;
   line-height: 1.5;
 }
@@ -3052,6 +3078,30 @@ p {
 .report-preview li {
   margin: 6px 0;
   line-height: 1.5;
+}
+.report-narrative {
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface-soft);
+  padding: 9px 12px;
+  margin: 8px 0;
+  font-size: 12px;
+}
+.report-narrative > summary {
+  cursor: pointer;
+  font-weight: 700;
+  color: var(--color-primary-dark);
+}
+.report-narrative p,
+.report-narrative li {
+  margin: 6px 0;
+  line-height: 1.5;
+}
+.report-export-grid {
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-surface-soft);
+  padding: 14px;
 }
 .agenda-status.published {
   background: #e8f5ed;

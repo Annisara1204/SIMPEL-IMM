@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" version="26.0.0">
+  <diagram name="Arsitektur Sistem">
+    <mxGraphModel>
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="u" value="PENGGUNA — siapa yang mengakses" style="swimlane;startSize=34;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1;fontSize=15;fontColor=#64142d;" vertex="1" parent="1">
+          <mxGeometry x="40" y="40" width="1880" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="u1" value="Publik&#xa;(tanpa login)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;fontSize=13;" vertex="1" parent="u">
+          <mxGeometry x="20" y="50" width="240" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="u2" value="Admin Sistem&#xa;/ Superadmin" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;fontSize=13;" vertex="1" parent="u">
+          <mxGeometry x="280" y="50" width="240" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="u3" value="Bidang Kader" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;fontSize=13;" vertex="1" parent="u">
+          <mxGeometry x="540" y="50" width="240" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="u4" value="Observer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;fontSize=13;" vertex="1" parent="u">
+          <mxGeometry x="800" y="50" width="240" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="u5" value="Instruktur&#xa;(6 subrole)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;fontSize=13;" vertex="1" parent="u">
+          <mxGeometry x="1060" y="50" width="240" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="u6" value="Komisariat" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;fontSize=13;" vertex="1" parent="u">
+          <mxGeometry x="1320" y="50" width="240" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="u7" value="Peserta&#xa;(akun belum ada)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;dashed=1;fontSize=13;" vertex="1" parent="u">
+          <mxGeometry x="1580" y="50" width="240" height="90" as="geometry" />
+        </mxCell>
+
+        <mxCell id="a" value="APLIKASI — Next.js 16 + TypeScript (tampilan di browser &amp; Server Action di server)" style="swimlane;startSize=34;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=15;fontColor=#1a3d6b;" vertex="1" parent="1">
+          <mxGeometry x="40" y="240" width="1880" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="a1" value="Portal publik&#xa;&amp; halaman login" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=13;" vertex="1" parent="a">
+          <mxGeometry x="20" y="50" width="240" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="a2" value="Dashboard&#xa;sesuai peran" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=13;" vertex="1" parent="a">
+          <mxGeometry x="280" y="50" width="240" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="a3" value="Observasi&#xa;autosave, konflik, realtime" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=13;" vertex="1" parent="a">
+          <mxGeometry x="540" y="50" width="240" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="a4" value="Pengaturan Penilaian&#xa;&amp; rubrik berversi" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=13;" vertex="1" parent="a">
+          <mxGeometry x="800" y="50" width="240" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="a5" value="Evaluasi Kolektif&#xa;&amp; finalisasi" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=13;" vertex="1" parent="a">
+          <mxGeometry x="1060" y="50" width="240" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="a6" value="Laporan, rapor&#xa;&amp; ekspor" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=13;" vertex="1" parent="a">
+          <mxGeometry x="1320" y="50" width="240" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="a7" value="Analitik &amp; rekap&#xa;lintas kegiatan" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=13;" vertex="1" parent="a">
+          <mxGeometry x="1580" y="50" width="240" height="90" as="geometry" />
+        </mxCell>
+
+        <mxCell id="b" value="BACKEND — Supabase (login, basis data, berkas, siaran langsung)" style="swimlane;startSize=34;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=15;fontColor=#2d5a27;" vertex="1" parent="1">
+          <mxGeometry x="40" y="450" width="1880" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="b1" value="Auth&#xa;email + kata sandi / username, JWT, sesi" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontSize=13;" vertex="1" parent="b">
+          <mxGeometry x="20" y="50" width="420" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="b2" value="PostgreSQL&#xa;53 tabel, RLS, aturan akses di server" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontSize=13;" vertex="1" parent="b">
+          <mxGeometry x="480" y="50" width="420" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="b3" value="Storage&#xa;4 bucket privat (foto, surat mandat)" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontSize=13;" vertex="1" parent="b">
+          <mxGeometry x="940" y="50" width="420" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="b4" value="Realtime&#xa;perubahan nilai langsung tampil" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontSize=13;" vertex="1" parent="b">
+          <mxGeometry x="1400" y="50" width="420" height="90" as="geometry" />
+        </mxCell>
+
+        <mxCell id="c" value="INFRASTRUKTUR &amp; PIHAK EKSTERNAL" style="swimlane;startSize=34;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;fontSize=15;fontColor=#7a5b00;" vertex="1" parent="1">
+          <mxGeometry x="40" y="660" width="1880" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="c1" value="VPS Ubuntu 24.04&#xa;43.173.33.195" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d6b656;fontSize=13;" vertex="1" parent="c">
+          <mxGeometry x="20" y="50" width="280" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="c2" value="nginx :8080&#xa;reverse proxy" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d6b656;fontSize=13;" vertex="1" parent="c">
+          <mxGeometry x="320" y="50" width="280" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="c3" value="pm2 :3000&#xa;Node.js 22" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d6b656;fontSize=13;" vertex="1" parent="c">
+          <mxGeometry x="620" y="50" width="280" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="c4" value="Backup basis data&#xa;harian 03:15 (14 hari)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d6b656;fontSize=13;" vertex="1" parent="c">
+          <mxGeometry x="920" y="50" width="280" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="c5" value="Google Sheets&#xa;impor tes — ditunda" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;dashed=1;fontSize=13;" vertex="1" parent="c">
+          <mxGeometry x="1220" y="50" width="280" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="c6" value="AI&#xa;ditunda, bukan penentu skor" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;dashed=1;fontSize=13;" vertex="1" parent="c">
+          <mxGeometry x="1520" y="50" width="280" height="90" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e1" value="akses lewat browser (HTTPS/HTTP)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;fontSize=12;endArrow=block;" edge="1" parent="1" source="u" target="a">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" value="Server Action / klien Supabase — izin dicek di server &amp; RLS" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;fontSize=12;endArrow=block;" edge="1" parent="1" source="a" target="b">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="note" value="Catatan: aplikasi sudah live di http://43.173.33.195:8080/ (HTTP, belum ada domain/TLS).&#xa;Data masih simulasi. Publik hanya melihat agregat yang aman." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;align=left;spacingLeft=12;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="40" y="860" width="1880" height="60" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

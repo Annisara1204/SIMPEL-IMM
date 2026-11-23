@@ -20,6 +20,8 @@ type Props = {
   searchParams: Promise<{
     eventId?: string | string[];
     participantId?: string | string[];
+    snapshotId?: string | string[];
+    published?: string | string[];
   }>;
 };
 const one = (value: string | string[] | undefined) =>
@@ -49,6 +51,8 @@ export default async function ReportingPage({ searchParams }: Props) {
   const params = await searchParams;
   const requestedEventId = one(params.eventId);
   const participantId = one(params.participantId);
+  const justPublished = one(params.published) === "1";
+  const autoDownloadSnapshotId = justPublished ? one(params.snapshotId) : null;
 
   if (role === "peserta") {
     const { data, error } = await supabase.rpc(
@@ -218,6 +222,7 @@ export default async function ReportingPage({ searchParams }: Props) {
       reportError={reportError?.message ?? null}
       publishAction={publishReport}
       assignAction={assignParticipantAccount}
+      autoDownloadSnapshotId={autoDownloadSnapshotId ?? null}
     />
   );
 }

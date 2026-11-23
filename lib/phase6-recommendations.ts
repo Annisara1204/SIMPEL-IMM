@@ -9,12 +9,11 @@ export type LowScoreIndicator = {
 export type DraftRecommendation = {
   key: string;
   recommendation: string;
-  evidenceReference: {
+  evidenceReferences: {
     kind: "auto_low_indicator";
     indicatorId: string;
     scopeKey: string;
-    score: number;
-  };
+  }[];
 };
 
 const adviceByAspect: Record<string, string> = {
@@ -32,11 +31,19 @@ const adviceByAspect: Record<string, string> = {
     "Susun satu langkah tindak lanjut yang spesifik beserta penanggung jawab dan waktunya, kemudian cek kemajuannya pada sesi berikutnya.",
 };
 
+const fallbackAdvice =
+  "Diskusikan latihan sederhana yang relevan, sepakati target yang dapat diamati, lalu tinjau kembali dengan bukti pada sesi berikutnya.";
+
+/**
+ * Satu draf rekomendasi untuk satu evaluasi. Semua indikator dengan rata-rata
+ * di bawah ambang disebut, tanpa menuliskan angka skor. Saran tetap umum per
+ * aspek dan deterministik, sesuai batasan produk.
+ */
 export function buildLowScoreRecommendations(
   indicators: LowScoreIndicator[],
   threshold = 3,
-): DraftRecommendation[] {
-  const lowestByIndicator = new Map<string, LowScoreIndicator>();
+): DraftRecommendation | null {
+  const lowById = new Map<string, LowScoreIndicator>();
   for (const item of indicators) {
     if (
       item.score === null ||
@@ -44,26 +51,36 @@ export function buildLowScoreRecommendations(
       item.score >= threshold
     )
       continue;
-    const current = lowestByIndicator.get(item.indicatorId);
+    const current = lowById.get(item.indicatorId);
     if (!current || item.score < current.score!)
-      lowestByIndicator.set(item.indicatorId, item);
+      lowById.set(item.indicatorId, item);
   }
+  if (lowById.size === 0) return null;
 
-  return [...lowestByIndicator.values()].map((item) => {
-    const aspectKey = item.aspectName.trim().toLocaleLowerCase("id-ID");
-    const advice =
-      adviceByAspect[aspectKey] ??
-      "Diskusikan latihan sederhana yang relevan dengan indikator ini, sepakati target yang dapat diamati, lalu tinjau kembali dengan bukti pada sesi berikutnya.";
-    const score = Number(item.score!.toFixed(2));
-    return {
-      key: `${item.indicatorId}:${item.scopeKey}`,
-      recommendation: `Draf otomatis untuk indikator “${item.indicatorName}” (rata-rata ${score}/5, aspek ${item.aspectName}): ${advice}`,
-      evidenceReference: {
-        kind: "auto_low_indicator",
-        indicatorId: item.indicatorId,
-        scopeKey: item.scopeKey,
-        score,
-      },
-    };
-  });
+  const items = [...lowById.values()];
+  const describe = (item: LowScoreIndicator) =>
+    `“${item.indicatorName}” (aspek ${item.aspectName})`;
+  let nameList = items.map(describe).join(", ");
+  if (nameList.length > 900) {
+    nameList =
+      items.slice(0, 8).map(describe).join(", ") + ", dan indikator lainnya";
+  }
+  const advice = [
+    ...new Set(
+      items.map((item) => {
+        const key = item.aspectName.trim().toLocaleLowerCase("id-ID");
+        return adviceByAspect[key] ?? fallbackAdvice;
+      }),
+    ),
+  ].join(" ");
+
+  return {
+    key: "auto",
+    recommendation: `Draf otomatis untuk indikator dengan rata-rata di bawah 3/5: ${nameList}. ${advice}`,
+    evidenceReferences: items.map((item) => ({
+      kind: "auto_low_indicator",
+      indicatorId: item.indicatorId,
+      scopeKey: item.scopeKey,
+    })),
+  };
 }

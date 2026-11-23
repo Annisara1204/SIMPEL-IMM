@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" version="26.0.0">
+  <diagram name="Peta Halaman per Role">
+    <mxGraphModel>
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="r1" value="ADMIN SISTEM / SUPERADMIN — mengelola sistem" style="swimlane;startSize=32;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1;fontSize=14;fontColor=#64142d;" vertex="1" parent="1">
+          <mxGeometry x="40" y="40" width="1880" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="a1" value="Dashboard" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;fontSize=11;" vertex="1" parent="r1"><mxGeometry x="20" y="45" width="250" height="55" as="geometry" /></mxCell>
+        <mxCell id="a2" value="Pengguna" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;fontSize=11;" vertex="1" parent="r1"><mxGeometry x="282" y="45" width="250" height="55" as="geometry" /></mxCell>
+        <mxCell id="a3" value="Komisariat" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;fontSize=11;" vertex="1" parent="r1"><mxGeometry x="544" y="45" width="250" height="55" as="geometry" /></mxCell>
+        <mxCell id="a4" value="Kegiatan DAD" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;fontSize=11;" vertex="1" parent="r1"><mxGeometry x="806" y="45" width="250" height="55" as="geometry" /></mxCell>
+        <mxCell id="a5" value="Peserta" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;fontSize=11;" vertex="1" parent="r1"><mxGeometry x="1068" y="45" width="250" height="55" as="geometry" /></mxCell>
+        <mxCell id="a6" value="Pengaturan Penilaian" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;fontSize=11;" vertex="1" parent="r1"><mxGeometry x="1330" y="45" width="250" height="55" as="geometry" /></mxCell>
+        <mxCell id="a7" value="Kerangka DAD" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;fontSize=11;" vertex="1" parent="r1"><mxGeometry x="1592" y="45" width="250" height="55" as="geometry" /></mxCell>
+        <mxCell id="a8" value="Seleksi Komisariat" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;fontSize=11;" vertex="1" parent="r1"><mxGeometry x="20" y="110" width="250" height="55" as="geometry" /></mxCell>
+        <mxCell id="a9" value="Evaluasi Kolektif" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;fontSize=11;" vertex="1" parent="r1"><mxGeometry x="282" y="110" width="250" height="55" as="geometry" /></mxCell>
+        <mxCell id="a10" value="Analitik &amp; Rekap" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;fontSize=11;" vertex="1" parent="r1"><mxGeometry x="544" y="110" width="250" height="55" as="geometry" /></mxCell>
+        <mxCell id="a11" value="Laporan &amp; Rapor" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;fontSize=11;" vertex="1" parent="r1"><mxGeometry x="806" y="110" width="250" height="55" as="geometry" /></mxCell>
+        <mxCell id="a12" value="Impor Hasil Tes" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;fontSize=11;" vertex="1" parent="r1"><mxGeometry x="1068" y="110" width="250" height="55" as="geometry" /></mxCell>
+        <mxCell id="a13" value="Profil Instruktur" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;fontSize=11;" vertex="1" parent="r1"><mxGeometry x="1330" y="110" width="250" height="55" as="geometry" /></mxCell>
+        <mxCell id="a14" value="Profil saya" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;fontSize=11;" vertex="1" parent="r1"><mxGeometry x="1592" y="110" width="250" height="55" as="geometry" /></mxCell>
+
+        <mxCell id="r2" value="BIDANG KADER — memantau dan melaporkan" style="swimlane;startSize=32;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;fontSize=14;fontColor=#7a5b00;" vertex="1" parent="1">
+          <mxGeometry x="40" y="270" width="1880" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="b1" value="Dashboard" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="r2"><mxGeometry x="20" y="50" width="250" height="55" as="geometry" /></mxCell>
+        <mxCell id="b2" value="Pengaturan Penilaian" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="r2"><mxGeometry x="282" y="50" width="250" height="55" as="geometry" /></mxCell>
+        <mxCell id="b3" value="Kerangka DAD" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="r2"><mxGeometry x="544" y="50" width="250" height="55" as="geometry" /></mxCell>
+        <mxCell id="b4" value="Evaluasi Kolektif" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="r2"><mxGeometry x="806" y="50" width="250" height="55" as="geometry" /></mxCell>
+        <mxCell id="b5" value="Analitik &amp; Rekap" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="r2"><mxGeometry x="1068" y="50" width="250" height="55" as="geometry" /></mxCell>
+        <mxCell id="b6" value="Laporan &amp; Rapor" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="r2"><mxGeometry x="1330" y="50" width="250" height="55" as="geometry" /></mxCell>
+        <mxCell id="b7" value="Profil saya / Instruktur" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="r2"><mxGeometry x="1592" y="50" width="250" height="55" as="geometry" /></mxCell>
+
+        <mxCell id="r3" value="OBSERVER — menilai pada kegiatan yang ditugaskan" style="swimlane;startSize=32;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=14;fontColor=#1a3d6b;" vertex="1" parent="1">
+          <mxGeometry x="40" y="430" width="1880" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="c1" value="Dashboard" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="r3"><mxGeometry x="20" y="50" width="250" height="55" as="geometry" /></mxCell>
+        <mxCell id="c2" value="Kegiatan DAD" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="r3"><mxGeometry x="282" y="50" width="250" height="55" as="geometry" /></mxCell>
+        <mxCell id="c3" value="Peserta" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="r3"><mxGeometry x="544" y="50" width="250" height="55" as="geometry" /></mxCell>
+        <mxCell id="c4" value="Observasi" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="r3"><mxGeometry x="806" y="50" width="250" height="55" as="geometry" /></mxCell>
+        <mxCell id="c5" value="Kerangka DAD" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="r3"><mxGeometry x="1068" y="50" width="250" height="55" as="geometry" /></mxCell>
+        <mxCell id="c6" value="Seleksi Komisariat" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="r3"><mxGeometry x="1330" y="50" width="250" height="55" as="geometry" /></mxCell>
+        <mxCell id="c7" value="Profil saya / Instruktur" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="r3"><mxGeometry x="1592" y="50" width="250" height="55" as="geometry" /></mxCell>
+
+        <mxCell id="r4" value="INSTRUKTUR — 6 subrole (MoT, Vice MoT, IoT, Vice IoT, Master/Vice Observer)" style="swimlane;startSize=32;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1;fontSize=14;fontColor=#5b3b6b;" vertex="1" parent="1">
+          <mxGeometry x="40" y="590" width="1880" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="d1" value="Dashboard + checklist tugas" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#9673a6;fontSize=11;" vertex="1" parent="r4"><mxGeometry x="20" y="50" width="250" height="55" as="geometry" /></mxCell>
+        <mxCell id="d2" value="Profil Peserta" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#9673a6;fontSize=11;" vertex="1" parent="r4"><mxGeometry x="282" y="50" width="250" height="55" as="geometry" /></mxCell>
+        <mxCell id="d3" value="Observasi" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#9673a6;fontSize=11;" vertex="1" parent="r4"><mxGeometry x="544" y="50" width="250" height="55" as="geometry" /></mxCell>
+        <mxCell id="d4" value="Evaluasi Kolektif*" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#9673a6;fontSize=11;" vertex="1" parent="r4"><mxGeometry x="806" y="50" width="250" height="55" as="geometry" /></mxCell>
+        <mxCell id="d5" value="Laporan &amp; Rapor*" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#9673a6;fontSize=11;" vertex="1" parent="r4"><mxGeometry x="1068" y="50" width="250" height="55" as="geometry" /></mxCell>
+        <mxCell id="d6" value="Kerangka DAD" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#9673a6;fontSize=11;" vertex="1" parent="r4"><mxGeometry x="1330" y="50" width="250" height="55" as="geometry" /></mxCell>
+        <mxCell id="d7" value="Profil saya / Instruktur" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#9673a6;fontSize=11;" vertex="1" parent="r4"><mxGeometry x="1592" y="50" width="250" height="55" as="geometry" /></mxCell>
+
+        <mxCell id="r5" value="KOMISARIAT &amp; PESERTA &amp; PUBLIK" style="swimlane;startSize=32;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=14;fontColor=#2d5a27;" vertex="1" parent="1">
+          <mxGeometry x="40" y="750" width="1880" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="f1" value="Komisariat: Dashboard + Pengajuan Peserta" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontSize=11;" vertex="1" parent="r5"><mxGeometry x="20" y="50" width="440" height="65" as="geometry" /></mxCell>
+        <mxCell id="f2" value="Peserta: Dashboard + Laporan &amp; Rapor" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontSize=11;" vertex="1" parent="r5"><mxGeometry x="480" y="50" width="440" height="65" as="geometry" /></mxCell>
+        <mxCell id="f3" value="Publik: beranda informasi (tanpa login)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontSize=11;" vertex="1" parent="r5"><mxGeometry x="940" y="50" width="440" height="65" as="geometry" /></mxCell>
+        <mxCell id="f4" value="Semua peran: Profil saya" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontSize=11;" vertex="1" parent="r5"><mxGeometry x="1400" y="50" width="440" height="65" as="geometry" /></mxCell>
+
+        <mxCell id="foot" value="*) Evaluasi Kolektif &amp; Laporan hanya untuk subrole moderator: MoT, Vice MoT, Master Observer, Vice Observer. IoT / Vice IoT dialihkan ke dashboard.&#xa;Menu ini tersedia bila peran dan penugasan sesuai; akses tetap diperiksa di server dan basis data." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;align=center;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="40" y="935" width="1880" height="70" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

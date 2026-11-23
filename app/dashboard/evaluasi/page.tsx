@@ -15,12 +15,14 @@ import type {
   RubricVersionJoined,
 } from "@/lib/supabase-rows";
 import {
-  addDevelopmentRecommendation,
   approveDevelopmentRecommendation,
+  approveFinalizePublishReport,
+  finalizeAllEvaluations,
   finalizeCollectiveEvaluation,
   generateAutomaticRecommendations,
   saveAssessmentModeration,
   saveCollectiveEvaluation,
+  updateDevelopmentRecommendation,
 } from "./actions";
 import { DataUnavailable } from "@/components/data-unavailable";
 
@@ -29,6 +31,9 @@ type Props = {
     eventId?: string | string[];
     participantId?: string | string[];
     versionId?: string | string[];
+    batchOk?: string | string[];
+    batchSkipped?: string | string[];
+    batchMissing?: string | string[];
   }>;
 };
 export default async function CollectiveEvaluationPage({
@@ -65,6 +70,29 @@ export default async function CollectiveEvaluationPage({
   const participantId = Array.isArray(params.participantId)
     ? params.participantId[0]
     : params.participantId;
+  const batchResult =
+    params.batchOk || params.batchSkipped || params.batchMissing
+      ? {
+          ok:
+            Number(
+              Array.isArray(params.batchOk)
+                ? params.batchOk[0]
+                : params.batchOk,
+            ) || 0,
+          skipped:
+            Number(
+              Array.isArray(params.batchSkipped)
+                ? params.batchSkipped[0]
+                : params.batchSkipped,
+            ) || 0,
+          missing:
+            Number(
+              Array.isArray(params.batchMissing)
+                ? params.batchMissing[0]
+                : params.batchMissing,
+            ) || 0,
+        }
+      : null;
   const { data: events } = await supabase
     .from("events")
     .select("id,name,starts_on,ends_on")
@@ -176,6 +204,7 @@ export default async function CollectiveEvaluationPage({
         .from("development_recommendations")
         .select("id,recommendation,status,approved_at")
         .eq("evaluation_id", evaluation.id)
+        .eq("is_active", true)
     : { data: [] };
   let sourceRatings: {
     rubric_version_id: string;
@@ -296,6 +325,12 @@ export default async function CollectiveEvaluationPage({
 
   return (
     <main className="users-page">
+      {batchResult && (
+        <div className="users-notice" role="status">
+          Finalisasi semua: {batchResult.ok} berhasil, {batchResult.skipped}{" "}
+          dilewati, {batchResult.missing} versi rubrik belum punya evaluasi.
+        </div>
+      )}
       <div className="users-heading">
         <div>
           <p className="login-eyebrow">EVALUASI KOLEKTIF</p>
@@ -703,6 +738,21 @@ export default async function CollectiveEvaluationPage({
             {isModerator && (
               <>
                 <h3>Evaluasi kolektif dan keputusan</h3>
+                <form
+                  action={finalizeAllEvaluations}
+                  className="rubric-add-form"
+                >
+                  <input type="hidden" name="eventId" value={eventId} />
+                  <p>
+                    Finalisasi semua evaluasi draf pada kegiatan ini yang sudah
+                    memiliki keputusan dan alasan. Setiap jenis tetap
+                    menghasilkan snapshot tersendiri; evaluasi yang belum siap
+                    dilewati.
+                  </p>
+                  <button type="submit">
+                    Finalisasi semua materi yang siap
+                  </button>
+                </form>
                 <p className="data-caption">
                   Jenis penilaian yang difinalisasi pada bagian ini:{" "}
                   {(() => {
@@ -803,6 +853,29 @@ export default async function CollectiveEvaluationPage({
                       readOnly={evaluation?.status === "finalized"}
                     />
                   </label>
+                  <label>
+                    Keputusan kelulusan (untuk finalisasi semua)
+                    <select
+                      name="decision"
+                      defaultValue={evaluation?.graduation_decision ?? ""}
+                    >
+                      <option value="">Belum diputuskan</option>
+                      <option value="pass">Lulus</option>
+                      <option value="not_pass">Tidak Lulus</option>
+                      <option value="further_discussion">
+                        Perlu Pembahasan Lanjutan
+                      </option>
+                    </select>
+                  </label>
+                  <label>
+                    Alasan keputusan
+                    <textarea
+                      name="decisionRationale"
+                      minLength={10}
+                      defaultValue={evaluation?.decision_rationale ?? ""}
+                      readOnly={evaluation?.status === "finalized"}
+                    />
+                  </label>
                   {evaluation?.status !== "finalized" && (
                     <button type="submit">Simpan draf evaluasi</button>
                   )}
@@ -825,45 +898,45 @@ export default async function CollectiveEvaluationPage({
                         value={selectedVersionId ?? ""}
                       />
                       <p>
-                        Sistem membuat draf saran dari indikator dengan
-                        rata-rata skor di bawah 3/5. Draf tidak otomatis
-                        disetujui dan perlu ditinjau instruktur.
+                        Sistem membuat satu draf rekomendasi dari indikator
+                        dengan rata-rata di bawah 3/5. Angka skor tidak ditulis.
+                        Koordinator dapat menyunting draf sebelum menyetujuinya.
                       </p>
                       <button type="submit">
-                        Buat draf rekomendasi otomatis
-                      </button>
-                    </form>
-                    <form
-                      action={addDevelopmentRecommendation}
-                      className="rubric-add-form"
-                    >
-                      <input
-                        type="hidden"
-                        name="evaluationId"
-                        value={evaluation?.id ?? ""}
-                      />
-                      <label>
-                        Rekomendasi pengembangan baru
-                        <textarea
-                          name="recommendation"
-                          required
-                          minLength={10}
-                        />
-                      </label>
-                      <button type="submit" disabled={!evaluation?.id}>
-                        Tambahkan rekomendasi manual
+                        Buat atau perbarui draf rekomendasi
                       </button>
                     </form>
                   </>
                 )}
                 {(recommendations ?? []).map((recommendation) => (
                   <div className="assignment-row" key={recommendation.id}>
-                    <span>
-                      {recommendation.recommendation} ·{" "}
-                      {recommendation.status === "approved"
-                        ? "Disetujui"
-                        : "Draf"}
-                    </span>
+                    {recommendation.status === "draft" &&
+                    evaluation?.status !== "finalized" ? (
+                      <form
+                        action={updateDevelopmentRecommendation}
+                        className="rubric-add-form"
+                      >
+                        <input
+                          type="hidden"
+                          name="recommendationId"
+                          value={recommendation.id}
+                        />
+                        <label>
+                          Sunting draf rekomendasi
+                          <textarea
+                            name="recommendation"
+                            required
+                            minLength={10}
+                            maxLength={2000}
+                            rows={6}
+                            defaultValue={recommendation.recommendation}
+                          />
+                        </label>
+                        <button type="submit">Simpan suntingan</button>
+                      </form>
+                    ) : (
+                      <span>{recommendation.recommendation} · Disetujui</span>
+                    )}
                     {recommendation.status === "draft" && (
                       <form action={approveDevelopmentRecommendation}>
                         <input
@@ -951,6 +1024,16 @@ export default async function CollectiveEvaluationPage({
                       }
                     >
                       Finalisasi dan simpan snapshot
+                    </button>
+                    <button
+                      className="rubric-activate"
+                      type="submit"
+                      formAction={approveFinalizePublishReport}
+                      disabled={
+                        overall.status !== "ready_for_collective_evaluation"
+                      }
+                    >
+                      Setujui, finalisasi, terbitkan, dan unduh rapor
                     </button>
                     {overall.status !== "ready_for_collective_evaluation" && (
                       <small>

@@ -214,6 +214,14 @@ export default async function ObservationsPage({
       .filter((item) => item.observer_id === userId)
       .map((item) => [item.participant_id, item]),
   );
+  // Status submission per penilai dipakai hanya untuk tampilan panel rekan.
+  const submissionStatusByObserver = new Map<string, Record<string, string>>();
+  for (const item of submissions ?? []) {
+    const byObserver =
+      submissionStatusByObserver.get(item.participant_id) ?? {};
+    byObserver[item.observer_id] = item.status;
+    submissionStatusByObserver.set(item.participant_id, byObserver);
+  }
   const stageLabel = stageOrder.find(
     (stage) => stage.id === selectedStage,
   )?.label;
@@ -699,6 +707,11 @@ export default async function ObservationsPage({
                                                 indicator.id,
                                           )}
                                           observerId={userId}
+                                          peerStatuses={
+                                            submissionStatusByObserver.get(
+                                              participant.id,
+                                            ) ?? {}
+                                          }
                                           readOnly={
                                             profile.role === "admin_system"
                                           }

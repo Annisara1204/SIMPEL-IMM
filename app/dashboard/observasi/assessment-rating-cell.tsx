@@ -12,18 +12,22 @@ type Value = {
   revision: number;
   updated_at: string | null;
 };
+type PeerRating = {
+  observer_id: string;
+  observer_name: string;
+  score: number | null;
+  response_status: ResponseStatus;
+  evidence: string;
+};
+
 type Props = {
   participantId: string;
   rubricVersionId: string;
   indicatorId: string;
   rating: Value | null;
-  peerRatings: {
-    observer_id: string;
-    observer_name: string;
-    score: number | null;
-    response_status: ResponseStatus;
-    evidence: string;
-  }[];
+  peerRatings: PeerRating[];
+  /** Status submission tiap penilai, dipakai hanya untuk tampilan. */
+  peerStatuses?: Record<string, string>;
   descriptors: Record<string, string>;
   guidance?: string | null;
   observerId: string;
@@ -96,6 +100,11 @@ export function AssessmentRatingCell(props: Props) {
   const [online, setOnline] = useState(
     () => typeof navigator === "undefined" || navigator.onLine,
   );
+  // Nilai rekan disimpan sebagai penimpa tampilan. Data utama tetap berasal dari
+  // props server, sehingga rotate halaman mengembalikan keadaan terbaru.
+  const [peerOverrides, setPeerOverrides] = useState<
+    Record<string, PeerRating>
+  >({});
 
   useEffect(() => {
     const onOnline = () => {
@@ -123,10 +132,27 @@ export function AssessmentRatingCell(props: Props) {
       if (
         detail?.table !== "assessment_ratings" ||
         row?.participant_id !== props.participantId ||
-        row?.indicator_id !== props.indicatorId ||
-        row?.observer_id !== props.observerId
+        row?.indicator_id !== props.indicatorId
       )
         return;
+      // Penilaian lain hanya memperbarui panel baca-saja. Nilai mereka tidak
+      // pernah dipakai sebagai nilai sendiri atau menimpa draf lokal.
+      if (row.observer_id !== props.observerId) {
+        const observerId = String(row.observer_id ?? "");
+        if (!observerId) return;
+        const peer: PeerRating = {
+          observer_id: observerId,
+          observer_name:
+            typeof row.observer_name === "string" && row.observer_name
+              ? row.observer_name
+              : "Observer",
+          score: typeof row.score === "number" ? row.score : null,
+          response_status: row.response_status as ResponseStatus,
+          evidence: String(row.evidence ?? ""),
+        };
+        setPeerOverrides((current) => ({ ...current, [observerId]: peer }));
+        return;
+      }
       const next: Value = {
         score: typeof row.score === "number" ? row.score : null,
         response_status: row.response_status as ResponseStatus,
@@ -229,6 +255,14 @@ export function AssessmentRatingCell(props: Props) {
     setStatus("Menerapkan ulang draf setelah konflik");
   };
 
+  const peersById = new Map<string, PeerRating>();
+  for (const item of props.peerRatings) peersById.set(item.observer_id, item);
+  for (const item of Object.values(peerOverrides))
+    peersById.set(item.observer_id, item);
+  const visiblePeers = [...peersById.values()].filter(
+    (item) => props.readOnly || item.observer_id !== props.observerId,
+  );
+
   return (
     <div className="observation-cell assessment-rating-cell">
       <label>
@@ -289,21 +323,33 @@ export function AssessmentRatingCell(props: Props) {
           placeholder="Tuliskan perilaku atau bukti konkret yang Anda amati."
         />
       </label>
-      <small aria-live="polite">{status}</small>
-      {(props.readOnly || props.peerRatings.length > 1) && (
+      <small className="assessment-save-status" aria-live="polite">
+        {status}
+      </small>
+      {visiblePeers.length > 0 && (
         <details className="rubric-score-guide">
           <summary>
             {props.readOnly
-              ? `Penilaian observer (${props.peerRatings.length})`
-              : `Penilaian observer lain (${props.peerRatings.length - 1})`}
+              ? `Penilaian observer (${visiblePeers.length})`
+              : `Penilaian observer lain (${visiblePeers.length})`}
           </summary>
-          {props.peerRatings
-            .filter(
-              (item) => props.readOnly || item.observer_id !== props.observerId,
-            )
-            .map((item) => (
+          {visiblePeers.map((item) => {
+            const submissionStatus = props.peerStatuses?.[item.observer_id];
+            const statusLabel =
+              submissionStatus === "submitted"
+                ? "Sudah kirim"
+                : submissionStatus === "finalized"
+                  ? "Final"
+                  : "Draft";
+            return (
               <article key={item.observer_id}>
                 <strong>{item.observer_name}</strong>
+                {submissionStatus && (
+                  <span className="peer-submission-status">
+                    {" "}
+                    · {statusLabel}
+                  </span>
+                )}
                 <p>
                   {item.response_status === "scored"
                     ? `Skor ${item.score}`
@@ -313,7 +359,8 @@ export function AssessmentRatingCell(props: Props) {
                 </p>
                 {item.evidence && <p>{item.evidence}</p>}
               </article>
-            ))}
+            );
+          })}
         </details>
       )}
       {conflict && (

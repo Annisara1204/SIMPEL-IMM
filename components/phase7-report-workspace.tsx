@@ -3,7 +3,7 @@ import Link from "next/link";
 
 import { useRouter } from "next/navigation";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { auditReportExport } from "@/app/dashboard/laporan/actions";
 import {
   downloadBulkReports,
@@ -64,6 +64,8 @@ type Props = {
   reportError?: string | null;
   publishAction?: Action;
   assignAction?: Action;
+  /** Snapshot yang baru diterbitkan; PDF-nya diunduh sekali setelah halaman siap. */
+  autoDownloadSnapshotId?: string | null;
 };
 
 const aspects = (data?: ReportSnapshotData | null) =>
@@ -113,6 +115,7 @@ export function Phase7ReportWorkspace(props: Props) {
     reportError,
     publishAction,
     assignAction,
+    autoDownloadSnapshotId,
   } = props;
   const [groupFilter, setGroupFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -321,23 +324,51 @@ export function Phase7ReportWorkspace(props: Props) {
       )
       .filter((item): item is ReportFileData => !!item);
 
-  async function exportIndividual(report: ReportFileData) {
-    setBusy(true);
-    setMessage("");
-    try {
-      const reportEventId =
-        event?.id ?? String(participantReport?.event?.id ?? "");
-      await auditReportExport({
-        eventId: reportEventId,
-        exportType: "individual_pdf",
-      });
-      downloadIndividualReport(report);
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "PDF gagal dibuat.");
-    } finally {
-      setBusy(false);
-    }
-  }
+  const exportIndividual = useCallback(
+    async (report: ReportFileData) => {
+      setBusy(true);
+      setMessage("");
+      try {
+        const reportEventId =
+          event?.id ?? String(participantReport?.event?.id ?? "");
+        await auditReportExport({
+          eventId: reportEventId,
+          exportType: "individual_pdf",
+        });
+        downloadIndividualReport(report);
+      } catch (error) {
+        setMessage(
+          error instanceof Error ? error.message : "PDF gagal dibuat.",
+        );
+      } finally {
+        setBusy(false);
+      }
+    },
+    [event, participantReport],
+  );
+  const autoDownloadedRef = useRef<string | null>(null);
+  useEffect(() => {
+    const snapshotId = autoDownloadSnapshotId;
+    if (!snapshotId || autoDownloadedRef.current === snapshotId) return;
+    const row = publishedRows.find((item) => item.snapshot_id === snapshotId);
+    if (!row) return;
+    const report = toReport(
+      row,
+      event,
+      indicatorNames,
+      versionInfoBySnapshot[snapshotId] ?? [],
+    );
+    if (!report) return;
+    autoDownloadedRef.current = snapshotId;
+    window.setTimeout(() => void exportIndividual(report), 0);
+  }, [
+    autoDownloadSnapshotId,
+    publishedRows,
+    event,
+    indicatorNames,
+    versionInfoBySnapshot,
+    exportIndividual,
+  ]);
   async function exportBulk() {
     const reportFiles = buildReportFiles();
     setBusy(true);
@@ -652,8 +683,8 @@ export function Phase7ReportWorkspace(props: Props) {
           <p className="login-eyebrow">LAPORAN, RAPOR & EKSPOR</p>
           <h1>Laporan dan Rapor DAD</h1>
           <p>
-            Hasil resmi hanya diambil dari snapshot final Fase 6. Catatan privat
-            Observer tidak ditampilkan di rapor.
+            Hasil resmi berasal dari snapshot final. Rapor web ini ringkas; PDF
+            tetap lengkap.
           </p>
         </div>
       </div>
@@ -726,28 +757,23 @@ export function Phase7ReportWorkspace(props: Props) {
                 <strong>{finalized.length}</strong>
               </article>
               <article>
-                <small>Masih provisional</small>
-                <strong>{provisionalCount}</strong>
-              </article>
-              <article>
                 <small>Rata-rata final</small>
                 <strong>
                   {averageOverall === null ? "—" : averageOverall.toFixed(1)}
                 </strong>
               </article>
               <article>
-                <small>Lulus</small>
-                <strong>{decisionsCount.pass}</strong>
-              </article>
-              <article>
-                <small>Tidak lulus</small>
-                <strong>{decisionsCount.not_pass}</strong>
-              </article>
-              <article>
-                <small>Perlu pembahasan</small>
-                <strong>{decisionsCount.further}</strong>
+                <small>Keputusan</small>
+                <strong>
+                  {decisionsCount.pass} / {decisionsCount.not_pass} /{" "}
+                  {decisionsCount.further}
+                </strong>
+                <small>Lulus / tidak lulus / pembahasan</small>
               </article>
             </div>
+            <p className="data-caption">
+              Masih provisional: {provisionalCount} peserta.
+            </p>
           </section>
           <section className="event-manage-card">
             <h2>Rata-rata aspek</h2>
@@ -1143,7 +1169,7 @@ export function Phase7ReportWorkspace(props: Props) {
           </section>
           <section className="event-manage-card">
             <h2>Ekspor dan laporan</h2>
-            <div className="rubric-editor-grid">
+            <div className="rubric-editor-grid report-export-grid">
               <button
                 type="button"
                 disabled={busy}
@@ -1335,25 +1361,31 @@ function ReportPreview({ report }: { report: ReportFileData }) {
           </div>
         ))}
       </div>
-      <h3>Kekuatan</h3>
-      <p>{data.collective?.strengths || "Belum ada catatan."}</p>
-      <h3>Area pengembangan</h3>
-      <p>{data.collective?.developmentAreas || "Belum ada catatan."}</p>
-      <h3>Rekomendasi yang disetujui</h3>
-      {(data.approvedRecommendations ?? []).length ? (
-        <ul>
-          {(data.approvedRecommendations ?? []).map((item, index: number) => (
-            <li key={item.id ?? index}>{item.recommendation}</li>
-          ))}
-        </ul>
-      ) : (
-        <p>Belum ada rekomendasi yang disetujui.</p>
-      )}
-      <h3>Keputusan</h3>
-      <p>
-        {decisionLabel(data.collective?.decision)} ·{" "}
-        {data.collective?.decisionRationale ?? ""}
-      </p>
+      <details className="report-narrative">
+        <summary>Kekuatan</summary>
+        <p>{data.collective?.strengths || "Belum ada catatan."}</p>
+      </details>
+      <details className="report-narrative">
+        <summary>Area pengembangan</summary>
+        <p>{data.collective?.developmentAreas || "Belum ada catatan."}</p>
+      </details>
+      <details className="report-narrative">
+        <summary>Rekomendasi yang disetujui</summary>
+        {(data.approvedRecommendations ?? []).length ? (
+          <ul>
+            {(data.approvedRecommendations ?? []).map((item, index: number) => (
+              <li key={item.id ?? index}>{item.recommendation}</li>
+            ))}
+          </ul>
+        ) : (
+          <p>Belum ada rekomendasi yang disetujui.</p>
+        )}
+      </details>
+      <h3>Keputusan: {decisionLabel(data.collective?.decision)}</h3>
+      <details className="report-narrative">
+        <summary>Alasan keputusan</summary>
+        <p>{data.collective?.decisionRationale || "Belum ada alasan."}</p>
+      </details>
       <p className="privacy-note">
         Preview ini bersumber dari snapshot final dan tidak memuat skor
         individual Observer, bukti, atau catatan deliberasi.

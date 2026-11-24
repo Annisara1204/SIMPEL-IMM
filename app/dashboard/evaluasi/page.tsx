@@ -446,6 +446,7 @@ export default async function CollectiveEvaluationPage({
                 </small>
               ))}
             </div>
+            <h3>1 · Rekap penilaian</h3>
             <div className="assessment-event-list">
               {aspectAggregates.map((aspect) => (
                 <article className="assignment-box" key={aspect.aspectId}>
@@ -467,56 +468,65 @@ export default async function CollectiveEvaluationPage({
                 </article>
               ))}
             </div>
-            <h3>Rekap indikator per cakupan</h3>
-            <div className="competency-matrix-scroll">
-              <table className="competency-matrix">
-                <thead>
-                  <tr>
-                    <th scope="col">Indikator</th>
-                    <th scope="col">Cakupan</th>
-                    <th scope="col">Rata-rata</th>
-                    <th scope="col">Penilai valid</th>
-                    <th scope="col">Min–Maks</th>
-                    <th scope="col">Rentang</th>
-                    <th scope="col">N/O</th>
-                    <th scope="col">Pending</th>
-                    <th scope="col">Moderasi</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {indicatorAggregates.map((item) => (
-                    <tr key={`${item.indicatorId}:${item.scopeKey}`}>
-                      <th scope="row">
-                        {indicatorNames.get(item.indicatorId) ??
-                          item.indicatorId}
-                        <small>{item.indicatorId}</small>
-                      </th>
-                      <td>
-                        {item.scope === "cross_session"
-                          ? "Lintas sesi"
-                          : (scopeNames.get(item.scopeKey) ?? "Sesi")}
-                      </td>
-                      <td>{item.average?.toFixed(1) ?? "—"}</td>
-                      <td>{item.validRatings}</td>
-                      <td>
-                        {item.minimum ?? "—"}–{item.maximum ?? "—"}
-                      </td>
-                      <td>{item.range ?? "—"}</td>
-                      <td>{item.notObserved}</td>
-                      <td>{item.pending}</td>
-                      <td>
-                        {item.reviewStatus === "needs_review"
-                          ? "Perlu ditinjau"
-                          : "Normal"}
-                      </td>
+            <details className="rubric-edit">
+              <summary>
+                Rincian indikator per cakupan ({indicatorAggregates.length}{" "}
+                baris): rata-rata, rentang, N/O, dan status moderasi
+              </summary>
+              <div className="competency-matrix-scroll">
+                <table className="competency-matrix">
+                  <thead>
+                    <tr>
+                      <th scope="col">Indikator</th>
+                      <th scope="col">Cakupan</th>
+                      <th scope="col">Rata-rata</th>
+                      <th scope="col">Penilai valid</th>
+                      <th scope="col">Min–Maks</th>
+                      <th scope="col">Rentang</th>
+                      <th scope="col">N/O</th>
+                      <th scope="col">Pending</th>
+                      <th scope="col">Moderasi</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {indicatorAggregates.map((item) => (
+                      <tr key={`${item.indicatorId}:${item.scopeKey}`}>
+                        <th scope="row">
+                          {indicatorNames.get(item.indicatorId) ??
+                            item.indicatorId}
+                          {indicatorNames.has(item.indicatorId) && (
+                            <small title={item.indicatorId}>
+                              ID: {item.indicatorId.slice(0, 8)}…
+                            </small>
+                          )}
+                        </th>
+                        <td>
+                          {item.scope === "cross_session"
+                            ? "Lintas sesi"
+                            : (scopeNames.get(item.scopeKey) ?? "Sesi")}
+                        </td>
+                        <td>{item.average?.toFixed(1) ?? "—"}</td>
+                        <td>{item.validRatings}</td>
+                        <td>
+                          {item.minimum ?? "—"}–{item.maximum ?? "—"}
+                        </td>
+                        <td>{item.range ?? "—"}</td>
+                        <td>{item.notObserved}</td>
+                        <td>{item.pending}</td>
+                        <td>
+                          {item.reviewStatus === "needs_review"
+                            ? "Perlu ditinjau"
+                            : "Normal"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </details>
             {isModerator && (
               <>
-                <h3>Moderasi</h3>
+                <h4>Moderasi</h4>
                 {indicatorAggregates
                   .filter((item) => item.reviewStatus === "needs_review")
                   .map((item) => {
@@ -724,22 +734,7 @@ export default async function CollectiveEvaluationPage({
             )}
             {isModerator && (
               <>
-                <h3>Evaluasi kolektif dan keputusan</h3>
-                <form
-                  action={finalizeAllEvaluations}
-                  className="rubric-add-form"
-                >
-                  <input type="hidden" name="eventId" value={eventId} />
-                  <p>
-                    Finalisasi semua evaluasi draf pada kegiatan ini yang sudah
-                    memiliki keputusan dan alasan. Setiap jenis tetap
-                    menghasilkan snapshot tersendiri; evaluasi yang belum siap
-                    dilewati.
-                  </p>
-                  <button type="submit">
-                    Finalisasi semua materi yang siap
-                  </button>
-                </form>
+                <h3>2 · Catatan, rekomendasi, dan keputusan</h3>
                 <p className="data-caption">
                   Jenis penilaian yang difinalisasi pada bagian ini:{" "}
                   {(() => {
@@ -841,10 +836,12 @@ export default async function CollectiveEvaluationPage({
                     />
                   </label>
                   <label>
-                    Keputusan kelulusan (untuk finalisasi semua)
+                    Keputusan kelulusan
                     <select
+                      key={evaluation?.graduation_decision ?? "kosong"}
                       name="decision"
                       defaultValue={evaluation?.graduation_decision ?? ""}
+                      disabled={evaluation?.status === "finalized"}
                     >
                       <option value="">Belum diputuskan</option>
                       <option value="pass">Lulus</option>
@@ -864,7 +861,41 @@ export default async function CollectiveEvaluationPage({
                     />
                   </label>
                   {evaluation?.status !== "finalized" && (
-                    <button type="submit">Simpan draf evaluasi</button>
+                    <>
+                      <button type="submit">Simpan draf evaluasi</button>
+                      <p>
+                        Keputusan dan alasan wajib diisi sebelum finalisasi
+                        (alasan minimal 10 karakter). Tombol finalisasi
+                        dinonaktifkan bila coverage belum memenuhi minimal{" "}
+                        {policy?.minimum_coverage ?? 80}% pada setiap aspek.
+                      </p>
+                      <button
+                        className="rubric-activate"
+                        type="submit"
+                        formAction={finalizeCollectiveEvaluation}
+                        disabled={
+                          overall.status !== "ready_for_collective_evaluation"
+                        }
+                      >
+                        Finalisasi dan simpan snapshot
+                      </button>
+                      <button
+                        className="rubric-activate"
+                        type="submit"
+                        formAction={approveFinalizePublishReport}
+                        disabled={
+                          overall.status !== "ready_for_collective_evaluation"
+                        }
+                      >
+                        Setujui, finalisasi, terbitkan, dan unduh rapor
+                      </button>
+                      {overall.status !== "ready_for_collective_evaluation" && (
+                        <small>
+                          Belum dapat difinalisasi: penuhi coverage setiap aspek
+                          minimal {policy?.minimum_coverage ?? 80}%.
+                        </small>
+                      )}
+                    </>
                   )}
                 </form>
                 {evaluation?.status !== "finalized" && (
@@ -936,100 +967,22 @@ export default async function CollectiveEvaluationPage({
                     )}
                   </div>
                 ))}
-                {evaluation?.status !== "finalized" && (
-                  <form
-                    action={finalizeCollectiveEvaluation}
-                    className="rubric-add-form"
-                  >
-                    <input type="hidden" name="eventId" value={eventId} />
-                    <input
-                      type="hidden"
-                      name="participantId"
-                      value={participantId}
-                    />
-                    <input
-                      type="hidden"
-                      name="rubricVersionId"
-                      value={selectedVersionId ?? ""}
-                    />
-                    <input
-                      type="hidden"
-                      name="strengths"
-                      value={evaluation?.strengths ?? ""}
-                    />
-                    <input
-                      type="hidden"
-                      name="developmentAreas"
-                      value={evaluation?.development_areas ?? ""}
-                    />
-                    <input
-                      type="hidden"
-                      name="evidenceReferencesText"
-                      value={evidenceText}
-                    />
-                    <input
-                      type="hidden"
-                      name="discussionNotes"
-                      value={evaluation?.discussion_notes ?? ""}
-                    />
-                    <input
-                      type="hidden"
-                      name="collectiveSummary"
-                      value={evaluation?.collective_summary ?? ""}
-                    />
-                    <input
-                      type="hidden"
-                      name="recommendationSummary"
-                      value={evaluation?.recommendation_summary ?? ""}
-                    />
-                    <label>
-                      Keputusan kelulusan
-                      <select required name="decision" defaultValue="">
-                        <option value="" disabled>
-                          Pilih keputusan
-                        </option>
-                        <option value="pass">Lulus</option>
-                        <option value="not_pass">Tidak Lulus</option>
-                        <option value="further_discussion">
-                          Perlu Pembahasan Lanjutan
-                        </option>
-                      </select>
-                    </label>
-                    <label>
-                      Alasan keputusan
-                      <textarea
-                        required
-                        minLength={10}
-                        name="decisionRationale"
-                      />
-                    </label>
-                    <button
-                      className="rubric-activate"
-                      type="submit"
-                      disabled={
-                        overall.status !== "ready_for_collective_evaluation"
-                      }
-                    >
-                      Finalisasi dan simpan snapshot
-                    </button>
-                    <button
-                      className="rubric-activate"
-                      type="submit"
-                      formAction={approveFinalizePublishReport}
-                      disabled={
-                        overall.status !== "ready_for_collective_evaluation"
-                      }
-                    >
-                      Setujui, finalisasi, terbitkan, dan unduh rapor
-                    </button>
-                    {overall.status !== "ready_for_collective_evaluation" && (
-                      <small>
-                        Belum dapat difinalisasi: penuhi coverage setiap aspek
-                        minimal {policy?.minimum_coverage ?? 80}%.
-                      </small>
-                    )}
-                  </form>
-                )}
+                <h3>3 · Tindak lanjut</h3>
+                <form
+                  action={finalizeAllEvaluations}
+                  className="rubric-add-form"
+                >
+                  <input type="hidden" name="eventId" value={eventId} />
+                  <p>
+                    Finalisasi semua evaluasi draf pada kegiatan ini yang sudah
+                    memiliki keputusan dan alasan. Setiap jenis tetap
+                    menghasilkan snapshot tersendiri; evaluasi yang belum siap
+                    dilewati.
+                  </p>
+                  <button type="submit">
+                    Finalisasi semua materi yang siap
+                  </button>
+                </form>
               </>
             )}
             {!isModerator && (

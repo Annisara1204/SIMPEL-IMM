@@ -27,7 +27,7 @@ export default async function CompetencyFrameworkPage() {
 
   const { data: framework } = await supabase
     .from("competency_frameworks")
-    .select("id, name, description")
+    .select("id, name, description, is_trial")
     .eq("code", "DAD_IMM")
     .maybeSingle();
   if (!framework)
@@ -209,7 +209,7 @@ export default async function CompetencyFrameworkPage() {
         </div>
         <span className="agenda-status next">
           v{frameworkVersion.version} · {frameworkVersion.status} ·{" "}
-          {frameworkVersion.is_official ? "Resmi" : "Bukan standar resmi"}
+          {framework.is_trial ? "PERCOBAAN" : "RESMI"}
         </span>
       </header>
       <div className="users-notice">

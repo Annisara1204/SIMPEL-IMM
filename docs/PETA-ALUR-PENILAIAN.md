@@ -18,6 +18,8 @@ Hasil eksplorasi branch `research/peta-alur-penilaian` (24 November 2026). Semua
 | `PERSETUJUAN-OWNER-16-PERTANYAAN.md` | 16 jawaban owner beserta dampaknya pada butir terbuka | Acuan izin dan keputusan tambahan sebelum eksekusi |
 | `HASIL-FASE2-DEV.md` | Perubahan dan verifikasi Fase 2 di DEV | Bukti pelaksanaan Fase 2 sebelum lanjut Fase 3 |
 | `HASIL-FASE3-DEV.md` | Perubahan dan verifikasi Fase 3a–3c di DEV | Bukti pelaksanaan Fase 3a–3c |
+| `HASIL-FASE3EFG-DEV.md` | Perubahan dan verifikasi Fase 3e–3g di DEV | Bukti pelaksanaan Fase 3e–3g |
+| `HASIL-FASE3F-DEV.md` | Verifikasi aturan impor `.xlsx` dan bug batas baris | Rincian Fase 3f |
 
 ## Temuan yang paling berpengaruh
 

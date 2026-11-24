@@ -105,7 +105,7 @@ export default async function AssessmentSettingsPage({
     supabase
       .from("rubric_versions")
       .select(
-        "id, event_id, stage, material_id, assessment_type_id, version, status, created_at, competency_framework_version_id, rubric_aspects(id, competency_aspect_id, name, weight, position, rubric_indicator_aspects(id, weight, rubric_indicators(id, competency_indicator_id, competency_indicator_rubric_version_id, name, target, position, score_descriptors)))",
+        "id, event_id, stage, material_id, assessment_type_id, version, status, is_trial, created_at, competency_framework_version_id, rubric_aspects(id, competency_aspect_id, name, weight, position, rubric_indicator_aspects(id, weight, rubric_indicators(id, competency_indicator_id, competency_indicator_rubric_version_id, name, target, position, score_descriptors)))",
       )
       .order("version", { ascending: false }),
     supabase
@@ -925,7 +925,10 @@ export default async function AssessmentSettingsPage({
                           <div className="rubric-version" key={version.id}>
                             <div className="event-manage-title">
                               <div>
-                                <h3>Versi {version.version}</h3>
+                                <h3>
+                                  Versi {version.version} ·{" "}
+                                  {version.is_trial ? "PERCOBAAN" : "RESMI"}
+                                </h3>
                                 <p>
                                   Bobot aspek: {aspectTotal.toFixed(2)}% · Aspek
                                   tanpa indikator diamati akan dikecualikan dan

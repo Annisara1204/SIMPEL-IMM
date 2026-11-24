@@ -46,11 +46,13 @@ export async function parseWorkbook(formData: FormData) {
   if (!file.name.toLowerCase().endsWith(".xlsx"))
     return { ok: false as const, message: "Format berkas harus Excel .xlsx." };
   try {
+    // Jangan set sheetRows: pemeriksaan di bawah harus melihat jumlah baris asli.
+    // sheetRows memotong lembar sebelum !ref dan matrix dihitung, sehingga berkas
+    // di atas 500 baris lolos tanpa pemberitahuan dan kehilangan baris sisanya.
     const workbook = XLSX.read(new Uint8Array(await file.arrayBuffer()), {
       type: "array",
       cellDates: false,
       bookSheets: false,
-      sheetRows: maxRows + 1,
     });
     if (!workbook.SheetNames.length)
       return {

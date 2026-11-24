@@ -590,7 +590,7 @@ export default async function ObservationsPage({
                             <strong>
                               {calculated.value === null
                                 ? "Belum ada penilaian Anda"
-                                : `Pratinjau penilaian Anda: ${calculated.value.toFixed(2)} / 100`}
+                                : `Pratinjau penilaian Anda: ${calculated.value.toFixed(1)} / 100`}
                             </strong>
                             {category && (
                               <span className={`score-category ${category.id}`}>
@@ -632,7 +632,7 @@ export default async function ObservationsPage({
                                 <h3>
                                   {aspect.name}{" "}
                                   <small>
-                                    {Number(aspect.weight).toFixed(2)}%
+                                    {Number(aspect.weight).toFixed(1)}%
                                   </small>
                                 </h3>
                                 {[...(aspect.rubric_indicator_aspects ?? [])]
@@ -687,7 +687,7 @@ export default async function ObservationsPage({
                                           )}
                                           <small>
                                             Bobot{" "}
-                                            {Number(mapping.weight).toFixed(2)}%
+                                            {Number(mapping.weight).toFixed(1)}%
                                             dalam aspek ·{" "}
                                             {masterMapping?.is_required
                                               ? "Wajib"

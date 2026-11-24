@@ -89,7 +89,7 @@ test("agregasi tidak mengubah skor sumber Observer", () => {
   assert.deepEqual(source, before);
 });
 
-test("indikator N/O dan yang belum dinilai tidak masuk coverage", () => {
+test("1 skor + 1 N/O + 1 pending: penyebut 2, coverage 50, invalid pada ambang 80", () => {
   const planned = [
     plan(),
     plan({ localIndicatorId: "i2", competencyIndicatorId: "ci2" }),
@@ -104,11 +104,142 @@ test("indikator N/O dan yang belum dinilai tidak masuk coverage", () => {
       score: null,
     }),
   ]);
-  const aspects = calculateAspectAggregates(planned, indicators, 80);
-  assert.equal(aspects[0].plannedIndicators, 3);
-  assert.equal(aspects[0].assessedIndicators, 1);
-  assert.ok(Math.abs(aspects[0].coverage - 100 / 3) < 1e-9);
-  assert.equal(aspects[0].valid, false);
+  const aspect = calculateAspectAggregates(planned, indicators, 80)[0];
+  assert.equal(aspect.plannedIndicators, 3);
+  assert.equal(aspect.assessedIndicators, 1);
+  assert.equal(aspect.coverageDenominator, 2);
+  assert.equal(aspect.coverage, 50);
+  assert.equal(aspect.valid, false);
+});
+
+test("1 skor + 2 N/O: penyebut 1, coverage 100, valid", () => {
+  const planned = [
+    plan(),
+    plan({ localIndicatorId: "i2", competencyIndicatorId: "ci2" }),
+    plan({ localIndicatorId: "i3", competencyIndicatorId: "ci3" }),
+  ];
+  const indicators = aggregateIndicators(planned, [
+    rating({ score: 4 }),
+    rating({
+      localIndicatorId: "i2",
+      observerId: "o1",
+      responseStatus: "not_observed",
+      score: null,
+    }),
+    rating({
+      localIndicatorId: "i3",
+      observerId: "o1",
+      responseStatus: "not_observed",
+      score: null,
+    }),
+  ]);
+  const aspect = calculateAspectAggregates(planned, indicators, 80)[0];
+  assert.equal(aspect.plannedIndicators, 3);
+  assert.equal(aspect.assessedIndicators, 1);
+  assert.equal(aspect.coverageDenominator, 1);
+  assert.equal(aspect.coverage, 100);
+  assert.equal(aspect.valid, true);
+});
+
+test("semua N/O: penyebut 0, coverage 0, invalid", () => {
+  const planned = [
+    plan(),
+    plan({ localIndicatorId: "i2", competencyIndicatorId: "ci2" }),
+  ];
+  const indicators = aggregateIndicators(planned, [
+    rating({ responseStatus: "not_observed", score: null }),
+    rating({
+      localIndicatorId: "i2",
+      observerId: "o1",
+      responseStatus: "not_observed",
+      score: null,
+    }),
+  ]);
+  const aspect = calculateAspectAggregates(planned, indicators, 80)[0];
+  assert.equal(aspect.plannedIndicators, 2);
+  assert.equal(aspect.assessedIndicators, 0);
+  assert.equal(aspect.coverageDenominator, 0);
+  assert.equal(aspect.coverage, 0);
+  assert.equal(aspect.valid, false);
+});
+
+test("dua indikator berskor plus N/O pada indikator yang sama: penyebut 2, coverage 100", () => {
+  const planned = [
+    plan(),
+    plan({ localIndicatorId: "i2", competencyIndicatorId: "ci2" }),
+  ];
+  const indicators = aggregateIndicators(planned, [
+    rating({ observerId: "o1", score: 4 }),
+    rating({
+      observerId: "o2",
+      responseStatus: "not_observed",
+      score: null,
+    }),
+    rating({ localIndicatorId: "i2", observerId: "o1", score: 3 }),
+  ]);
+  const aspect = calculateAspectAggregates(planned, indicators, 80)[0];
+  assert.equal(aspect.plannedIndicators, 2);
+  assert.equal(aspect.assessedIndicators, 2);
+  assert.equal(aspect.coverageDenominator, 2);
+  assert.equal(aspect.coverage, 100);
+  assert.equal(aspect.valid, true);
+});
+
+test("N/O tidak mengurangi penyebut skor pada rata-rata berbobot", () => {
+  const planned = [
+    plan({ indicatorWeight: 75 }),
+    plan({
+      localIndicatorId: "i2",
+      competencyIndicatorId: "ci2",
+      indicatorWeight: 25,
+    }),
+  ];
+  const indicators = aggregateIndicators(planned, [
+    rating({ observerId: "o1", score: 4 }),
+    rating({
+      observerId: "o2",
+      responseStatus: "not_observed",
+      score: null,
+    }),
+    rating({ localIndicatorId: "i2", observerId: "o1", score: 2 }),
+  ]);
+  const aspect = calculateAspectAggregates(planned, indicators, 80)[0];
+  assert.equal(aspect.coverageDenominator, 2);
+  assert.equal(aspect.score, 3.5);
+});
+
+test("coverage tepat 50 dengan ambang 50 tetap valid", () => {
+  const planned = [
+    plan(),
+    plan({ localIndicatorId: "i2", competencyIndicatorId: "ci2" }),
+  ];
+  const indicators = aggregateIndicators(planned, [rating({ score: 4 })]);
+  const aspect = calculateAspectAggregates(planned, indicators, 50)[0];
+  assert.equal(aspect.coverageDenominator, 2);
+  assert.equal(aspect.assessedIndicators, 1);
+  assert.equal(aspect.coverage, 50);
+  assert.equal(aspect.valid, true);
+});
+
+test("alasan overall memakai penyebut coverage, bukan jumlah indikator direncanakan", () => {
+  const planned = [
+    plan(),
+    plan({ localIndicatorId: "i2", competencyIndicatorId: "ci2" }),
+  ];
+  const indicators = aggregateIndicators(planned, [
+    rating({ score: 4 }),
+    rating({
+      localIndicatorId: "i2",
+      observerId: "o1",
+      responseStatus: "not_observed",
+      score: null,
+    }),
+  ]);
+  const aspect = calculateAspectAggregates(planned, indicators, 80)[0];
+  assert.equal(aspect.coverage, 100);
+  const reasons = calculateOverallScore([{ ...aspect, valid: false }]).reasons;
+  assert.match(reasons[0], /1\/1 indikator valid/);
+  assert.doesNotMatch(reasons[0], /1\/2 indikator valid/);
 });
 
 test("bobot indikator dipakai untuk nilai aspek", () => {
@@ -148,6 +279,7 @@ test("overall score memakai bobot aspek Phase 2 dan tetap provisional jika ada a
     scoreOutOf100: (scores[index] / 5) * 100,
     plannedIndicators: 1,
     assessedIndicators: 1,
+    coverageDenominator: 1,
     notObservedIndicators: 0,
     pendingIndicators: 0,
     coverage: 100,

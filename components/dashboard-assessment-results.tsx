@@ -96,7 +96,7 @@ export function DashboardAssessmentResults({
                       <strong>
                         {result.averageScore === null
                           ? "Belum ada skor"
-                          : `${result.averageScore.toFixed(2)} / 100`}
+                          : `${result.averageScore.toFixed(1)} / 100`}
                       </strong>
                     </div>
                     {data.mode === "summary" ? (
@@ -113,7 +113,7 @@ export function DashboardAssessmentResults({
                               <span>Belum dinilai</span>
                             ) : (
                               <span>
-                                {participant.score.toFixed(2)} ·{" "}
+                                {participant.score.toFixed(1)} ·{" "}
                                 <b
                                   className={`score-category ${participant.categoryId ?? ""}`}
                                 >

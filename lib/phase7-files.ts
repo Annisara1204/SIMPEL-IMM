@@ -119,7 +119,7 @@ function reportPages(report: ReportFileData) {
       : []),
     { text: "HASIL KOMPETENSI", size: 12, bold: true, color: "#173b63" },
     ...aspects.map((aspect) => ({
-      text: `${aspect.aspectName ?? aspect.aspect_name ?? "Aspek"} (${Number(aspect.weight ?? 0)}%)  ${aspect.score == null ? "Belum tersedia" : `${Number(aspect.score).toFixed(2)}/5  |  ${Number(aspect.scoreOutOf100 ?? aspect.score_out_of_100 ?? 0).toFixed(1)}/100`}`,
+      text: `${aspect.aspectName ?? aspect.aspect_name ?? "Aspek"} (${Number(aspect.weight ?? 0)}%)  ${aspect.score == null ? "Belum tersedia" : `${Number(aspect.score).toFixed(1)}/5  |  ${Number(aspect.scoreOutOf100 ?? aspect.score_out_of_100 ?? 0).toFixed(1)}/100`}`,
       bar:
         aspect.score == null
           ? 0
@@ -132,7 +132,7 @@ function reportPages(report: ReportFileData) {
       color: "#173b63",
     },
     {
-      text: `${report.eventSummary ? "Rata-rata peserta finalized" : "Skor"}: ${overallScore == null ? "Belum tersedia" : `${overallScore.toFixed(2)}/100`} | Kategori: ${category(overallScore)} | Status: FINALIZED`,
+      text: `${report.eventSummary ? "Rata-rata peserta finalized" : "Skor"}: ${overallScore == null ? "Belum tersedia" : `${overallScore.toFixed(1)}/100`} | Kategori: ${category(overallScore)} | Status: FINALIZED`,
       bold: true,
     },
     ...(report.eventSummary
@@ -153,7 +153,7 @@ function reportPages(report: ReportFileData) {
             color: "#173b63",
           },
           ...indicators.map((item) => ({
-            text: `${report.indicatorNames?.[item.indicatorId ?? ""] ?? item.indicatorId} | ${item.scope === "cross_session" ? "Lintas sesi" : "Sesi"} | Rata-rata ${item.average == null ? "-" : Number(item.average).toFixed(2)}/5 | jumlah penilai ${item.validRatings ?? 0}`,
+            text: `${report.indicatorNames?.[item.indicatorId ?? ""] ?? item.indicatorId} | ${item.scope === "cross_session" ? "Lintas sesi" : "Sesi"} | Rata-rata ${item.average == null ? "-" : Number(item.average).toFixed(1)}/5 | jumlah penilai ${item.validRatings ?? 0}`,
           })),
         ]),
     {

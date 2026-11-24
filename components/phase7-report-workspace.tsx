@@ -783,7 +783,7 @@ export function Phase7ReportWorkspace(props: Props) {
                   <span>
                     {aspect.name} · {aspect.weight}%
                   </span>
-                  <b>{aspect.average.toFixed(2)}/5</b>
+                  <b>{aspect.average.toFixed(1)}/5</b>
                   <div className="bar-track">
                     <i
                       style={{
@@ -848,7 +848,7 @@ export function Phase7ReportWorkspace(props: Props) {
                                     : "heat-high";
                             return (
                               <td key={column.id} className={heatClass}>
-                                {score === null ? "—" : score.toFixed(2)}
+                                {score === null ? "—" : score.toFixed(1)}
                               </td>
                             );
                           })}
@@ -886,7 +886,7 @@ export function Phase7ReportWorkspace(props: Props) {
                         <td>
                           {item.average == null
                             ? "—"
-                            : Number(item.average).toFixed(2)}
+                            : Number(item.average).toFixed(1)}
                         </td>
                         <td>{item.range ?? "—"}</td>
                         <td>{item.status}</td>
@@ -1065,7 +1065,7 @@ export function Phase7ReportWorkspace(props: Props) {
                         </td>
                         <td>
                           {row.snapshot_id
-                            ? `${scoreOf(row)?.toFixed(2) ?? "—"}/100`
+                            ? `${scoreOf(row)?.toFixed(1) ?? "—"}/100`
                             : "Belum final"}
                           <small>
                             {coverageOf(row) === null
@@ -1337,7 +1337,7 @@ function ReportPreview({ report }: { report: ReportFileData }) {
       </p>
       <h3>
         Nilai akhir:{" "}
-        {final === null ? "Belum tersedia" : `${final.toFixed(2)}/100`} ·{" "}
+        {final === null ? "Belum tersedia" : `${final.toFixed(1)}/100`} ·{" "}
         {category(final)}
       </h3>
       <div className="report-aspect-grid">
@@ -1349,7 +1349,7 @@ function ReportPreview({ report }: { report: ReportFileData }) {
             <strong>
               {aspect.score == null
                 ? "—"
-                : `${Number(aspect.score).toFixed(2)}/5`}
+                : `${Number(aspect.score).toFixed(1)}/5`}
             </strong>
             <div className="bar-track">
               <i

@@ -445,7 +445,7 @@ export default async function CollectiveEvaluationPage({
               <strong>
                 {overall.status === "provisional"
                   ? "Hasil sementara (Provisional)"
-                  : `Skor agregat ${overall.score?.toFixed(2)} / 100`}
+                  : `Skor agregat ${overall.score?.toFixed(1)} / 100`}
               </strong>
               <p>
                 Rata-rata berasal dari kiriman Submitted/Finalized. N/O bukan
@@ -468,7 +468,7 @@ export default async function CollectiveEvaluationPage({
                   <p>
                     {aspect.score === null
                       ? "Belum ada skor"
-                      : `${aspect.score.toFixed(2)} / 5 · ${aspect.scoreOutOf100?.toFixed(1)} / 100`}
+                      : `${aspect.score.toFixed(1)} / 5 · ${aspect.scoreOutOf100?.toFixed(1)} / 100`}
                   </p>
                   <p>
                     Coverage {aspect.coverage.toFixed(1)}% · indikator dinilai{" "}
@@ -509,7 +509,7 @@ export default async function CollectiveEvaluationPage({
                           ? "Lintas sesi"
                           : (scopeNames.get(item.scopeKey) ?? "Sesi")}
                       </td>
-                      <td>{item.average?.toFixed(2) ?? "—"}</td>
+                      <td>{item.average?.toFixed(1) ?? "—"}</td>
                       <td>{item.validRatings}</td>
                       <td>
                         {item.minimum ?? "—"}–{item.maximum ?? "—"}
@@ -1080,7 +1080,7 @@ export default async function CollectiveEvaluationPage({
                         · Skor{" "}
                         {Number(
                           snapshot.snapshot_data?.overall?.score ?? 0,
-                        ).toFixed(2)}{" "}
+                        ).toFixed(1)}{" "}
                         / 100 · Keputusan: {collective?.decision ?? "—"}
                       </p>
                       <p>{collective?.summary ?? ""}</p>

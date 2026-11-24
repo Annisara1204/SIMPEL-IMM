@@ -11,7 +11,7 @@ Dokumen ini menjadi acuan bersama `docs/MATRIKS-KEPUTUSAN-PRODUK.md`. Bila ada p
 |---|---|---|
 | 1 | Penandatangan | **Skip dulu, tidak perlu nama.** Persetujuan pemilik cukup tercatat di dokumen ini. Gate yang meminta tiga tanda tangan nama dihapus. |
 | 2 | Izin perbaikan produksi | **Ya.** Empat perbaikan Fase 0b boleh dilakukan: nonaktifkan pendaftaran publik, cabut grant anon, putar kunci, lengkapi backup akun. Pasang domain dan HTTPS **tidak jadi dilakukan**. |
-| 3 | Domain HTTPS | **Belum ada domain, aplikasi tetap memakai IP.** Port 8080 dipertahankan. Konsekuensi: tanpa TLS yang dipercaya browser, kredensial Peserta tidak dibagikan sampai ada domain. |
+| 3 | Domain HTTPS | **Final: tidak ada domain, aplikasi tetap memakai IP.** Port 8080 dipertahankan. Konsekuensi: tanpa TLS yang dipercaya browser, kredensial Peserta tidak dibagikan sampai ada domain. |
 | 4 | Definisi "kelompok" | **Per komisariat dalam satu kegiatan.** Ambang 10 diterapkan pada kelompok itu sebelum agregat tampil. |
 | 5 | Syarat terbit rapor | **Ya.** Rapor hanya terbit bila coverage minimal 80%, moderasi selesai, dan alasan keputusan terisi. Nilai sementara tetap tampil di aplikasi. |
 | 6 | Tombol Finalisasi aplikasi | **Ikut dikunci** sampai moderasi selesai. Publish sudah keras. |

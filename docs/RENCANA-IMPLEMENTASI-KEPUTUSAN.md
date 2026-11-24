@@ -52,7 +52,7 @@ Gate masuk: izin tertulis + bukti baca Fase 0 lengkap. Gate keluar: empat butir 
 | `disable_signup` (`VERIFIKASI:29`) | set `true` di Auth PROD | konfigurasi + tanggal; pendaftaran ditolak |
 | grant `anon` (`:30`) | `revoke` SELECT di dua tabel moderasi | `role_table_grants` = 0 baris untuk `anon` |
 | PAT + service-role (`:31`) | putar, `.env.production` mode 600, `pm2 restart --update-env`, cabut lama; sinkronkan cron backup | tertulis bertanggal + hash; kunci lama 401; uji restore cron exit 0 |
-| domain + TLS (`:32`) | **Tidak dilakukan.** Pemilik memutuskan tetap memakai IP. 8080 dipertahankan | catatan keputusan di dokumen persetujuan; kredensial Peserta ditunda sampai ada TLS |
+| domain + TLS (`:32`) | **Final: tidak dilakukan.** Pemilik memutuskan tetap memakai IP. 8080 dipertahankan | catatan keputusan di dokumen persetujuan; kredensial Peserta ditunda sampai ada TLS |
 | salinan `auth` (`:33`) | backup harian `auth.users`/`identities` atau re-create terdokumentasi; cek `.env.bak-20261123-202146` | isi cron + daftar berkas + uji restore; hash `.env.bak` |
 
 `npm audit` dikerjakan di 0b tetapi bukan butir kritis; buktinya output 0 kerentanan atau sisa dengan persetujuan Keamanan. Hitungan kritis = **lima**.

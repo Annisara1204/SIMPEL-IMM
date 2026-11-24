@@ -353,7 +353,7 @@ export async function saveAssessmentRating(input: {
 export async function setAssessmentSubmissionStatus(input: {
   participantId: string;
   rubricVersionId: string;
-  status: "submitted" | "draft" | "finalized";
+  status: "submitted" | "draft";
 }) {
   const { supabase, userId, role } = await staffClient([
     "admin_system",
@@ -380,47 +380,6 @@ export async function setAssessmentSubmissionStatus(input: {
       ok: false as const,
       message: "Peserta tidak cocok dengan versi rubrik.",
     };
-  if (input.status === "finalized") {
-    if (role !== "admin_system")
-      return {
-        ok: false as const,
-        message: "Hanya Admin Sistem yang dapat memfinalisasi.",
-      };
-    const { data: submissions } = await supabase
-      .from("assessment_submissions")
-      .select("id,status,observer_id")
-      .eq("participant_id", input.participantId)
-      .eq("rubric_version_id", input.rubricVersionId);
-    const { data: assigned } = await supabase
-      .from("observer_assignments")
-      .select("observer_id")
-      .eq("event_id", participant.event_id);
-    if (
-      !assigned?.length ||
-      assigned.some(
-        (item) =>
-          !submissions?.some(
-            (entry) =>
-              entry.observer_id === item.observer_id &&
-              entry.status === "submitted",
-          ),
-      )
-    )
-      return {
-        ok: false as const,
-        message:
-          "Semua Observer yang ditugaskan harus mengirim penilaian peserta ini sebelum finalisasi.",
-      };
-    const { error } = await supabase
-      .from("assessment_submissions")
-      .update({ status: "finalized", finalized_by: userId })
-      .eq("participant_id", input.participantId)
-      .eq("rubric_version_id", input.rubricVersionId)
-      .eq("status", "submitted");
-    return error
-      ? { ok: false as const, message: "Finalisasi gagal." }
-      : { ok: true as const };
-  }
   if (role === "admin_system")
     return {
       ok: false as const,

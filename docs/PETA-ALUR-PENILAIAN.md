@@ -16,6 +16,7 @@ Hasil eksplorasi branch `research/peta-alur-penilaian` (24 November 2026). Semua
 | `REVIEW-SIKLUS-1.md` sampai `REVIEW-SIKLUS-4.md` | Arsip temuan dan skor reviewer tiap siklus | Menjelaskan mengapa rencana berubah |
 | `REVIEW-PENUTUP.md` | Ringkasan penutupan loop dan sisa butir terbuka | Menutup siklus perencanaan |
 | `PERSETUJUAN-OWNER-16-PERTANYAAN.md` | 16 jawaban owner beserta dampaknya pada butir terbuka | Acuan izin dan keputusan tambahan sebelum eksekusi |
+| `HASIL-FASE2-DEV.md` | Perubahan dan verifikasi Fase 2 di DEV | Bukti pelaksanaan Fase 2 sebelum lanjut Fase 3 |
 
 ## Temuan yang paling berpengaruh
 

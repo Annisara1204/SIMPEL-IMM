@@ -51,6 +51,7 @@ export type AspectAggregate = {
   scoreOutOf100: number | null;
   plannedIndicators: number;
   assessedIndicators: number;
+  coverageDenominator: number;
   notObservedIndicators: number;
   pendingIndicators: number;
   coverage: number;
@@ -247,7 +248,25 @@ export function calculateAspectAggregates(
               item.scopeKey === row.assessmentScopeKey,
           )?.pending ?? 0) > 0,
       ).length;
-      const coverage = plannedCount ? (valid.length / plannedCount) * 100 : 0;
+      // Indikator tanpa skor yang hanya berisi N/O dibuang dari denominator.
+      // Indikator yang sudah berskor tetap dihitung walau ada N/O di dalamnya.
+      const notObservedOnlyCount = rows.filter((row) => {
+        const aggregate = indicators.find(
+          (item) =>
+            item.participantId === participantId &&
+            item.indicatorId === row.competencyIndicatorId &&
+            item.scopeKey === row.assessmentScopeKey,
+        );
+        return aggregate?.average === null && (aggregate?.notObserved ?? 0) > 0;
+      }).length;
+      const coverageDenominator = Math.max(
+        0,
+        plannedCount - notObservedOnlyCount,
+      );
+      const coverage =
+        coverageDenominator > 0
+          ? (valid.length / coverageDenominator) * 100
+          : 0;
       result.push({
         aspectId,
         aspectName: rows[0].aspectName,
@@ -256,10 +275,11 @@ export function calculateAspectAggregates(
         scoreOutOf100: score === null ? null : (score / 5) * 100,
         plannedIndicators: plannedCount,
         assessedIndicators: valid.length,
+        coverageDenominator,
         notObservedIndicators,
         pendingIndicators,
         coverage,
-        valid: plannedCount > 0 && coverage >= coverageThreshold,
+        valid: valid.length >= 1 && coverage >= coverageThreshold,
       });
     }
   }
@@ -291,7 +311,7 @@ export function calculateOverallScore(aspects: AspectAggregate[]) {
       .filter((aspect) => !aspect.valid || aspect.score === null)
       .map(
         (aspect) =>
-          `${aspect.aspectName}: coverage ${aspect.coverage.toFixed(1)}% (${aspect.assessedIndicators}/${aspect.plannedIndicators} indikator valid)`,
+          `${aspect.aspectName}: coverage ${aspect.coverage.toFixed(1)}% (${aspect.assessedIndicators}/${aspect.coverageDenominator} indikator valid)`,
       ),
   };
 }

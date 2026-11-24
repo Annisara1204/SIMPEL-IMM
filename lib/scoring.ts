@@ -69,7 +69,8 @@ export function calculateWeightedScore(
   if (!observedAspectWeight)
     return { value: null, observedIndicators: 0, includedAspects };
   const averageOnFivePointScale = weightedAspects / observedAspectWeight;
-  const value = ((averageOnFivePointScale - 1) / 4) * 100;
+  // Skala 1–5 dipetakan linier ke persentase: 1→20, 3→60, 5→100.
+  const value = (averageOnFivePointScale / 5) * 100;
   return {
     value,
     observedIndicators: observedIndicatorIds.size,

@@ -1,6 +1,6 @@
 # Alur Penilaian: Versi yang Benar
 
-Dokumen ini menjelaskan apa yang **benar-benar terjadi** di aplikasi sekarang, bukan apa yang tertulis di dokumen lama. Sumbernya adalah kode di `app/`, `lib/`, `supabase/migrations/`, dan uji browser lokal 24 November 2026. Bila ada perbedaan dengan `BLUEPRINT.md` atau `KEPUTUSAN-KOREKSI-ALUR.md`, beda itu dicatat di bagian terakhir dan belum diputus oleh pemilik.
+Dokumen ini menjelaskan apa yang **benar-benar terjadi** di aplikasi sekarang, bukan apa yang tertulis di dokumen lama. Sumbernya adalah kode di `app/`, `lib/`, `supabase/migrations/`, dan uji browser lokal 24 November 2026. Bila ada perbedaan dengan `BLUEPRINT.md` atau `KEPUTUSAN-KOREKSI-ALUR.md`, beda itu dicatat di bagian terakhir. Keputusannya ada di `MATRIKS-KEPUTUSAN-PRODUK.md` yang sudah diisi pada 24 November 2026. K1, K2, K3, K6, dan K9 sudah diputus; sisanya mengikuti matriks yang sama.
 
 Bacaan untuk panitia: "Observer mengisi nilai sendiri-sendiri. Sistem merangkum nilai yang sudah dikirim. Koordinator meninjau selisih, menulis kesimpulan, lalu mengunci rapor."
 
@@ -124,7 +124,7 @@ Bukti: `evaluasi/actions.ts:568-864`; `20261113120000_scope_finalize_moderation_
 
 ---
 
-## 4. Kontradiksi yang belum diputus
+## 4. Kontradiksi dan status keputusannya
 
 K1. **Tiga tombol "final" dengan syarat berbeda.** Finalisasi kiriman mensyaratkan semua Observer submit (`assessment-actions.ts:398-413`). Finalisasi evaluasi memakai coverage, moderasi, dan alasan (`evaluasi/actions.ts:646-698`). Tombol satu klik menambah publikasi dan unduh PDF (`:821-864`). `KEPUTUSAN-KOREKSI-ALUR.md:71` sudah membatalkan syarat "semua Observer submit", tetapi tombol dan kodenya masih ada.
 

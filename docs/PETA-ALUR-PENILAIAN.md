@@ -22,7 +22,7 @@ Hasil eksplorasi branch `research/peta-alur-penilaian` (24 November 2026). Semua
 
 ## Urutan kerja yang disarankan
 
-1. Isi `MATRIKS-KEPUTUSAN-PRODUK.md` bersama pemilik, terutama metode akses Peserta, rumus agregat, dan aturan "nilai resmi".
+1. `MATRIKS-KEPUTUSAN-PRODUK.md` sudah terisi semua 12 item pada 24 November 2026. Item 2 sampai 6 dijawab langsung; sisanya mengikuti rekomendasi. Tanda tangan pemilik masih kosong.
 2. Verifikasi produksi sesuai daftar periksa, dengan izin eksplisit.
 3. Uji browser yang belum dilakukan: konflik dua penilai, N/O sampai Evaluasi, alur finalize/publish/ekspor di DEV, RLS lintas peran.
 4. Baru setelah itu Tutup jalur lama satu per satu memakai urutan di `INVENTARIS-JALUR-LAMA.md`.

@@ -20,6 +20,7 @@ Hasil eksplorasi branch `research/peta-alur-penilaian` (24 November 2026). Semua
 | `HASIL-FASE3-DEV.md` | Perubahan dan verifikasi Fase 3a–3c di DEV | Bukti pelaksanaan Fase 3a–3c |
 | `HASIL-FASE3EFG-DEV.md` | Perubahan dan verifikasi Fase 3e–3g di DEV | Bukti pelaksanaan Fase 3e–3g |
 | `HASIL-FASE4-DEV.md` | Perubahan dan verifikasi Fase 4 di DEV | Bukti pelaksanaan Fase 4 |
+| `HASIL-UJI-FINALIZE-EKSPOR-DEV.md` | Uji browser satu klik finalize/publish dan semua tombol ekspor | Bukti alur akhir masih bekerja |
 | `HASIL-FASE3F-DEV.md` | Verifikasi aturan impor `.xlsx` dan bug batas baris | Rincian Fase 3f |
 
 ## Temuan yang paling berpengaruh

@@ -6,6 +6,38 @@
 **Data:** seluruh peserta/foto/nilai yang dipakai adalah simulasi. Jangan masukkan data pribadi nyata.
 **Status kolom "Hasil aktual":** `Belum diuji` = menunggu eksekusi; `Lulus (otomatis)` = terbukti lewat unit test/tsc; sisa = diisi saat pengujian manual.
 
+## Status terbaru 24 November 2026 (DEV) — baca sebelum memakai tabel di bawah
+
+Tabel test case di bawah adalah catatan asal 12–13 November dan belum dihapus. Untuk ID yang disebut di bagian ini, pakai status di sini. Otoritas status ada di `docs/STATUS-PRODUKSI-SATU-VERSI.md`; bukti ada di `docs/HASIL-FASE2-DEV.md`, `docs/HASIL-FASE3-DEV.md`, `docs/HASIL-FASE3EFG-DEV.md`, `docs/HASIL-FASE4-DEV.md`, dan `docs/HASIL-UJI-FINALIZE-EKSPOR-DEV.md`. Lingkungan uji terbaru: Next.js `localhost:3100`, Supabase `127.0.0.1:54322`, branch `research/peta-alur-penilaian`, data simulasi. Tidak ada deploy produksi dan tidak ada akun Peserta.
+
+### Sudah diuji atau terbukti di DEV Fase 2–4
+
+| ID | Status terbaru | Bukti |
+|---|---|---|
+| PEN-001 | Lulus di browser: skor 4 tampil 80.0/100 di Observasi dan 80.0/100 di Evaluasi. Satu rumus sejak Fase 2 | `docs/HASIL-FASE2-DEV.md` |
+| PEN-003 | Lulus sebagai alur kolektif: gate "semua Observer submit" dan tombol finalisasi Admin dihapus. Finalisasi evaluasi lewat tombol satu klik berhasil | `docs/HASIL-FASE2-DEV.md`, `docs/HASIL-UJI-FINALIZE-EKSPOR-DEV.md` |
+| ASN-004, DASH-007 (IoT) | Lulus terbatas: IoT melihat 5 peserta di Observasi, 0 baris `assessment_ratings`, `can_review_observation` false, rekap tidak tampil. Menu Evaluasi/Laporan masih redirect (UX) | `docs/HASIL-FASE3-DEV.md` |
+| DASH-002, DASH-006, EVA-006 | Lulus: Kader melihat rekap tanpa tombol Terbit dan tanpa panel ekspor; halaman publik menampilkan "data belum tersedia" sesuai ambang 10 | `docs/HASIL-FASE3-DEV.md`, `docs/HASIL-FASE3EFG-DEV.md`, `docs/HASIL-UJI-FINALIZE-EKSPOR-DEV.md` |
+| FIN-001, FIN-003 | Lulus lewat klik satu tombol: evaluasi `finalized`, snapshot revisi 1, publikasi tercatat, satu audit `individual_pdf`, redirect dengan `published=1` | `docs/HASIL-UJI-FINALIZE-EKSPOR-DEV.md` |
+| COH-001, COH-002, COH-004, EXP-001, EXP-003, EXP-004 | Lulus sebagai klik + baris audit: `individual_pdf`, `bulk_pdf`, `assessment_excel` (tiga tombol), `observer_excel`, `event_report_pdf`; filter kegiatan/status berjalan. Isi byte file belum dibandingkan | `docs/HASIL-UJI-FINALIZE-EKSPOR-DEV.md` |
+| EXP-002 | Lulus (code review), bukan klik browser: kolom ekspor Excel tidak memuat catatan privat | `docs/HASIL-UJI-FINALIZE-EKSPOR-DEV.md` |
+| FIN-006, FIN-007 | Sebagian: gate publish keras menolak snapshot `provisional` dan kontrak 8 argumen diuji lewat SQL, bukan klik UI. Penolakan finalize karena coverage/moderasi terakhir diverifikasi 13 November, belum diulang setelah Fase 4 | `docs/HASIL-FASE2-DEV.md`, `supabase/tests/rpc_contract_behavior.sql` |
+
+### Masih belum diuji atau sengaja ditunda
+
+| ID | Status | Alasan |
+|---|---|---|
+| RPT-001, RPT-002, RPT-003 | **DITUNDA** | Tidak ada akun Peserta. Pemilik memilih akses username/kata sandi tanpa domain dan TLS, sehingga Fase 3d tidak dijalankan |
+| RPT-004, RPT-005 | **DITUNDA** | PDF individual terbangkit dan ruang pengesahan tidak diisi nama karangan, tetapi isi dan byte belum ditelaah atau dibandingkan baseline. Tetap mengikuti penundaan akun Peserta |
+| PEN-004, RT-001, RT-002, RT-003, NOTE-001 (dua akun) | **Belum diulang setelah Fase 4** | Terakhir diuji 13 November. Perubahan Fase 2–4 tidak disertai uji ulang konflik dan Realtime dua akun |
+| RLS lintas peran penuh | **Belum diulang setelah Fase 4** | Fase 3 hanya pemeriksaan terarah (Kader, IoT). Penguji SQL memeriksa struktur dan kontrak RPC, bukan seluruh matriks peran |
+| SKL-001, SKL-003, SKL-004 di browser | **Belum diuji penuh** | N/O sudah dibuang dari penyebut di `lib/phase6-scoring.ts`, tetapi bukti baru unit test dan penguji SQL |
+| AUTH-004, AUTH-005, AUTH-008, AUTH-009 | Belum diulang di lingkungan terbaru | Mengikuti catatan 12–13 November; BUG-004 belum diperbaiki |
+| ATS-002, ATS-003, ATS-004, ATS-005 | Belum diulang setelah Fase 4 | Khusus ATS-003, Kirim berulang sudah diuji 13 November, tetapi tidak diulang setelah perubahan terbaru |
+| EVA-002, EVA-005 | Sebagian | Draf rekomendasi dan redirect Observer diuji 13 November; belum diulang setelah Fase 4 |
+
+Ringkasan verifikasi otomatis terbaru: `npm run check` 0 error, 5 peringatan lama, 22 tes lolos; `npm run build` berhasil; 8 dari 8 penguji SQL lolos; dry-run retensi lolos tetapi `scripts/retention-apply.sql` belum dijalankan. `NEXT_PUBLIC_PUBLIC_AGGREGATE_EVENT_ID` belum diisi di produksi. Windows `EPERM` dan CI runner hanya bisa diverifikasi pemilik.
+
 ## Ringkasan audit awal (sebelum pengujian)
 
 1. `proxy.ts` hanya menyegarkan sesi; proteksi rute dilakukan per halaman server (`app/dashboard/*`) dan Server Action + RLS. Bukan bug, tetapi berarti keamanan **tidak** bergantung pada middleware tunggal — setiap halaman harus tetap diperiksa saat uji.
@@ -69,7 +101,7 @@
 
 | ID | Skenario | Data uji | Expected | Hasil aktual | Status |
 |---|---|---|---|---|---|
-| TMP-001 | Login peserta sementara | — | Belum tersedia | Fitur belum diimplementasikan (blueprint: akses peserta masih terbuka) | DIHENTIKAN — menunggu keputusan produk |
+| TMP-001 | Login peserta sementara | — | Belum tersedia | Keputusan pemilik: username/kata sandi biasa, tanpa SMTP/TOTP, dan IP tanpa TLS. Fase 3d ditunda | DITUNDA — lihat `docs/STATUS-PRODUKSI-SATU-VERSI.md` |
 
 ### 5. Assignment observer (ASN)
 
@@ -180,11 +212,11 @@
 
 | ID | Skenario | Data uji | Expected | Hasil aktual | Status |
 |---|---|---|---|---|---|
-| RPT-001 | Peserta membuka rapor setelah publish | akun peserta tertaut | Rapor tampil (RPC published miliknya) | Belum diuji | Belum diuji |
-| RPT-002 | Peserta lain membuka rapor tsb (ganti ID) | akun peserta lain | Ditolak | Belum diuji | Belum diuji |
-| RPT-003 | Peserta tanpa tautan akun | - | Tidak ada rapor | Belum diuji | Belum diuji |
-| RPT-004 | PDF rapor individual | tombol ekspor | PDF terbuka, isi sesuai snapshot | Struktur PDF lulus unit test; tampilan belum | Belum diuji penuh |
-| RPT-005 | Rapor menampilkan ruang pengesahan tanpa nama mengarang | PDF | Ruang kosong | Belum diuji | Belum diuji |
+| RPT-001 | Peserta membuka rapor setelah publish | akun peserta tertaut | Rapor tampil (RPC published miliknya) | Tidak ada akun Peserta; lihat status terbaru | DITUNDA |
+| RPT-002 | Peserta lain membuka rapor tsb (ganti ID) | akun peserta lain | Ditolak | Tidak ada akun Peserta; lihat status terbaru | DITUNDA |
+| RPT-003 | Peserta tanpa tautan akun | - | Tidak ada rapor | Tidak ada akun Peserta; lihat status terbaru | DITUNDA |
+| RPT-004 | PDF rapor individual | tombol ekspor | PDF terbuka, isi sesuai snapshot | PDF terbangkit dan teraudit; isi/byte belum ditelaah | DITUNDA |
+| RPT-005 | Rapor menampilkan ruang pengesahan tanpa nama mengarang | PDF | Ruang kosong | Tidak ada nama karangan; isi belum diverifikasi | DITUNDA |
 
 ### 16. Cohort report (COH)
 
@@ -228,7 +260,7 @@ Temuan dan hasil penting:
 
 ## Checklist prioritas untuk diuji manual (butuh akun)
 
-Akun simulasi yang disarankan tersedia (semua data simulasi): Admin Uji, 2× Observer yang ditugaskan ke kegiatan yang sama, 1× Bidang Kader, 1× Instruktur (subrole apa pun), 1× Komisariat, 1× Peserta (ditautkan ke record peserta oleh Admin).
+Akun simulasi yang disarankan tersedia (semua data simulasi): Admin Uji, 2× Observer yang ditugaskan ke kegiatan yang sama, 1× Bidang Kader, 1× Instruktur (subrole apa pun), 1× Komisariat, 1× Peserta (ditautkan ke record peserta oleh Admin). **Catatan 24 November 2026:** akun Peserta tetap tidak tersedia, sehingga langkah 7 untuk RPT-001/002 tidak bisa dijalankan.
 
 Urutan tercepat mendapat informasi terbanyak:
 

@@ -1,6 +1,6 @@
 # Rencana Implementasi Koreksi Alur
 
-Dokumen ini menjabarkan `KEPUTUSAN-KOREKSI-ALUR.md` menjadi tahap kerja. Urutan sudah memperhatikan ketergantungan. **Belum ada kode yang diubah.** Setiap tahap harus diverifikasi dulu sebelum lanjut.
+Dokumen ini menjabarkan `KEPUTUSAN-KOREKSI-ALUR.md` menjadi tahap kerja. Urutan sudah memperhatikan ketergantungan. Tahap 0 sampai 7 sudah diimplementasikan dan diuji di DEV pada branch `research/peta-alur-penilaian`; deploy branch ini ke PROD belum dilakukan. Otoritas status ada di `docs/STATUS-PRODUKSI-SATU-VERSI.md`. Setiap tahap harus diverifikasi dulu sebelum lanjut.
 
 ## Prinsip
 
@@ -221,4 +221,6 @@ Migrasi baru dijalankan lewat SQL Editor Supabase DEV sesuai urutan nama berkas,
 
 ## Status
 
-Rencana dibuat 23 Nov 2026. Tahap 0 sampai 7 selesai di kode. Tahap 8 sebagian: pemeriksaan otomatis hijau, tetapi migrasi Tahap 3 belum dipasang, uji browser belum dilakukan, dan deploy PROD belum ada. Jangan deploy sebelum migrasi terpasang dan konfirmasi eksplisit diterima.
+Rencana dibuat 23 Nov 2026. Tahap 0 sampai 7 selesai di kode dan diuji di DEV pada branch `research/peta-alur-penilaian`. Tahap 8 sebagian: `npm run check` 0 error dengan 5 peringatan lama, 22 tes lolos, `npm run build` berhasil, dan 8 dari 8 penguji SQL lolos di DEV. Yang belum: uji dua akun untuk konflik dan Realtime belum diulang setelah Fase 4, isi byte PDF unduhan belum dibandingkan dengan baseline, dan **deploy branch ini ke PROD belum ada**.
+
+Deploy 24 November pagi memang pernah terjadi, tetapi untuk kode lama, commit `0448100`, bukan untuk branch ini. Migrasi baru branch ini juga belum dipasang di PROD yang masih mencatat 39 migrasi lama. Rincian ada di `docs/STATUS-PRODUKSI-SATU-VERSI.md`. Jangan deploy sebelum migrasi terpasang dan konfirmasi eksplisit diterima.

@@ -2,34 +2,40 @@
 
 Dokumen ini adalah daftar periksa, bukan laporan hasil. Saya **tidak mengakses server produksi** selama sesi ini. Tidak ada deploy, migrasi, perubahan konfigurasi, rotasi kunci, atau penulisan data ke produksi. Semua pekerjaan ada di branch `research/peta-alur-penilaian` dan memakai data simulasi lokal.
 
+Otoritas keadaan produksi adalah `docs/STATUS-PRODUKSI-SATU-VERSI.md` (24 November 2026). Dokumen itu mencatat kode aktif `0448100`, Supabase self-hosted, backup 03:15, akun admin, dan keputusan pemilik. Pemilik sudah memberikan **izin remediasi**, tetapi izin itu belum dijalankan di produksi. Seluruh 14 butir di bawah tetap **Belum** sampai ada bukti pemeriksaan server langsung.
+
 ## Kenapa tidak saya jalankan
 
 - `AGENTS.md:19-21` melarang memulai tahap berikutnya tanpa persetujuan dan melarang menganggap keputusan terbuka sebagai final.
 - `AGENTS.md:32-34` melarang perubahan besar di luar lingkup, pelaporan yang mengklaim teruji padahal tidak, dan publikasi sebelum tinjauan keamanan, privasi, biaya, dan backup.
 - `docs/RENCANA-IMPLEMENTASI-KOREKSI-ALUR.md:7-10` menetapkan kerja di DEV dengan data simulasi dan tidak menulis ke PROD saat pengembangan.
 - Kunci produksi dan akses SSH tidak saya pakai. Kunci yang pernah tercatat di riwayat sesi sebelumnya sebaiknya diputar, bukan dipakai lagi.
+- Izin remediasi sudah diberikan pemilik (`docs/STATUS-PRODUKSI-SATU-VERSI.md` bagian 1 dan 3), tetapi belum dijalankan di produksi. Izin itu tidak mengubah status "Belum" di tabel di bawah.
+- Akses HTTP polos tanpa domain dan TLS di `http://43.173.33.195:8080/` adalah **keputusan final pemilik untuk sementara** (`docs/STATUS-PRODUKSI-SATU-VERSI.md` bagian 1 dan 3), bukan pekerjaan yang tertunda. Butir 9 tetap "Belum" karena tidak ada pemeriksaan sertifikat atau konfigurasi di server.
 
-## Konflik dokumen yang harus diselesaikan lebih dulu
+## Konflik dokumen dan status penyelesaiannya
 
-1. `HANDOVER.md:479` menyatakan deploy 24 November selesai dan migrasi `20261123130000` terpasang di PROD. `HANDOVER.md:470-471` masih menyatakan migrasi belum dipasang dan deploy belum ada. Keduanya tidak bisa benar bersamaan.
-2. `docs/DEPLOYMENT.md:23-29` masih menyebut project cloud `crrqlwlfndhugcqcnkex`, database kosong, belum ada admin, dan regression belum dijalankan. `HANDOVER.md:365-384,449-479` menyatakan sebaliknya: self-hosted, ada admin dan QA, migrasi terpasang.
-3. `docs/LANGKAH-PASANG-MIGRASI-DAN-UJI.md:9` masih menyebut migrasi belum ada di DEV maupun PROD.
-4. `PGRST_DB_MAX_ROWS` diubah langsung di server ke 100000 (`HANDOVER.md:449-453`). Perubahan ini tidak tercatat di repo dan bisa hilang saat container dibuat ulang.
-5. `.env.production` di repo berpotensi masih menunjuk project cloud lama, sementara aplikasi produksi sudah memakai instance self-hosted (`HANDOVER.md:371-374`).
+`docs/STATUS-PRODUKSI-SATU-VERSI.md` sekarang menjadi otoritas tunggal. Klaim status di dokumen lain harus merujuk ke sana.
+
+1. **Terselesaikan di dokumen.** `HANDOVER.md:479` menyatakan deploy 24 November selesai dan migrasi `20261123130000` terpasang di PROD, sementara `HANDOVER.md:470-471` menyatakan sebaliknya. Otoritas mencatat: deploy 24 November pagi memang terjadi untuk kode lama `0448100`, tetapi migrasi baru branch ini belum dipasang di PROD.
+2. **Terselesaikan di dokumen.** `docs/DEPLOYMENT.md` tidak lagi menyebut database kosong, belum ada admin, atau project cloud sebagai target. Sekarang memakai self-hosted, akun admin, backup 03:15, dan kode `0448100`. Klaim lama ditandai sebagai riwayat.
+3. **Terselesaikan di dokumen.** `docs/LANGKAH-PASANG-MIGRASI-DAN-UJI.md` sekarang membedakan DEV (migrasi sampai `20261124140000`) dan PROD (39 migrasi lama).
+4. **Masih perlu verifikasi server.** `PGRST_DB_MAX_ROWS` diubah langsung di server ke 100000 (`HANDOVER.md:449-453`). Perubahan ini tidak tercatat di repo dan bisa hilang saat container dibuat ulang. Lihat butir 4.
+5. **Masih perlu verifikasi server.** `.env.production` di repo berpotensi masih menunjuk project cloud lama, sementara aplikasi produksi memakai instance self-hosted (`HANDOVER.md:371-374`). Lihat butir 5.
 
 ## Daftar periksa
 
 | # | Yang harus diverifikasi | Cara aman | Status |
 |---|---|---|---|
 | 1 | Commit yang aktif di server benar-benar `0448100` | Baca `git rev-parse HEAD` di `/home/ubuntu/imm-app` | Belum |
-| 2 | 40 migrasi terpasang, termasuk `20261123130000` | Query tabel `schema_migrations` atau cek kolom `is_active` | Belum |
+| 2 | 39 migrasi lama terpasang, dan migrasi branch ini belum ada (lihat status dokumen bagian 1–2) | Query tabel `schema_migrations` atau cek kolom `is_active` | Belum |
 | 3 | Penguji SQL `dad_single_recommendation.sql` lolos di PROD | Jalankan penguji read-only bila diizinkan | Belum |
 | 4 | `PGRST_DB_MAX_ROWS=100000` benar-benar ada di `/home/ubuntu/supabase/.env` dan di container `supabase-rest` | Baca env, jangan ubah | Belum |
 | 5 | Aplikasi memakai URL self-hosted, bukan cloud yang sudah di-pause | Baca `.env.production` tanpa mencetak kunci | Belum |
 | 6 | `disable_signup=true` | Baca konfigurasi Auth | Belum, `HANDOVER.md:327` |
 | 7 | Grant `anon` pada dua tabel riwayat moderasi sudah dicabut | `information_schema.role_table_grants` | Belum, `HANDOVER.md:327,337` |
 | 8 | PAT dan service-role key sudah diputar | Konfirmasi dari pemilik, jangan cetak kunci | Belum, `HANDOVER.md:321,417` |
-| 9 | Domain dan TLS sudah ada | Cek alamat akses dan sertifikat | Belum, saat ini HTTP polos di `:8080`, `docs/DEPLOYMENT.md:19` |
+| 9 | Domain dan TLS sudah ada | Cek alamat akses dan sertifikat | Belum, HTTP polos di `:8080`; ini keputusan final pemilik untuk sementara, lihat `docs/STATUS-PRODUKSI-SATU-VERSI.md` bagian 1 dan 3 |
 | 10 | Backup harian menyertakan `auth.*` atau prosedur re-create akun terdokumentasi | Baca `/etc/cron.d/imm-db-backup` dan isi backup | Belum, `HANDOVER.md:334-335` |
 | 11 | Monitoring/alert 5xx aktif | Cek konfigurasi monitoring | Belum, `HANDOVER.md:337,363` |
 | 12 | Uji registry dua akun pasca hotfix prefetch dan P1/P2 | Uji browser dengan akun QA simulasi | Belum |
@@ -44,4 +50,4 @@ Dokumen ini adalah daftar periksa, bukan laporan hasil. Saya **tidak mengakses s
 - Menghapus backup atau direktori rollback.
 - Memakai data peserta nyata sebelum tinjauan keamanan, privasi, biaya, dan backup selesai.
 
-Setelah daftar ini diisi, hasilnya sebaiknya menggantikan klaim status di `HANDOVER.md:470-479` dan `docs/DEPLOYMENT.md`, supaya tidak ada lagi dua versi kondisi produksi.
+Setelah daftar ini diisi, tulis hasilnya ke `docs/STATUS-PRODUKSI-SATU-VERSI.md` terlebih dahulu, baru perbarui dokumen lain agar tidak ada dua versi kondisi produksi. Butir 9 tidak berubah menjadi "Sudah" hanya karena alamat IP tanpa TLS sudah diputuskan final; butir itu mengukur ada tidaknya domain dan sertifikat, bukan kebijakan akses.

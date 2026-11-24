@@ -13,7 +13,8 @@ Pengguna pemula; gunakan bahasa Indonesia sederhana dan jelaskan istilah teknis 
 ### Uji coba dan infrastruktur
 
 - Fokus awal: pengujian dengan biaya awal Rp0; belum ada infrastruktur khusus yang diwajibkan.
-- Rekomendasi teknologi: Next.js + Supabase/PostgreSQL + Vercel. Paket gratis hanya untuk prototipe/pengujian; batas, jeda layanan, kebijakan pemakaian, backup, dan biaya domain harus ditinjau sebelum penggunaan resmi.
+- Rekomendasi teknologi: Next.js + Supabase/PostgreSQL. **Usang (rancangan awal):** hosting Vercel dan rencana membeli domain; produksi kini self-hosted pada IP tanpa TLS. Paket gratis hanya untuk prototipe/pengujian; batas, jeda layanan, kebijakan pemakaian, dan backup tetap harus ditinjau sebelum penggunaan resmi.
+- **Keputusan akhir untuk sementara (24 Nov 2026):** produksi memakai `http://43.173.33.195:8080/` lewat HTTP polos, tanpa domain dan TLS. Port 8080 dipertahankan. Ini keputusan final untuk sementara, bukan rencana pindah ke domain/Vercel; rincian di `docs/STATUS-PRODUKSI-SATU-VERSI.md`.
 - Tidak memakai data pribadi peserta sebenarnya saat pengembangan awal.
 
 ### Kegiatan dan penilaian
@@ -51,30 +52,32 @@ Pengguna pemula; gunakan bahasa Indonesia sederhana dan jelaskan istilah teknis 
 
 ### Phase 6 — scoring dan evaluasi kolektif (MVP)
 
-- Setiap Observer/Instruktur tetap memberi nilai independen pada Phase 5. Phase 6 menghitung rata-rata hanya dari rating berstatus Submitted/Finalized; draf tidak dihitung dan N/O tidak dianggap nol.
+- Setiap Observer/Instruktur tetap memberi nilai independen pada Phase 5. Phase 6 menghitung rata-rata hanya dari rating berstatus Submitted/Finalized; draf tidak dihitung dan N/O tidak dianggap nol. **Aturan N/O terbaru (24 Nov 2026):** N/O dibuang dari denominator coverage, jadi tidak ikut menambah jumlah penilai yang dihitung. Lihat `docs/STATUS-PRODUKSI-SATU-VERSI.md` §3.
 - Agregasi dibuat per peserta, indikator, dan cakupan. Cakupan sesi dipisahkan dari cakupan `cross_session`. Sistem menampilkan jumlah rating valid, minimum, maksimum, rentang, N/O, pending, dan status moderasi.
 - Rentang skor minimal 2 memerlukan moderasi manual oleh Admin Sistem atau koordinator Instruktur yang ditugaskan (MoT, Vice MoT, Master Observer, Vice Observer). Rating Observer tidak ditimpa oleh moderasi.
 - Coverage minimal 80% berlaku untuk setiap aspek. Nilai aspek memakai bobot indikator; nilai keseluruhan memakai `Σ(nilai aspek / 5 × bobot aspek)`, tanpa menormalisasi ulang bobot aspek. Data yang belum memenuhi aturan tetap provisional.
+- **Aturan skor dan tampilan (24 Nov 2026):** skor 0–100 dihitung `(skor aspek / 5) × bobot`. Tampilan memakai **satu angka desimal**; snapshot menyimpan **dua angka desimal**. Kategori 0–100 pada bagian "Kegiatan dan penilaian" tetap dipakai. Rincian di `docs/STATUS-PRODUKSI-SATU-VERSI.md` §3.
 - Keputusan lulus/tidak lulus/perlu pembahasan lanjutan ditetapkan manual oleh koordinator, bukan oleh aturan skor otomatis. Finalisasi menyimpan snapshot bernomor dan sumber privat; snapshot tidak dapat diedit atau dihapus.
-- Bidang Kader melihat agregat dan snapshot yang aman. Skor mentah, bukti, dan pembahasan privat dibatasi ke Admin Sistem dan koordinator kegiatan.
+- **Usang sebagian (24 Nov 2026):** "agregat dan snapshot yang aman" diganti. Bidang Kader hanya menerima rekap, tanpa `snapshot_data`, bukti, catatan rinci, `evaluate`, atau ekspor. Skor mentah, bukti, dan pembahasan privat tetap dibatasi ke Admin Sistem dan koordinator kegiatan.
 - Rekomendasi pengembangan perlu disetujui sebelum masuk snapshot/rekap yang boleh dibagikan.
-- Sistem boleh menyusun draf rekomendasi berbasis aturan dari indikator dengan rata-rata di bawah 3/5. Saran berupa latihan umum sesuai aspek, tidak membuat kesimpulan tentang karakter peserta, dan tetap harus ditinjau/disetujui instruktur. Fitur ini deterministik, bukan AI; penggunaan AI tetap ditunda.
+- **Diubah (23 Nov 2026):** draf rekomendasi kini **satu teks per peserta per jenis penilaian**, bukan satu per indikator/cakupan. Teks menyebut semua indikator dengan rata-rata di bawah 3/5 tanpa menulis angkanya, berupa saran latihan umum per aspek, tidak menyimpulkan karakter peserta, dan tetap harus ditinjau serta disetujui koordinator. Fitur ini deterministik, bukan AI; penggunaan AI tetap ditunda. **Usang:** unit rekomendasi lama per indikator/cakupan.
 - Data profil peserta untuk pencocokan laporan dapat memuat NIM dan kelompok; NIM unik per kegiatan bila diisi.
 
 ### Phase 7 — dashboard, rapor, dan ekspor
 
 - Dashboard/report resmi memakai snapshot Fase 6; Draft/Submitted tidak menjadi hasil final. Dashboard menampilkan status provisional/finalized/published, progres submit penilai, distribusi keputusan, dan agregat aspek.
-- Rapor peserta hanya tersedia setelah snapshot final diterbitkan secara eksplisit. Akun role Peserta harus ditautkan Admin Sistem ke satu record peserta; akses rapor peserta diperiksa lagi di basis data dan RPC hanya mengembalikan rapor Published miliknya.
+- **Gate publikasi keras (24 Nov 2026):** snapshot `provisional` tidak boleh diterbitkan; publikasi hanya untuk snapshot yang sudah Finalized. Guard aplikasi lain lunak: coverage dan moderasi yang belum selesai menjadi peringatan serta status sementara, bukan penolakan simpan. Lihat `docs/STATUS-PRODUKSI-SATU-VERSI.md` §3.
+- Rapor peserta hanya tersedia setelah snapshot final diterbitkan secara eksplisit. Bila akses Peserta dibuka kelak, akun role Peserta ditautkan Admin Sistem ke satu record peserta; akses rapor diperiksa lagi di basis data dan RPC hanya mengembalikan rapor Published miliknya. Untuk sementara akun dan rapor Peserta **tidak dibagikan** karena produksi memakai IP tanpa domain/TLS.
 - Tema dan penyelenggara kegiatan bersifat opsional sampai datanya diisi. Nama pejabat pengesah tidak diisi otomatis; PDF menyediakan ruang pengesahan tanpa mengarang identitas.
 - PDF resmi dan ZIP massal hanya memuat rapor Published. Excel dan event report memakai data yang diizinkan per role; ekspor skor individual/evidence hanya untuk Admin Sistem/koordinator. Catatan deliberasi dan sumber privat tidak masuk snapshot publik.
 - Publikasi dan ekspor dicatat di audit table. Snapshot Phase 6 tetap immutable; rapor revisi menggunakan snapshot baru.
-- PDF dibuat di browser memakai generator internal ringan dan ZIP tanpa kompresi; tidak menambah dependency. Excel menggunakan `xlsx` yang sudah terpasang. Rapor peserta belum dapat dibuka sebelum akun ditautkan.
+- PDF dibuat di browser memakai generator internal ringan dan ZIP tanpa kompresi; tidak menambah dependency. Excel menggunakan `xlsx` yang sudah terpasang. **Usang:** rencana akun/token sementara untuk Peserta; metode akses sudah diputuskan sebagai username dan kata sandi biasa, dan rapor Peserta tidak dibagikan sampai ada domain/TLS.
 
 ### Akses dan privasi
 
 - **Observer dan Instruktur yang ditugaskan** dapat melihat nilai bersama, riwayat perubahan, dan catatan per penulis untuk kegiatan tugasnya.
-- **Bidang Kader berwenang** dapat melihat rekap dan nilai untuk pemantauan/penyusunan laporan; catatan observasi rinci tetap privat bagi Observer/Instruktur yang ditugaskan dan Admin Sistem.
-- **Peserta** dapat melihat hanya miliknya: nilai sementara dalam bentuk ringkasan (bukan data mentah Observer) dan catatan pengembangan/perhatian. Tampilkan penanda bahwa nilai masih sementara.
+- **Bidang Kader hanya menerima rekap.** **Usang:** akses lama ke "nilai untuk pemantauan" dan `snapshot_data`. Bidang Kader tidak menerima `snapshot_data`, bukti, catatan rinci, `evaluate`, atau ekspor. Catatan observasi rinci tetap privat bagi Observer/Instruktur yang ditugaskan dan Admin Sistem. Lihat `docs/STATUS-PRODUKSI-SATU-VERSI.md` §3.
+- **Peserta (keputusan 24 Nov 2026):** akses memakai username dan kata sandi biasa, tanpa SMTP, TOTP, atau penyedia pihak ketiga. **Usang:** akses sementara/token dengan masa berlaku. Karena produksi memakai IP tanpa domain/TLS, akun dan rapor Peserta tidak dibagikan; Fase 3d serta RPT-001 sampai RPT-005 ditunda. Bila dibuka kelak, Peserta melihat hanya miliknya: ringkasan nilai sementara (bukan data mentah Observer) dan catatan pengembangan/perhatian, dengan penanda bahwa nilai masih sementara.
 - **Publik** hanya melihat agregat yang aman: tanpa nama peserta, nilai individual, atau catatan privat. Tinjau ambang minimum agregat agar orang tidak bisa dikenali dari kelompok kecil.
 - **Komisariat** hanya mendapat informasi/laporan yang diizinkan; cakupan tepatnya belum diputuskan.
 - Hak akses wajib diverifikasi di server dan basis data, bukan hanya dengan menyembunyikan menu.
@@ -134,13 +137,13 @@ Pengguna pemula; gunakan bahasa Indonesia sederhana dan jelaskan istilah teknis 
 
 1. Pengunjung publik: dashboard agregat aman.
 2. Admin sistem: akun, role, konfigurasi.
-3. Bidang Kader: konfigurasi penilaian, penugasan, pemantauan dan laporan sesuai kewenangan. Impor pretest/posttest saat ini khusus Admin Sistem. Sesuai aturan terbaru pengguna, pengelolaan kegiatan dan peserta dilakukan Observer dan Super Admin.
+3. Bidang Kader: **hanya menerima rekap**, tanpa `snapshot_data`, bukti, catatan rinci, `evaluate`, atau ekspor. **Usang:** konfigurasi penilaian dan penugasan oleh Bidang Kader; rancangan lama ini diganti keputusan 24 Nov 2026. Impor pretest/posttest tetap khusus Admin Sistem. Pengelolaan kegiatan dan peserta dilakukan Observer dan Super Admin.
 4. Observer: penilaian bersama dan catatan per penulis sesuai penugasan.
 5. Instruktur: subrole diberikan per kegiatan. Keenam subrole dapat mengubah skor bersama dan membuat catatan masing-masing hanya untuk kegiatan yang ditugaskan. Akses penilaian membuka identitas peserta dan riwayat perubahan untuk kegiatan itu; catatan tidak dapat diakses dari kegiatan lain. Semua subrole memiliki dashboard peserta dan hasil penilaian kegiatan yang ditugaskan. Menu Profil Peserta dan Profil Instruktur menyediakan pemilihan kegiatan sesuai penugasan akun. MoT/Vice MoT mendapat checklist koordinasi; IoT/Vice IoT mendapat checklist agenda ruhiyah; Master of Observer/Vice Observer mendapat checklist koordinasi Observer.
 6. Komisariat: informasi/laporan yang diizinkan.
-7. Peserta: kelak mengakses tes/rapor yang diizinkan melalui username/password sementara atau token dengan masa berlaku yang dapat diatur.
+7. Peserta: akses direncanakan dengan username dan kata sandi biasa. **Usang:** akses sementara/token yang dapat diatur masa berlakunya. Untuk sementara akun dan rapor Peserta tidak dibagikan karena produksi memakai IP tanpa domain/TLS.
 
-Admin Sistem, Bidang Kader, Observer, Instruktur tetap, dan Komisariat memakai login email + kata sandi. Instruktur perbantuan memakai username + kata sandi. Akun/token peserta belum dibuat dan metode akses peserta masih terbuka.
+Admin Sistem, Bidang Kader, Observer, Instruktur tetap, dan Komisariat memakai login email + kata sandi. Instruktur perbantuan memakai username + kata sandi. **Metode akses Peserta sudah diputuskan (24 Nov 2026):** username dan kata sandi biasa, tanpa SMTP/TOTP; status "masih terbuka" itu usang. Akun Peserta belum ada dan tidak dibagikan sampai ada domain/TLS.
 
 ### Pendaftaran akun Instruktur
 
@@ -160,7 +163,7 @@ Admin Sistem, Bidang Kader, Observer, Instruktur tetap, dan Komisariat memakai l
 - Superadmin menetapkan satu dari enam subrole pada setiap penugasan kegiatan. Akun yang sama dapat mendapat subrole berbeda pada kegiatan berbeda.
 - **MoT:** memimpin koordinasi tim, memastikan rencana program/jadwal/target siap, mencatat kendala, dan mengoordinasikan evaluasi pasca kegiatan. Dashboard menampilkan checklist tugas dan ringkasan hasil.
 - **Vice MoT:** membantu koordinasi MoT, menindaklanjuti delegasi dan siap menggantikan saat diperlukan. Dashboard menampilkan checklist dukungan dan ringkasan hasil.
-- **IoT:** mengoordinasikan agenda ibadah dan pembinaan ruhiyah, petugas, jadwal, dan evaluasinya. Dashboard berisi checklist agenda; tidak menampilkan nilai peserta.
+- **IoT:** mengoordinasikan agenda ibadah dan pembinaan ruhiyah, petugas, jadwal, dan evaluasinya. Dashboard berisi checklist agenda. IoT tetap mengisi Observasi (melihat daftar peserta untuk mengisi penilaian), tetapi **tidak melihat rekap penilaian**. **Usang:** anggapan bahwa IoT tidak terlibat pengisian penilaian sama sekali.
 - **Vice IoT:** membantu kesiapan petugas/perlengkapan dan kelancaran agenda IoT. Dashboard berisi checklist tugas.
 - **Master of Observer:** mengoordinasikan pembagian tugas Observer, memastikan rubrik dipahami, memantau progres, dan menyampaikan ringkasan hasil kepada MoT. Dashboard berisi checklist dan rekap agregat tanpa catatan privat.
 - **Vice Observer:** membantu pemantauan penilaian yang belum selesai dan menyiapkan ringkasan untuk Master of Observer. Dashboard berisi checklist dan rekap agregat tanpa catatan privat.
@@ -187,10 +190,10 @@ Admin Sistem, Bidang Kader, Observer, Instruktur tetap, dan Komisariat memakai l
 
 - Publik: buka dashboard → lihat agregat aman.
 - Admin: login email → kelola akun, role, konfigurasi.
-- Bidang Kader: atur penilaian → tugaskan Observer → pantau rekap → sediakan laporan sederhana. Impor tes dilakukan Admin Sistem untuk sementara.
+- Bidang Kader: **hanya menerima rekap**, tanpa `snapshot_data`, bukti, catatan rinci, `evaluate`, atau ekspor. **Usang:** alur lama "atur penilaian → tugaskan Observer → sediakan laporan". Impor tes tetap dilakukan Admin Sistem.
 - Observer: login → buka kegiatan tugas → isi indikator/catatan → cek status simpan → selesaikan penilaian.
 - Komisariat: login → lihat informasi/laporan yang diizinkan.
-- Peserta: gunakan akses sementara saat fitur tersedia → lihat nilai ringkas sementara dan catatan pengembangan miliknya → akses rapor sesuai izin.
+- Peserta: **Usang:** "akses sementara". Akses direncanakan memakai username dan kata sandi biasa; untuk sementara akun dan rapor tidak dibagikan. Bila dibuka: lihat nilai ringkas sementara dan catatan pengembangan miliknya → akses rapor sesuai izin.
 
 ## Umpan balik tampilan dashboard per role
 
@@ -200,7 +203,7 @@ Masukan pengguna yang sudah diterima:
 - **Instruktur:** dashboard menampilkan tugas subrole, daftar peserta, hasil/kategori nilai, serta pilihan Profil Peserta dan Profil Instruktur untuk kegiatan yang ditugaskan. Semua subrole dapat membaca nama dan profil peserta; rincian catatan tetap tersedia melalui Observasi sesuai kegiatan.
 - **Bidang Kader:** bagian utama dashboard adalah daftar kegiatan DAD beserta statusnya, serta ringkasan jumlah peserta dan progres penilaian.
 - **Komisariat:** bagian utama dashboard adalah daftar kegiatan DAD yang berkaitan dengan komisariatnya dan rekap/laporan yang memang diizinkan untuk diakses.
-- **Peserta:** bagian utama dashboard adalah nilai sementara miliknya dalam bentuk ringkasan dan catatan pengembangan/perhatian. Tidak menampilkan nilai mentah Observer.
+- **Peserta:** bila akses dibuka kelak, bagian utama dashboard adalah nilai sementara miliknya dalam bentuk ringkasan dan catatan pengembangan/perhatian. Tidak menampilkan nilai mentah Observer. Saat ini akun dan rapor Peserta tidak dibagikan (IP tanpa domain/TLS).
 - **Admin Sistem:** bagian utama dashboard adalah ringkasan jumlah pengguna menurut peran dan status konfigurasi sistem.
 - **Pengunjung Publik:** tampilkan informasi/jadwal DAD yang telah, sedang, dan akan diselenggarakan, serta profil instruktur (foto, nama, media sosial). Foto dan akun profil nyata perlu persetujuan instruktur; gunakan placeholder simulasi selama prototipe.
 
@@ -208,7 +211,7 @@ Masukan pengguna yang sudah diterima:
 
 - Tampilan browser (frontend): Next.js + TypeScript.
 - Backend/basis data: Supabase + PostgreSQL, autentikasi, storage, dan kebijakan akses baris (RLS).
-- Hosting frontend prototipe: Vercel. Paket Vercel Hobby memiliki batas penggunaan/pemakaian; periksa kelayakannya sebelum pemakaian resmi.
+- **Usang (rancangan awal):** hosting frontend prototipe di Vercel. Produksi berjalan di server sendiri pada `43.173.33.195:8080` melalui HTTP polos, tanpa domain/TLS, menurut keputusan 24 Nov 2026. Rincian di `docs/STATUS-PRODUKSI-SATU-VERSI.md`.
 - Pengembangan: Node.js/npm di Windows, PowerShell untuk perintah.
 - Jangan memasukkan API key/kredensial rahasia ke kode frontend.
 - Harga/kuota paket gratis dapat berubah; periksa ulang sebelum publikasi.
@@ -218,7 +221,7 @@ Masukan pengguna yang sudah diterima:
 Nama tabel masih konsep dan dapat disesuaikan saat implementasi data dimulai:
 
 - `users`, `user_roles`; `commissariats`; `events`; `participants`.
-- `participant_access`: token/akun sementara, kedaluwarsa, pencabutan.
+- `participant_access`: **usang** sebagai rancangan akses token/akun sementara. Akses Peserta diputuskan memakai username dan kata sandi biasa, tanpa SMTP/TOTP; akun dan rapor tidak dibagikan sampai ada domain/TLS.
 - `observer_assignments`: cakupan tugas Observer.
 - `rubric_versions`, `indicators`: versi rubrik, aspek, indikator, skala, bobot, target, aturan hitung.
 - `observations`, `observation_revisions`: nilai/catatan dan riwayat revisi.
@@ -231,7 +234,7 @@ Nama tabel masih konsep dan dapat disesuaikan saat implementasi data dimulai:
 - Periksa akses pada server dan RLS; uji antar-role, kegiatan, peserta, dan komisariat.
 - Peserta tidak boleh membaca nilai mentah Observer atau catatan privat.
 - Dashboard publik hanya dari agregasi yang aman; tanpa identitas/skor individu/catatan.
-- Token peserta sukar ditebak, kedaluwarsa, bisa dicabut; jangan simpan password terbuka.
+- **Usang:** aturan token Peserta (sukar ditebak, kedaluwarsa, bisa dicabut). Peserta memakai username dan kata sandi biasa; jangan simpan password terbuka.
 - Rubrik berversi dan tidak ditimpa setelah dipakai. Tiap hasil mengacu ke versi rubriknya.
 - Validasi bobot dan rentang skala. Rumus, aturan pembulatan dan nilai kosong harus eksplisit.
 - Form observasi bersama perlu autosave, indikator status simpan, penanganan konflik perubahan, serta riwayat.
@@ -251,7 +254,7 @@ Nama tabel masih konsep dan dapat disesuaikan saat implementasi data dimulai:
 
 ## Status proyek saat ini
 
-Status tiap fase dicatat ringkas di `HANDOVER.md`; daftar berkas penting dipindah ke bagian bawah dokumen ini. Riwayat sesi verifikasi dan migrasi (9 Oktober–12 November 2026) tersimpan verbatim di `docs/archive/BLUEPRINT-status-2026-11-12.md`. Dokumen ini hanya memuat keputusan dan rancangan yang masih berlaku.
+Keadaan produksi dan branch kerja per 24 November 2026 menjadi otoritas tunggal di `docs/STATUS-PRODUKSI-SATU-VERSI.md`. Untuk status, rujuk ke dokumen itu, bukan ke ringkasan lama di `HANDOVER.md`. Riwayat sesi verifikasi dan migrasi (9 Oktober–12 November 2026) tersimpan di `HANDOVER.md` dan `docs/archive/BLUEPRINT-status-2026-11-12.md`. Dokumen ini hanya memuat keputusan dan rancangan; aturan yang sudah diganti diberi penanda "Usang".
 
 ### Berkas penting
 
@@ -269,15 +272,15 @@ Status tiap fase dicatat ringkas di `HANDOVER.md`; daftar berkas penting dipinda
 Jangan mengarang keputusan di bawah. Tanyakan satu per satu saat diperlukan:
 
 - Rubrik/indikator final dan contoh data simulasi untuk rubrik.
-- Pembulatan dan rumus tampilan nilai agregat/ringkasan setelah perhitungan nilai keseluruhan dibangun.
+- **Sudah diputuskan (24 Nov 2026), bukan lagi terbuka:** pembulatan dan rumus tampilan nilai agregat. Skor 0–100 memakai `(skor aspek / 5) × bobot`, tampilan satu angka desimal, snapshot dua angka desimal. Lihat `docs/STATUS-PRODUKSI-SATU-VERSI.md` §3.
 - Kapan setiap Observer dianggap selesai dan bagaimana tugas tidak lengkap ditangani.
 - Cakupan akses Komisariat dan ambang minimum agregat publik.
 - Format ekspor Google Sheets, impor ulang/duplikat, dan format rapor.
 - Retensi/penghapusan data dan backup untuk penggunaan resmi.
-- Pilihan username/password atau token bagi peserta.
+- **Sudah diputuskan (24 Nov 2026), bukan lagi terbuka:** Peserta memakai username dan kata sandi biasa, tanpa SMTP/TOTP. Untuk sementara akun dan rapor Peserta tidak dibagikan karena produksi memakai IP tanpa TLS.
 
 ## Koreksi alur 23 November 2026
 
-Keputusan pemilik atas koreksi alur tercatat lengkap di `docs/KEPUTUSAN-KOREKSI-ALUR.md` dan mengubah sebagian rancangan di atas: sinkronisasi tampilan antar penilai tanpa penyatuan nilai, pelaku persetujuan dibatasi Admin dan empat subrole koordinator, satu rekomendasi per peserta per jenis penilaian, aksi setuju hingga terbit rapor digabung, satu tombol finalisasi semua materi dengan snapshot tetap per jenis, perapian rapor hanya di web, serta cara input nilai tidak diubah. Beberapa hal masih terbuka dan tercantum di dokumen tersebut.
+Keputusan pemilik atas koreksi alur tercatat lengkap di `docs/KEPUTUSAN-KOREKSI-ALUR.md` dan mengubah sebagian rancangan di atas: sinkronisasi tampilan antar penilai tanpa penyatuan nilai, pelaku persetujuan dibatasi Admin dan empat subrole koordinator, satu rekomendasi per peserta per jenis penilaian, aksi setuju hingga terbit rapor digabung, satu tombol finalisasi semua materi dengan snapshot tetap per jenis, perapian rapor hanya di web, serta cara input nilai tidak diubah. Beberapa hal masih terbuka dan tercantum di dokumen tersebut. Status penerapan per 24 November 2026 (DEV versus PROD) ada di `docs/STATUS-PRODUKSI-SATU-VERSI.md`.
 
 

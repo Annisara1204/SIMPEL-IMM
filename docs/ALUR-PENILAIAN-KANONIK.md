@@ -1,6 +1,6 @@
 # Alur Penilaian: Versi yang Benar
 
-Dokumen ini menjelaskan apa yang **benar-benar terjadi** di aplikasi sekarang, bukan apa yang tertulis di dokumen lama. Sumbernya adalah kode di `app/`, `lib/`, `supabase/migrations/`, dan uji browser lokal 24 November 2026. Bila ada perbedaan dengan `BLUEPRINT.md` atau `KEPUTUSAN-KOREKSI-ALUR.md`, beda itu dicatat di bagian terakhir. Keputusannya ada di `MATRIKS-KEPUTUSAN-PRODUK.md` yang sudah diisi pada 24 November 2026. K1, K2, K3, K6, dan K9 sudah diputus; sisanya mengikuti matriks yang sama.
+Dokumen ini menjelaskan apa yang **benar-benar terjadi** di aplikasi di branch `research/peta-alur-penilaian`, bukan apa yang tertulis di dokumen lama. Sumbernya adalah kode di `app/`, `lib/`, `supabase/migrations/`, hasil Fase 2–4 (`docs/HASIL-FASE2-DEV.md`, `docs/HASIL-FASE3-DEV.md`, `docs/HASIL-FASE3EFG-DEV.md`, `docs/HASIL-FASE4-DEV.md`), dan uji browser lokal 24 November 2026. Status produksi mengikuti `docs/STATUS-PRODUKSI-SATU-VERSI.md`; perubahan di bawah baru berlaku di DEV. Bagian 4 mencatat status akhir K1–K10.
 
 Bacaan untuk panitia: "Observer mengisi nilai sendiri-sendiri. Sistem merangkum nilai yang sudah dikirim. Koordinator meninjau selisih, menulis kesimpulan, lalu mengunci rapor."
 
@@ -12,10 +12,10 @@ Bacaan untuk panitia: "Observer mengisi nilai sendiri-sendiri. Sistem merangkum 
 |---|---|
 | Observer | Mengisi skor, bukti, dan catatan untuk peserta yang ditugaskan; Kirim/Buka kembali |
 | Instruktur | Sama seperti Observer bila ditugaskan; subrole MoT, Vice MoT, Master Observer, Vice Observer juga menjadi moderator |
-| Admin Sistem | Mengatur rubrik dan penugasan, membaca semua nilai, memfinalisasi kiriman Observer, menerbitkan rapor |
-| Bidang Kader | Membaca rekap, tetapi tidak mengisi nilai mentah; di kode juga boleh menerbitkan rapor (lihat kontradiksi K9) |
-| Peserta | Membaca rapor yang sudah diterbitkan dan ditautkan ke akunnya (belum teruji penuh) |
-| IoT / Vice IoT | Tidak menilai. Menu Evaluasi dan Laporan masih muncul, lalu halaman mengarahkan ke dashboard |
+| Admin Sistem | Mengatur rubrik dan penugasan, membaca semua nilai, memfinalisasi evaluasi kolektif, menerbitkan rapor |
+| Bidang Kader | Membaca rekap, tanpa `snapshot_data`, bukti, atau catatan rinci; tidak bisa menerbitkan atau mengekspor (K9) |
+| Peserta | Rapor ditautkan ke akun, tetapi Fase 3d ditunda karena tidak ada domain/TLS; RPT-001..005 belum diuji |
+| IoT / Vice IoT | Tetap mengisi Observasi untuk peserta yang ditugaskan, tetapi tidak bisa membaca nilai/rekap; menu Evaluasi dan Laporan masih mengarahkan ke dashboard (K10) |
 
 ---
 
@@ -73,11 +73,11 @@ Bukti browser 24 Nov: Observer B melihat "Penilaian observer lain (1) · Observe
 
 ### Langkah 9: Kirim, buka kembali, kunci
 
-Status: `draft`, `submitted`, `finalized`. Observer membuka kembali kirimannya lewat tombol yang hanya muncul di status `submitted`. Admin mengunci semua kiriman lewat tombol Finalisasi yang hanya muncul bila semua Observer sudah submit. Trigger database mengizinkan hanya tiga transisi: `draft→submitted`, `submitted→draft`, `submitted→finalized`. Setelah `finalized`, tidak bisa diubah.
+Status di database: `draft`, `submitted`, `finalized`. Aplikasi sekarang hanya memakai `draft` dan `submitted`: Observer membuka kembali kirimannya lewat tombol yang muncul di status `submitted`. Tombol finalisasi Admin dan syarat "semua Observer sudah submit" sudah dihapus di Fase 2 (K1). Trigger database masih mengenal tiga transisi, termasuk `submitted→finalized`, untuk baris yang sudah dikunci.
 
-Bukti: `submission-controls.tsx:43-89`; `assessment-actions.ts:353-488`; trigger di `20261111160000:128-154`.
+Bukti: `submission-controls.tsx`; `assessment-actions.ts:192-196` (tipe status hanya `submitted | draft`); trigger di `20261111160000:128-154`; `docs/HASIL-FASE2-DEV.md`.
 
-Yang perlu diingat: tombol Kirim **tidak** memeriksa kelengkapan indikator.Observer boleh mengirim dengan sebagian indikator kosong.
+Yang perlu diingat: tombol Kirim **tidak** memeriksa kelengkapan indikator. Observer boleh mengirim dengan sebagian indikator kosong.
 
 ### Langkah 10: Rekap mengubah rating jadi angka
 
@@ -85,11 +85,13 @@ RPC `get_event_assessment_summary` merangkum per peserta, indikator, dan cakupan
 
 Bukti: `20261112190000_fix_get_event_assessment_summary_ambiguous.sql:25-69`; policy `review_score_delta=2` dan `minimum_coverage=80` di `20261112170000_dad_scoring_collective_evaluation_v1.sql:111-118`.
 
-Keterbatasan yang sudah pernah terjadi: RPC mengembalikan 3069 baris, sementara batas PostgREST dulu 1000, sehingga 22 dari 33 peserta tidak mendapat rekap. Perbaikan sementara di produksi menaikkan batas ke 100000. Perbaikan yang benar, yaitu filter peserta di SQL, belum dikerjakan. Lihat `HANDOVER.md:431-455`.
+Keterbatasan yang sudah pernah terjadi: RPC mengembalikan 3069 baris, sementara batas PostgREST dulu 1000, sehingga 22 dari 33 peserta tidak mendapat rekap. Perbaikan sementara di produksi menaikkan batas ke 100000.
+
+Di Fase 4, RPC diganti menjadi `get_event_assessment_summary(target_event_id, target_participant_id)` oleh `20261124140000`. Filter peserta ada di CTE `planned`. Finalisasi mengirim peserta evaluasi; halaman Evaluasi mengirim `null` bila belum ada peserta terpilih, jadi rekap seluruh kegiatan masih bisa besar dan terkena batas PostgREST. Lihat `docs/HASIL-FASE4-DEV.md` dan `docs/MATRIKS-RPC-AKSES.md`.
 
 ### Langkah 11: Evaluasi kolektif dan moderasi
 
-Halaman Evaluasi menghitung nilai aspek dan `overall` dengan rumus `Σ(skor aspek / 5 × bobot aspek)`. Status `ready_for_collective_evaluation` muncul bila bobot aspek berjumlah 100% dan coverage tiap aspek minimal 80%. Koordinator (Admin atau MoT, Vice MoT, Master Observer, Vice Observer) meninjau indikator yang flagged. Nilai Observer asli **tidak pernah ditimpa**; keputusan moderasi hanya tersimpan sebagai catatan privat.
+Halaman Evaluasi menghitung nilai aspek dan `overall` dengan rumus `Σ(skor aspek / 5 × bobot aspek)`. N/O dibuang dari penyebut coverage sejak Fase 2; indikator yang berskor tetapi juga punya N/O tetap dihitung. Status `ready_for_collective_evaluation` muncul bila bobot aspek berjumlah 100% dan coverage tiap aspek minimal 80%. Koordinator (Admin atau MoT, Vice MoT, Master Observer, Vice Observer) meninjau indikator yang flagged. Nilai Observer asli **tidak pernah ditimpa**; keputusan moderasi hanya tersimpan sebagai catatan privat. Tampilan memakai satu angka desimal.
 
 Bukti: `lib/phase6-scoring.ts:140-296`; `app/dashboard/evaluasi/page.tsx:444-724`; `evaluasi/actions.ts:165-236`; `is_assessment_moderator` di `20261112170000:13-25`.
 
@@ -101,11 +103,11 @@ Bukti: `lib/phase6-recommendations.ts:42-86`; `evaluasi/actions.ts:365-483`, `:7
 
 `runFinalize` memeriksa policy, agregat, moderasi, keputusan, dan alasan minimal 10 karakter, lalu memanggil RPC `finalize_collective_evaluation`. RPC membuat snapshot bernomor dan sumber privat berisi rating mentah, bukti, dan catatan moderasi. Trigger menolak UPDATE dan DELETE pada snapshot.
 
-Publikasi lewat `publish_assessment_report`. Halaman Laporan membaca `get_event_report_rows`, lalu PDF/ZIP/Excel diunduh setelah audit `record_assessment_export`.
+Publikasi lewat `publish_assessment_report`. Gate sekarang keras (`20261124102000`): hanya Admin dan koordinator, evaluasi harus `finalized`, snapshot terbaru `ready_for_collective_evaluation`, alasan minimal 10 karakter, dan moderasi selesai. Kader tidak bisa menerbitkan (`20261124102000`) maupun mengekspor (`20261124113000`). Halaman Laporan membaca `get_event_report_rows`, lalu PDF/ZIP/Excel diunduh setelah audit `record_assessment_export`.
 
 Tombol satu klik "Setujui, finalisasi, terbitkan, dan unduh rapor" merangkai: setujui rekomendasi → finalisasi → publikasi → redirect ke Laporan dengan `published=1` → unduh satu PDF. Hasil akhir: satu evaluasi `finalized`, satu snapshot, satu publikasi, satu baris audit `individual_pdf`, satu PDF terunduh.
 
-Bukti: `evaluasi/actions.ts:568-864`; `20261113120000_scope_finalize_moderation_to_penilaian_v1.sql:11-77`; `20261113130000_publish_latest_per_evaluation_v1.sql:11-31`; `laporan/page.tsx:51-55`, `:223-225`; `phase7-report-workspace.tsx:327-371`.
+Bukti: `evaluasi/actions.ts:568-864`; `20261124140000...:87-162` (finalisasi dengan pemanggil rekap dua argumen); `20261124102000...:6-58` (publikasi); `laporan/page.tsx`; `phase7-report-workspace.tsx`. Uji klik 24 November menghasilkan satu snapshot, satu publikasi, satu audit `individual_pdf`, dan unduhan PDF; tujuh tombol ekspor lain juga teraudit. Lihat `docs/HASIL-UJI-FINALIZE-EKSPOR-DEV.md`.
 
 ---
 
@@ -115,35 +117,38 @@ Bukti: `evaluasi/actions.ts:568-864`; `20261113120000_scope_finalize_moderation_
 |---|---|---|
 | Skala observer | 1 Sangat Kurang … 5 Sangat Baik, N/O bukan nol | teks skala di `observasi/page.tsx` |
 | Ambang flag moderasi | 2 poin, bisa diubah lewat tabel policy | `20261112170000:111-118` |
-| Coverage minimum | 80% per aspek | sama |
+| Coverage minimum | 80% per aspek; N/O dibuang dari penyebut | `20261112170000:111-118`, `lib/phase6-scoring.ts` |
 | Rumus overall | `Σ(skor aspek / 5 × bobot aspek)` | `lib/phase6-scoring.ts:269-283` |
-| Kategori | 0–<60, 60–<75, 75–<90, 90–100 | `lib/scoring.ts:19-40` |
-| Pembulatan | snapshot 2 desimal, PDF tampilkan 1 desimal, coverage 1 desimal | `evaluasi/actions.ts:754`, `lib/phase7-files.ts:122`, `phase6-scoring.ts:294` |
+| Konversi skor observer | `(skor / 5) × 100`, satu rumus dengan Phase 6 | `lib/scoring.ts:72`, `docs/HASIL-FASE2-DEV.md` |
+| Kategori | 0–<60, 60–<75, 75–<90, 90–100 | `lib/scoring.ts:9-41` |
+| Pembulatan | snapshot 2 desimal; Observasi, Evaluasi, dan PDF tampil 1 desimal | `lib/phase6-scoring.ts`, `lib/phase7-files.ts`, `docs/HASIL-FASE2-DEV.md` |
 
-**Bukti runtime penting.** Untuk skor 4, pratinjau Observasi menampilkan 75.00/100, sedangkan halaman Evaluasi menampilkan 80.00/100. Ini karena dua rumus berbeda masih dipakai bersamaan. Lihat kontradiksi K2.
+**Bukti runtime terbaru (24 November 2026).** Skor 4 kini tampil sebagai **80.0/100** di pratinjau Observasi dan **80.0/100** di Evaluasi Kolektif. Sebelum Fase 2, pratinjau menampilkan 75.00/100 karena memakai `((rata-rata-1)/4)×100`. Status K2 di bawah.
 
 ---
 
-## 4. Kontradiksi dan status keputusannya
+## 4. Kontradiksi K1–K10: status akhir
 
-K1. **Tiga tombol "final" dengan syarat berbeda.** Finalisasi kiriman mensyaratkan semua Observer submit (`assessment-actions.ts:398-413`). Finalisasi evaluasi memakai coverage, moderasi, dan alasan (`evaluasi/actions.ts:646-698`). Tombol satu klik menambah publikasi dan unduh PDF (`:821-864`). `KEPUTUSAN-KOREKSI-ALUR.md:71` sudah membatalkan syarat "semua Observer submit", tetapi tombol dan kodenya masih ada.
+Status di bawah adalah hasil Fase 2–4 dan uji browser 24 November 2026 di DEV. Semua klaim produksi mengikuti `docs/STATUS-PRODUKSI-SATU-VERSI.md`. Tanda **selesai** berarti sudah diubah di DEV dan dibuktikan, bukan berhasil deploy ke produksi.
 
-K2. **Dua rumus skor.** Pratinjau memakai `((rata-rata-1)/4)×100` (`lib/scoring.ts:72`), hasil akhir memakai `(skor/5)×bobot` (`lib/phase6-scoring.ts:280`). `BLUEPRINT.md:272` masih terbuka.
+K1. **Gate "semua Observer submit" — SELESAI DIHAPUS.** `assessment-actions.ts:192-196` hanya menerima `submitted` dan `draft`; tombol finalisasi Admin di `submission-controls.tsx` dihapus. Hitungan kiriman kini informasi, bukan penolakan. Finalisasi evaluasi tetap memakai coverage, moderasi, dan alasan; tombol satu klik menambah publikasi dan unduh PDF. Bukti: `docs/HASIL-FASE2-DEV.md`, uji browser 24 November.
 
-K3. **N/O menurunkan coverage.** `tests/phase6-scoring.test.ts:92-111` menetapkan 1 dari 3 indikator berskor sebagai coverage 33% dan aspek invalid. `BLUEPRINT.md:45-47` meminta bobot N/O dihapus dan bobot sisa dinormalisasi ulang.
+K2. **Dua rumus skor — SELESAI, satu rumus dipakai.** `lib/scoring.ts:72` kini memakai `(skor/5)*100`, sama dengan Phase 6. Skor 4 = 80.0/100 di Observasi dan di Evaluasi. Tampilan memakai satu angka desimal; snapshot tetap dua desimal. Bukti: `docs/HASIL-FASE2-DEV.md`.
 
-K4. **Kunci draf lokal tanpa observer.** `assessment-rating-cell.tsx:46` memakai kunci yang tidak memuat `observer_id`, sehingga draf antarobserver bisa tertukar di satu browser.
+K3. **N/O menurunkan coverage — SELESAI DI DEV.** `lib/phase6-scoring.ts` membuang N/O dari penyebut coverage; indikator berskor yang juga punya N/O tetap dihitung. `coverageDenominator` dipakai pada teks alasan. Bukti unit test dan penguji SQL di `docs/HASIL-FASE2-DEV.md`. Perilaku N/O sampai halaman Evaluasi dengan data browser belum diulang.
 
-K5. **Catatan membuat submission.** `assessment-actions.ts:569-576` membuat baris submission saat menyimpan catatan, sehingga penghitung "sudah mengisi" bisa bertambah tanpa skor.
+K4. **Kunci draf lokal tanpa observer — BELUM DIUBAH.** `assessment-rating-cell.tsx:46` masih memakai `dad-assessment:{rubricVersionId}:{participantId}:{indicatorId}` tanpa `observer_id`. Draf dua Observer di satu browser masih bisa tertukar. Tidak ada perubahan Fase 2–4 untuk ini.
 
-K6. **Rapor revisi tidak ada jalur.** Snapshot selalu `revision = 1` (`20261113120000:71-74`), padahal `BLUEPRINT.md:70` menjanjikan snapshot baru untuk revisi.
+K5. **Catatan membuat submission — MASIH BERLAKU.** `assessment-actions.ts:367-374` membuat baris `assessment_submissions` bila belum ada saat catatan disimpan. Penghitung "sudah mengisi" masih bisa bertambah tanpa skor. Belum ada keputusan produk untuk memisahkannya.
 
-K7. **Jalur lama masih terbuka.** `saveObservation` masih bisa menulis `observations` (`assessment-actions.ts:6-165`) dan dashboard lama masih membacanya (`lib/dashboard-results.ts:84-88`).
+K6. **Jalur revisi — BELUM DIPUTUS.** Nomor revisi snapshot sudah diperbaiki menjadi `max(revision)+1` (`20261124101000` dan `20261124140000:154`), jadi tidak lagi selalu 1. Belum ada tombol atau alur produk untuk revisi rapor setelah publikasi. Lihat `docs/STATUS-PRODUKSI-SATU-VERSI.md`.
 
-K8. **Hitungan rekap bisa dobel.** `get_event_report_rows` menghasilkan satu baris per snapshot, tetapi `lib/phase7-home.ts:108-111` menghitung jumlah peserta dari panjang array.
+K7. **Jalur lama — SEBAGIAN DIBERSIHKAN.** `saveObservation`, `completeObserverAssignment`, dan `reopenObserverAssignment` dihapus. Tabel `observer_assignment_completions` dan `observer_rubric_completions` dihapus; tiga trigger ditulis ulang supaya hanya menyentuh `observer_rubric_version_completions`. Masih dipertahankan: `observations`, `lib/dashboard-results.ts`, evaluasi NULL, duplikat seed, `lib/scoring.ts`, tiga jalur finalisasi, dan fallback nama pelaku. Rincian di `docs/INVENTARIS-JALUR-LAMA.md` dan `docs/HASIL-FASE4-DEV.md`.
 
-K9. **Bidang Kader boleh menerbitkan rapor** di `app/dashboard/laporan/actions.ts:26` dan `20261113130000:11-14`, padahal `KEPUTUSAN-KOREKSI-ALUR.md:21` menyebut hanya Admin dan empat subrole koordinator.
+K8. **Agregat publik — SELESAI DIBUAT DENGAN AMBANG 10.** `20261124120000` membuat `get_public_event_aggregate(uuid)` dan `app/page.tsx` memakainya. Hanya publikasi dan snapshot `ready_for_collective_evaluation` yang dihitung; distribusi baru tampil bila ada komisariat dengan minimal 10 peserta, tanpa identitas atau skor individu. Hitungan `lib/phase7-home.ts:108` yang menjumlahkan panjang array snapshot masih bisa dobel dan belum diubah. `NEXT_PUBLIC_PUBLIC_AGGREGATE_EVENT_ID` perlu diisi di produksi. Bukti: `docs/HASIL-FASE3EFG-DEV.md`.
 
-K10. **IoT bisa membaca nilai lewat API** karena `can_access_observation` memberi akses ke semua Instruktur yang ditugaskan (`20261106200000_instructor_assessment_and_change_history.sql:13-16`), walaupun halamannya mengarahkan IoT ke dashboard.
+K9. **Bidang Kader tidak bisa terbit/ekspor — SELESAI DI DEV.** `20261124102000` mencabut `bidang_kader` dari `publish_assessment_report`, `20261124113000` mencabutnya dari `record_assessment_export`. Halaman Laporan menyembunyikan tombol Terbit dan panel ekspor. Uji browser Kader 24 November: rekap tampil, tombol tidak ada, akses Server Action tetap ditolak di server. Bukti: `docs/HASIL-FASE3-DEV.md`, `docs/HASIL-UJI-FINALIZE-EKSPOR-DEV.md`.
 
-Rincian K1 sampai K10 ada di `docs/MATRIKS-KEPUTUSAN-PRODUK.md`. Rincian jalur lama ada di `docs/INVENTARIS-JALUR-LAMA.md`. Kontrak RPC ada di `docs/MATRIKS-RPC-AKSES.md`.
+K10. **IoT — TIDAK BACA REKAP, TETAP MENGGISI OBSERVASI.** `20261124110000` membatasi baca penilaian dan memulihkan policy `is_assigned_instructor_for_event` supaya IoT melihat daftar peserta. Uji browser 24 November: 5 peserta tampil di Observasi, 0 baris `assessment_ratings`, `can_review_observation` false, rekap tidak terlihat. Menu Evaluasi dan Laporan masih muncul lalu mengarahkan ke dashboard; ini UX, bukan pengamanan. Bukti: `docs/HASIL-FASE3-DEV.md`.
+
+Rincian keputusan asal ada di `docs/MATRIKS-KEPUTUSAN-PRODUK.md`. Rincian jalur lama ada di `docs/INVENTARIS-JALUR-LAMA.md`. Kontrak RPC ada di `docs/MATRIKS-RPC-AKSES.md`. Otoritas status ada di `docs/STATUS-PRODUKSI-SATU-VERSI.md`.

@@ -54,7 +54,7 @@ Keputusan lulus atau perlu pembahasan lanjutan tetap ditetapkan manual oleh koor
 ## Hal yang perlu diingat
 
 - Seluruh data yang dipakai adalah **data simulasi**. Jangan memasukkan data peserta nyata sebelum tinjauan keamanan, privasi, backup, dan biaya selesai.
-- Aplikasi sudah bisa diakses di `http://43.173.33.195:8080/` (HTTP, belum ada domain/TLS).
+- Aplikasi bisa diakses di `http://43.173.33.195:8080/`. Pemilik memutuskan tetap memakai IP tanpa TLS untuk sementara; lihat `docs/STATUS-PRODUKSI-SATU-VERSI.md`.
 - Akun Peserta belum dibuat, sehingga rapor saat ini hanya dibuka Admin, Bidang Kader, dan Instruktur moderator.
 - Impor nilai tes dari Google Sheets dan fitur AI masih ditunda.
 

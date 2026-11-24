@@ -197,7 +197,11 @@ Smoke: `http://43.173.33.195:8080/` → 200 hanya cek halaman tanpa kredensial, 
 
 ### Fase 6 — Penutupan dokumen
 
-Gate masuk: pemilik menyatakan Fase 5 sesuai. Perbarui 13 dokumen: `BLUEPRINT.md`, `HANDOVER.md`, `IMPLEMENTATION_PLAN.md`, `docs/DEPLOYMENT.md`, `docs/LANGKAH-PASANG-MIGRASI-DAN-UJI.md`, `docs/KEPUTUSAN-KOREKSI-ALUR.md`, `docs/VERIFIKASI-PRODUKSI-YANG-BELUM-DILAKUKAN.md`, `docs/RENCANA-IMPLEMENTASI-KOREKSI-ALUR.md`, `docs/PETA-ALUR-PENILAIAN.md`, `docs/QA_PHASE8_TEST_PLAN.md`, `docs/MATRIKS-RPC-AKSES.md`, `docs/INVENTARIS-JALUR-LAMA.md`, `docs/ALUR-PENILAIAN-KANONIK.md`. Otoritas status = tabel 14 butir. Klaim yang harus hilang: "migrasi belum ada", "deploy ditunda", "database kosong/belum ada admin", "belum ada domain/TLS/HTTP polos" tidak dihapus, melainkan dicatat sebagai keputusan pemilik untuk sementara memakai IP; "regression belum dijalankan", "belum ada jadwal backup", "disable_signup false/grant anon ada", "`PGRST_DB_MAX_ROWS=1000`". Gate keluar: persetujuan pemilik atas status akhir tercatat di dokumen persetujuan. Tidak ada tanda tangan nama.
+**Sudah dilaksanakan pada 24 November 2026.** Gate masuk asalnya "pemilik menyatakan Fase 5 sesuai", tetapi Fase 5 belum dijalankan karena deploy menunggu izin. Fase 6 tetap dikerjakan untuk menyatukan dokumen, bukan untuk menyatakan deploy sudah terjadi.
+
+Otoritas status sekarang adalah `docs/STATUS-PRODUKSI-SATU-VERSI.md`. Dokumen root, prosedur, dan pemetaan telah diselaraskan untuk merujuk ke sana. Klaim lama seperti "migrasi belum ada", "deploy ditunda", "database kosong/belum ada admin", dan "regression belum dijalankan" ditandai sebagai riwayat atau dihapus. "Belum ada domain/TLS" tidak dihapus, melainkan dicatat sebagai keputusan pemilik untuk tetap memakai IP.
+
+Gate keluar: satu versi status produksi, tidak ada klaim status baru yang bertentangan, dan persetujuan pemilik tercatat di dokumen persetujuan. Tidak ada tanda tangan nama. Fase 5 belum selesai, sehingga Fase 6 tidak boleh dibaca sebagai bukti deploy.
 
 ---
 

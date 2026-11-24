@@ -27,6 +27,7 @@ Hasil eksplorasi branch `research/peta-alur-penilaian` (24 November 2026). Semua
 | `HASIL-FASE6-DOKUMEN.md` | Hasil penyatuan status dokumen | Penutup Fase 6 |
 | `HASIL-FASE5-DEPLOY.md` | Backup, migrasi, deploy, dan rollback produksi 24 November | Bukti deploy ke produksi |
 | `HASIL-UJI-RLS-PROD.md` | Matriks akses lintas peran di produksi dan perbaikannya | Bukti RLS produksi |
+| `HASIL-UJI-KONFLIK-REALTIME.md` | Uji dua penilai, resolusi konflik, dan Realtime | Bukti alur kolaborasi |
 | `HASIL-FASE3F-DEV.md` | Verifikasi aturan impor `.xlsx` dan bug batas baris | Rincian Fase 3f |
 
 ## Temuan yang paling berpengaruh

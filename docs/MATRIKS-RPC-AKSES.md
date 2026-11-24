@@ -1,0 +1,110 @@
+# Matriks RPC dan Akses — IMM Observer
+
+Dibuat 24 November 2026 di branch `research/peta-alur-penilaian`. Tujuan: satu kontrak yang merangkai **RPC → pemanggil → peran yang diizinkan → policy/RLS yang menjaga**, supaya aman mengubah alur penilaian, pelaporan, atau pengajuan.
+
+Semua `path:line` di bawah sudah diverifikasi dengan grep pada berkas kerja ini. Singkatan pada tabel:
+
+- `M/` = `supabase/migrations/`
+- `A/` = `app/dashboard/`
+- `L/` = `lib/`
+- `C/` = `components/`
+
+"Definisi akhir" berarti `create or replace function` terakhir yang berlaku menurut urutan nama berkas migrasi (angka depan = waktu). `create or replace` yang berulang dicatat di kolom risiko.
+
+## Ringkasan hitungan
+
+| Yang dihitung | Hasil | Keterangan |
+|---|---|---|
+| RPC unik yang dipetakan | **17** | Sesuai daftar; semua ditemukan di migrasi dan dipanggil aplikasi |
+| `security definer` | **17 dari 17** | Semuanya juga memakai `set search_path = ''` |
+| Bisa menulis / audit | **10** | `finalize`, `publish`, `assign`, `record_export`, `commit_test_import`, dan 5 RPC pengajuan Komisariat |
+| Baca-saja | **7** | 5 `get_*`, `is_assessment_moderator`, `list_instructor_public_identity` |
+| Berbentuk `returns table` (terkena batas `PGRST_DB_MAX_ROWS`) | **5** | `get_event_report_rows`, `get_event_assessment_progress`, `get_event_assessment_participants`, `get_event_assessment_summary`, `list_instructor_public_identity` |
+| Pernah terbukti terpotong `PGRST_DB_MAX_ROWS` | **1** | `get_event_assessment_summary`: 3069 baris dipotong ke 1000 (`HANDOVER.md:431`, `HANDOVER.md:451`). Di PROD self-hosted batas sudah dinaikkan ke 100000 (`HANDOVER.md:452`) |
+| Punya lebih dari satu definisi (`create or replace` berulang) | **4** | `get_event_report_rows`, `get_event_assessment_summary`, `finalize_collective_evaluation`, `publish_assessment_report` |
+
+Catatan `PGRST_DB_MAX_ROWS`: batas ini berlaku untuk **response PostgREST**, jadi semua RPC yang mengembalikan kumpulan baris berpotensi terpotong, bukan hanya satu. Yang terdokumentasi terkena adalah `get_event_assessment_summary`. Tiga RPC `get_*` lain mengembalikan satu baris per peserta/penilai dan baru berisiko pada kegiatan besar; `list_instructor_public_identity` jumlahnya kecil.
+
+## Matriks 17 RPC
+
+| RPC + definisi akhir | Pemanggil di aplikasi | Peran yang diizinkan di SQL | `SECURITY DEFINER` / `search_path` | Policy/RLS, grant, revoke | Menulis/audit ke tabel | Catatan risiko |
+|---|---|---|---|---|---|---|
+| `get_event_report_rows(uuid)` — `M/20261113000000_dad_collective_evaluation_per_penilaian_v1.sql:35` | `L/phase7-home.ts:82`; `A/laporan/page.tsx:101` | `admin_system` atau `bidang_kader` atau `is_assessment_moderator` (`:54-57`) | Ya, `set search_path = ''` (`:51`) | RLS publikasi `M/20261112180000_dad_reporting_publication_v1.sql:19-29`; baca snapshot `M/20261112170000_dad_scoring_collective_evaluation_v1.sql:306`; `revoke`/`grant` `M/20261113000000...:89-90` | Tidak (baca `participants`, `assessment_snapshots`, `assessment_report_publications`) | **Dua versi.** Versi lama `M/20261112180000...:142` mengambil satu snapshot terbaru per peserta (`limit 1` di `:151`). Versi akhir memakai `left join lateral` tanpa `limit` (`:76-82`), jadi **satu baris per snapshot**. UI harus siap menerima beberapa baris per peserta atau jumlah peserta akan dobel. Termasuk RPC `returns table` yang terkena batas baris PostgREST. |
+| `get_event_assessment_progress(uuid)` — `M/20261112180000_dad_reporting_publication_v1.sql:158` | `L/phase7-home.ts:83`; `A/laporan/page.tsx:160` | `admin_system`, `bidang_kader`, `is_assessment_moderator` (`:162`) | Ya, `set search_path=''` (`:160`) | `grant execute ... to authenticated` `M/20261112180000...:184-185`; baca `assessment_submissions` lewat RLS fase 5 | Tidak | Mengembalikan satu baris per penilai. `is_assessment_moderator` membatasi Instruktur ke 4 posisi koordinator; jika definisi helper dilonggarkan, IoT/Vice IoT ikut melihat progres. |
+| `get_my_published_assessment_report()` — `M/20261112180000_dad_reporting_publication_v1.sql:106` | `L/phase7-home.ts:190`; `A/laporan/page.tsx:58` | `authenticated` + profil `peserta` + `participants.account_user_id = auth.uid()` (`:133-134`) | Ya, `set search_path=''` (`:107`) | Policy `participants_read_own_published_report` `M/20261112180000...:8`; RLS publikasi `:21-26`; `revoke`/`grant` `:139-140` | Tidak | Hanya rapor Published terbaru (`order by ... limit 1` di `:135`). Melempar error SQLSTATE **`P0002`** bila belum ada rapor (`:136`); UI bergantung pada kode ini di `A/laporan/page.tsx:70`. Jangan ganti kode error tanpa mengubah UI. |
+| `get_event_assessment_participants(uuid)` — `M/20261112170000_dad_scoring_collective_evaluation_v1.sql:96` | `A/evaluasi/page.tsx:122`; `A/analitik/page.tsx:55` | `admin_system`, `bidang_kader`, `instruktur`; Instruktur wajib punya penugasan di 4 posisi koordinator (`:101-105`) | Ya, `set search_path = ''` (`:98`) | `revoke`/`grant` `M/20261112170000...:108-109`; RLS `participants` | Tidak | Jaga agar pengecekan penugasan di SQL tetap ada. `A/analitik/page.tsx:43` lebih ketat (hanya `NON_SCORE_ROLES`), jadi jangan menganggap pemeriksaan di halaman sebagai pengaman. `returns table`, satu baris per peserta. |
+| `get_event_assessment_summary(uuid)` — `M/20261112190000_fix_get_event_assessment_summary_ambiguous.sql:5` | `A/evaluasi/page.tsx:148`; `A/evaluasi/actions.ts:382`, `:593`; pemanggil internal SQL: `M/20261113120000_scope_finalize_moderation_to_penilaian_v1.sql:53` | `admin_system`, `bidang_kader`, `instruktur` 4 posisi (`:15-21`); `#variable_conflict use_column` wajib (`:12`) | Ya, `set search_path = ''` (`:11`) | `revoke`/`grant` `M/20261112190000...:71-72`; versi sebelumnya `M/20261112170000...:28` dan `drop function` di `:27` | Tidak, tapi hasilnya dipakai gate finalisasi | **Risiko tertinggi soal batas baris:** 3069 baris pernah terpotong jadi 1000 (`HANDOVER.md:431`), diperbaiki dengan `PGRST_DB_MAX_ROWS=100000` (`HANDOVER.md:452`). Kolom keluaran (`review_status`, `source_rubric_version_ids`, `indicator_id`) dibaca RPC finalisasi di `M/20261113120000...:53-66`. **Dua versi** + direktif `use_column`; hapus salah satu maka rekap 42702/error ambigu kembali. |
+| `is_assessment_moderator(uuid)` — `M/20261112170000_dad_scoring_collective_evaluation_v1.sql:13` | `A/laporan/page.tsx:98`; `A/evaluasi/actions.ts:26`; dipakai RLS di `M/20261112170000...:153,155,157,224,226,228,306,320` dan `M/20261112180000...:24,44,86,146,162,192`; dipakai 5 RPC lain | Semua `authenticated` boleh memanggil (grant `:24-25`); **nilai kembalian** yang membatasi: `admin_system` atau Instruktur dengan 4 posisi koordinator (`:16-22`) | Ya, `language sql stable`, `set search_path = ''` (`:14`) | `revoke`/`grant` `M/20261112170000...:24-25` | Tidak | Helper paling sensitif. Mengubah definisinya mengubah siapa yang boleh membaca/mengubah moderasi, evaluasi, snapshot, laporan, dan ekspor sekaligus. Jangan menambah peran di luar Admin Sistem + MoT/Vice MoT/Master Observer/Vice Observer. |
+| `finalize_collective_evaluation(uuid,text,text,jsonb,jsonb,jsonb,jsonb,jsonb)` — `M/20261113120000_scope_finalize_moderation_to_penilaian_v1.sql:4` | `A/evaluasi/actions.ts:777` (dalam `runFinalize`), dipakai ulang oleh aksi `:814`, `:821`, dan loop `:866`/`:922` | `is_assessment_moderator` (`:13`) | Ya, `set search_path = ''` (`:8`) | Policy moderasi `M/20261112170000...:153-157`; evaluasi `:224-228`; snapshot `:306`, insert dicabut `:309`; trigger immutable `:330-333`; `revoke`/`grant` `:406-407` | Ya: `UPDATE collective_evaluations` (`:68-70`), `INSERT assessment_snapshots` (`:71-74`), `INSERT assessment_snapshot_private_sources` (`:75-76`) | **Signature 8 argumen** harus persis cocok dengan `A/evaluasi/actions.ts:779-796`. **Dua definisi berurutan** (`M/20261112170000...:336`, ditimpa versi akhir) plus versi 7 arg lama yang di-`drop` di `M/20261112170000...:335`. Gate akhir dibatasi per jenis penilaian via `rubric_version_id` (`:48-49`, `:55-67`); mengembalikan gate ke seluruh kegiatan akan mengunci semua jenis lagi. Snapshot bersifat immutable (trigger). |
+| `publish_assessment_report(uuid)` — `M/20261113130000_publish_latest_per_evaluation_v1.sql:4` | `A/evaluasi/actions.ts:853`; `A/laporan/actions.ts:28` | `admin_system`, `is_assessment_moderator`, `bidang_kader` (`:11-13`) | Ya, `set search_path = ''` (`:5`) | RLS publikasi `M/20261112180000...:19-29`; RLS audit `:41-49`; grant fungsi masih memakai `M/20261112180000...:103-104` | Ya: upsert `assessment_report_publications` (`:26-28`), `INSERT assessment_report_publication_audit` (`:29-30`) | **Dua versi.** Versi lama `M/20261112180000...:80` membandingkan snapshot terbaru **lintas evaluasi** (`:93`), versi akhir membandingkan **dalam evaluasi yang sama** (`:19-24`). Memakai versi lama membuat rapor jenis lain tidak bisa terbit. Audit `published`/`republished` mengikuti nomor revisi (`:25-30`). |
+| `assign_participant_account(uuid,uuid)` — `M/20261112180000_dad_reporting_publication_v1.sql:67` | `A/laporan/actions.ts:46` | `is_admin_system` saja (`:70`); UI juga membatasi Admin di `:42` | Ya, `set search_path=''` (`:68`) | Policy `participants_read_own_published_report` `:8`; indeks unik `(event_id, account_user_id)` `:6`; `revoke`/`grant` `:77-78` | Ya: `UPDATE participants.account_user_id` (`:74`) | Argumen kedua boleh `null` untuk memutus tautan; UI mengirim `null` dari input kosong (`A/laporan/actions.ts:38`). Satu akun hanya boleh menaut ke satu peserta per kegiatan (indeks `:6`). |
+| `record_assessment_export(uuid,text,jsonb)` — `M/20261112180000_dad_reporting_publication_v1.sql:187` | `A/laporan/actions.ts:82`, dipanggil UI `C/phase7-report-workspace.tsx:313`, `:334` | `admin_system`, `bidang_kader`, `is_assessment_moderator`; atau `peserta` **hanya** untuk `individual_pdf` dan rapor publik miliknya (`:191-197`) | Ya, `set search_path=''` (`:188`) | RLS `assessment_export_audit` baca Admin saja `:61`; `revoke insert,update,delete ... from authenticated,anon` `:64-65`; grant fungsi `:201-202` | Ya: `INSERT assessment_export_audit` (`:198`) | Daftar `export_type` harus sinkron di tiga tempat: check constraint `:54`, validasi RPC `:191`, validasi UI `A/laporan/actions.ts:67-73`. Klien sengaja tidak bisa menulis tabel audit langsung; dengan kata lain, seluruh tulisan lewat RPC ini. |
+| `list_instructor_public_identity()` — `M/20261106240000_shared_instructor_name_photo.sql:6` | `A/profil-instruktur/page.tsx:25` | `authenticated` dengan `profiles.role` tidak null (`:18`) | Ya, `language sql stable`, `set search_path = ''` (`:10-11`) | `revoke ... from public` + `grant ... to authenticated` `:21-22`; policy storage foto `account-profile-photos` `:26-31` | Tidak | Mengembalikan nama + `photo_path` semua Instruktur. Jangan pernah memberi `grant` ke `anon`; foto tetap diakses lewat signed URL (`A/profil-instruktur/page.tsx:32-37`). |
+| `commit_test_import_admin(uuid,text,text,jsonb)` — `M/20261029090000_admin_only_test_imports.sql:14` | `A/impor-tes/actions.ts:259` | `is_admin_system` saja (`:26`); RPC lama `commit_test_import` dicabut di `:12` | Ya, `set search_path = ''` (`:20`) | Policy admin `participants`/`events`/`test_imports`/`test_results` `:7-10`; `revoke`/`grant` `:65-66` | Ya: `INSERT test_imports` (`:48-50`), `UPDATE test_results SET is_current=false` (`:55-57`), `INSERT test_results` (`:58-59`) | Maksimal 500 baris per impor (`:29`). Signature 4 argumen dipakai UI. Jangan mengaktifkan lagi `commit_test_import`, karena itu membuka impor ke peran lain. |
+| `create_commissariat_submission(uuid)` — `M/20261029100000_commissariat_submission_drafts.sql:197` | `A/pengajuan/actions.ts:95` | Profil `komisariat` dengan `commissariat_id` terisi dan komisariat aktif (`:204-207`) | Ya, `set search_path = ''` (`:198`) | Indeks unik satu pengajuan aktif per kegiatan `:21-22`; RLS tabel `:146-155`; grant bersama `:266-267` | Ya: `INSERT commissariat_submissions` (`:208-209`) | Error `23505` (duplikat pengajuan aktif) ditangani UI di `A/pengajuan/actions.ts:100`. Jangan menghapus indeks unik. |
+| `submit_commissariat_submission(uuid)` — `M/20261029100000_commissariat_submission_drafts.sql:214` | `A/pengajuan/actions.ts:291` | `is_commissariat_member` dari baris pengajuan (`:220`, helper `:64-67`) | Ya, `set search_path = ''` (`:215`) | RLS `commissariat_submissions` `:151-152` (hanya draf yang bisa diubah); grant `:266-267` | Ya: `UPDATE commissariat_submissions` → `submitted` (`:224`) | Syarat Surat Mandat terunggah dan minimal satu peserta (`:222-223`). Setelah status berubah dan Observer mulai meninjau, pengajuan terkunci sesuai `BLUEPRINT.md:124`. |
+| `cancel_commissariat_submission(uuid)` — `M/20261029100000_commissariat_submission_drafts.sql:228` | `A/pengajuan/actions.ts:312` | `is_commissariat_member` (`:234`) | Ya, `set search_path = ''` (`:229`) | RLS `:151-152`; grant `:266-267` | Ya: `UPDATE commissariat_submissions` → `cancelled` (`:236`) | Hanya status `draft`/`submitted` yang boleh dibatalkan (`:235`). Jangan melonggarkan menjadi `under_review`, itu melanggar aturan kunci pengajuan di `BLUEPRINT.md:124`. |
+| `start_commissariat_review(uuid)` — `M/20261029100000_commissariat_submission_drafts.sql:240` | `A/seleksi-komisariat/actions.ts:30` | `can_review_commissariat_submission`: `admin_system` atau Observer yang ditugaskan ke kegiatan (`:246`, helper `:89-101`) | Ya, `set search_path = ''` (`:241`) | Helper di-`grant` ke `authenticated` `:143-144`; RLS `:151-152`; grant `:266-267` | Ya: `UPDATE commissariat_submissions` → `under_review` (`:248`) | Helper `can_review_commissariat_submission` juga dipakai banyak policy (`:169-189`) dan RPC lain. Mengubahnya membuka/menutup akses ke semua pengajuan sekaligus. Hanya dari status `submitted` (`:247`). |
+| `publish_administrative_selection(uuid)` — `M/20261029100000_commissariat_submission_drafts.sql:252` | `A/seleksi-komisariat/actions.ts:115` | `can_review_commissariat_submission` (`:257`) | Ya, `set search_path = ''` (`:253`) | RLS `:151-152`, policy keputusan `:164-177`; grant `:266-267` | Ya: `UPDATE commissariat_submissions` → `administrative_published` (`:262`) | Publish ditolak bila belum ada keputusan untuk semua peserta (`:259-261`). Jangan melemahkan `decision_count = participant_count`, Komisariat akan melihat hasil parsial. |
+
+## `auth.uid()` dan peran `authenticated` / `anon`
+
+Angka eksplorasi awal (163 dan 269) diverifikasi dengan grep pada 39 berkas di `supabase/migrations/`:
+
+| Pola | Kemunculan | Pemisahan |
+|---|---|---|
+| `auth.uid()` | **163** (152 baris) | **0** di baris `grant`; sisanya di badan fungsi SQL dan pernyataan `create policy` (termasuk baris lanjut policy). Contoh kritis: `M/20261029000000_initial_profiles_rls.sql:21`, `M/20261112170000...:16,20,37,41,101,103`, `M/20261112180000...:8,25,44,61,86,133-134,146,162,192,195`, `M/20261113000000...:55`, `M/20261106240000...:18`, `M/20261029100000...:61,66,97,174,175,183,186`. |
+| `to authenticated` | **237** | 95 di baris yang diawali `create policy`, 76 di baris `grant`, 66 di baris lanjut deklarasi policy. |
+| `from anon` | **32** | Semua di `revoke`, bukan `grant`. |
+| `to authenticated` + `from anon` | **269** | Ini yang paling mungkin menjadi angka 269 pada eksplorasi awal. |
+| Kata `authenticated` saja | 247 | Termasuk 237 `to authenticated` di atas. |
+| Kata `anon` saja | 35 | Termasuk 32 `from anon` di atas. |
+| Keduanya digabung | 282 | Hitungan semua kemunculan kata, bukan hanya klausa grant/revoke. |
+
+Jadi: 163 untuk `auth.uid()` benar. Angka 269 cocok bila dihitung sebagai klausa pemberian peran (`to authenticated`) ditambah pencabutan peran (`from anon`). Bila dihitung semua kemunculan kata, hasilnya 282.
+
+Titik paling kritis yang harus tetap diperiksa di server/basis data, bukan sekadar disembunyikan di menu:
+
+- Identitas pemanggil: `is_admin_system` `M/20261029000000...:12-25`; `is_assessment_moderator` `M/20261112170000...:13-25`; `is_commissariat_member` dan `can_review_commissariat_submission` `M/20261029100000...:64-67,89-101`.
+- Kepemilikan rapor Peserta: `M/20261112180000...:8` (policy), `:133-134` (RPC).
+- Baca data sensitif: `assessment_snapshots` `M/20261112170000...:306`; `assessment_snapshot_private_sources` `:319-321`; daftar Instruktur `M/20261106240000...:18`.
+- Tulis audit hanya lewat RPC: `revoke insert,update,delete` pada `assessment_report_publications` `M/20261112180000...:28`, `assessment_report_publication_audit` `:48`, `assessment_export_audit` `:64`.
+- `anon` tidak boleh punya akses ke tabel alur: `M/20261112180000...:29,49,65`; `M/20261112170000...:310,325`; `M/20261029100000...:155,162,177,192`.
+
+## Kontrak yang harus dijaga saat refactor
+
+Nama dan signature daftar ini tidak boleh diubah tanpa satu paket perubahan yang mencakup migrasi pengganti, semua pemanggil, dan penguji SQL. Alasannya:
+
+| RPC | Alasan menjaga kontrak |
+|---|---|
+| `get_event_report_rows(uuid)` | Dipanggil dashboard staf `L/phase7-home.ts:82` dan halaman laporan `A/laporan/page.tsx:101`. Nama RPC juga diperiksa penguji `supabase/tests/dad_reporting_phase7.sql:7`. |
+| `get_event_assessment_progress(uuid)` | Dipanggil `L/phase7-home.ts:83` dan `A/laporan/page.tsx:160`; nama diperiksa `supabase/tests/dad_reporting_phase7.sql:7`. |
+| `get_my_published_assessment_report()` | Satu-satunya jalur rapor Peserta (`L/phase7-home.ts:190`, `A/laporan/page.tsx:58`). Kode error `P0002` adalah kontrak UI. Nama diperiksa `supabase/tests/dad_reporting_phase7.sql:7`. |
+| `get_event_assessment_participants(uuid)` | Dipakai halaman Evaluasi dan Analitik (`A/evaluasi/page.tsx:122`, `A/analitik/page.tsx:55`). |
+| `get_event_assessment_summary(uuid)` | Tiga pemanggil aplikasi plus gate SQL di `M/20261113120000...:53`. Nama diperiksa `supabase/tests/dad_scoring_phase6.sql:41`. Kolom keluaran dibaca finalize. |
+| `is_assessment_moderator(uuid)` | Gerbang untuk hampir seluruh aksi moderasi dan banyak policy RLS (daftar baris di matriks). Mengganti nama berarti mengganti semua policy sekaligus. |
+| `finalize_collective_evaluation(8 arg)` | Signature 8 argumen dipakai `A/evaluasi/actions.ts:779-796`; nama diperiksa `supabase/tests/dad_scoring_phase6.sql:41`. Menulis snapshot immutable dan sumber privat. |
+| `publish_assessment_report(uuid)` | Dipanggil dua jalur: tombol laporan `A/laporan/actions.ts:28` dan tombol gabungan `A/evaluasi/actions.ts:853`. Nama diperiksa `supabase/tests/dad_reporting_phase7.sql:7`. |
+| `assign_participant_account(uuid,uuid)` | Penautan akun Peserta hanya lewat `A/laporan/actions.ts:46`; mengubah argumen memutus alur akses rapor Peserta. |
+| `record_assessment_export(uuid,text,jsonb)` | Semua ekspor dicatat lewat `A/laporan/actions.ts:82`; tabel audit tidak bisa ditulis klien. Nama jenis ekspor juga terikat check constraint. |
+| `list_instructor_public_identity()` | Satu-satunya sumber daftar Profil Instruktur (`A/profil-instruktur/page.tsx:25`). |
+| `commit_test_import_admin(uuid,text,text,jsonb)` | Satu-satunya jalur impor tes yang tersisa (`A/impor-tes/actions.ts:259`); RPC lama sudah dicabut. |
+| `create_commissariat_submission(uuid)` | Membuat draf dari `A/pengajuan/actions.ts:95`; bind dengan indeks unik satu pengajuan aktif. |
+| `submit_commissariat_submission(uuid)` | Mengunci pengajuan dari `A/pengajuan/actions.ts:291`; perubahan status mengubah seluruh alur peninjauan. |
+| `cancel_commissariat_submission(uuid)` | Pembatalan dari `A/pengajuan/actions.ts:312`; batas status `draft`/`submitted` adalah aturan produk. |
+| `start_commissariat_review(uuid)` | Memulai tinjauan dari `A/seleksi-komisariat/actions.ts:30`; memakai helper RLS yang sama dengan banyak policy. |
+| `publish_administrative_selection(uuid)` | Penerbitan hasil dari `A/seleksi-komisariat/actions.ts:115`; unduhan Komisariat bergantung pada status akhir ini. |
+
+Aturan tambahan saat mengubah salah satu:
+
+1. `create or replace function` dengan argumen berbeda **tidak menimpa** fungsi lama, melainkan membuat versi baru. Itulah sebabnya `finalize_collective_evaluation` perlu `drop function` eksplisit di `M/20261112170000...:335`. Jika mengganti tipe argumen, sertakan `drop function if exists` untuk signature lama.
+2. `grant`/`revoke` mengikat **signature**, bukan hanya nama. Fungsi baru dengan argumen berbeda tidak otomatis mendapat `execute` dari grant lama.
+3. Setiap perubahan definisi `is_assessment_moderator`, `can_review_commissariat_submission`, atau `is_admin_system` harus diuji ulang terhadap policy yang memanggilnya, bukan hanya terhadap RPC itu sendiri.
+4. Penguji `supabase/tests/dad_reporting_phase7.sql:7` dan `supabase/tests/dad_scoring_phase6.sql:41` hanya memeriksa keberadaan nama RPC lewat `pg_proc`. Pengujian signature dan perilaku masih perlu dilakukan manual.
+
+## Batasan verifikasi
+
+- Dokumen ini hanya membaca berkas. Tidak ada migrasi dijalankan, tidak ada database disentuh, tidak ada perubahan kode aplikasi, tidak ada commit.
+- Status "definisi akhir" ditentukan dari urutan nama berkas migrasi. Bila ada migrasi baru di luar repo ini, matriks harus diperbarui.
+- Versi 7 argumen `finalize_collective_evaluation` yang di-`drop` di `M/20261112170000...:335` tidak memiliki definisi di berkas migrasi repo ini; kemungkinan berasal dari migrasi yang tidak tersimpan. Ini tercatat sebagai riwayat, bukan kontrak yang masih dipakai.
+- `PGRST_DB_MAX_ROWS=100000` adalah perubahan konfigurasi PROD self-hosted (`HANDOVER.md:452`), bukan perubahan di repo. Bila container `supabase-rest` dibuat ulang tanpa `.env` tersebut, batas kembali ke 1000 dan rekap evaluasi besar terpotong lagi.

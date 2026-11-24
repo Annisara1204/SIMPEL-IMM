@@ -9,7 +9,7 @@ import {
 } from "@/lib/phase6-scoring";
 import { firstRelated, relatedRows } from "@/lib/relations";
 import { stageLabel } from "@/lib/stage-labels";
-import { isModeratorPosition } from "@/lib/phase7-home";
+import { isEventModerator } from "@/lib/moderation-access";
 import type {
   AssessmentSummaryRow,
   RubricVersionJoined,
@@ -99,24 +99,10 @@ export default async function CollectiveEvaluationPage({
     .order("starts_on", { ascending: false });
   const selectedEvent =
     (events ?? []).find((item) => item.id === eventId) ?? null;
-  const { data: assignments } =
-    profile.role === "instruktur" && eventId
-      ? await supabase
-          .from("instructor_event_assignments")
-          .select("position")
-          .eq("event_id", eventId)
-          .eq("instructor_id", userId)
-      : { data: [] };
   const isModerator =
     profile.role === "admin_system" ||
-    !!assignments?.some((assignment) =>
-      isModeratorPosition(assignment.position),
-    );
-  if (
-    profile.role === "instruktur" &&
-    eventId &&
-    !assignments?.some((assignment) => isModeratorPosition(assignment.position))
-  )
+    (await isEventModerator(supabase, eventId));
+  if (profile.role === "instruktur" && eventId && !isModerator)
     redirect("/dashboard");
   const { data: participants } = eventId
     ? await supabase.rpc("get_event_assessment_participants", {

@@ -1167,85 +1167,87 @@ export function Phase7ReportWorkspace(props: Props) {
               </table>
             </div>
           </section>
-          <section className="event-manage-card">
-            <h2>Ekspor dan laporan</h2>
-            <div className="rubric-editor-grid report-export-grid">
-              <button
-                type="button"
-                disabled={busy}
-                onClick={() => void exportExcel("summary")}
-              >
-                Excel rekap peserta
-              </button>
-              <label>
-                Filter materi/sesi untuk ekspor
-                <select
-                  value={scopeFilter}
-                  onChange={(change) => setScopeFilter(change.target.value)}
+          {canManage && (
+            <section className="event-manage-card">
+              <h2>Ekspor dan laporan</h2>
+              <div className="rubric-editor-grid report-export-grid">
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => void exportExcel("summary")}
                 >
-                  <option value="all">Semua sesi</option>
-                  {allScopes.map((scope) => (
-                    <option key={scope} value={scope}>
-                      {scope}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <button
-                type="button"
-                disabled={busy}
-                onClick={() => void exportExcel("material")}
-              >
-                Excel rekap per materi
-              </button>
-              {canViewPrivate && (
-                <>
-                  <label>
-                    Filter Observer internal
-                    <select
-                      value={observerFilter}
-                      onChange={(change) =>
-                        setObserverFilter(change.target.value)
-                      }
-                    >
-                      <option value="all">Semua Observer</option>
-                      {observerNames.map((name) => (
-                        <option key={name} value={name}>
-                          {name}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <button
-                    type="button"
-                    disabled={busy}
-                    onClick={() => void exportExcel("observer")}
+                  Excel rekap peserta
+                </button>
+                <label>
+                  Filter materi/sesi untuk ekspor
+                  <select
+                    value={scopeFilter}
+                    onChange={(change) => setScopeFilter(change.target.value)}
                   >
-                    Excel internal Observer
-                  </button>
-                </>
-              )}
-              <button
-                type="button"
-                disabled={busy || !finalized.length}
-                onClick={() => void exportExcel("evaluation")}
-              >
-                Excel evaluasi akhir
-              </button>
-              <button
-                type="button"
-                disabled={busy || !finalized.length}
-                onClick={() => void exportEventPdf()}
-              >
-                PDF laporan kegiatan
-              </button>
-            </div>
-            <p className="privacy-note">
-              Excel internal hanya mencakup sumber penilaian pada snapshot
-              final, dan hanya tersedia bagi Admin Sistem/koordinator. PDF
-              massal hanya berisi rapor Published.
-            </p>
-          </section>
+                    <option value="all">Semua sesi</option>
+                    {allScopes.map((scope) => (
+                      <option key={scope} value={scope}>
+                        {scope}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => void exportExcel("material")}
+                >
+                  Excel rekap per materi
+                </button>
+                {canViewPrivate && (
+                  <>
+                    <label>
+                      Filter Observer internal
+                      <select
+                        value={observerFilter}
+                        onChange={(change) =>
+                          setObserverFilter(change.target.value)
+                        }
+                      >
+                        <option value="all">Semua Observer</option>
+                        {observerNames.map((name) => (
+                          <option key={name} value={name}>
+                            {name}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() => void exportExcel("observer")}
+                    >
+                      Excel internal Observer
+                    </button>
+                  </>
+                )}
+                <button
+                  type="button"
+                  disabled={busy || !finalized.length}
+                  onClick={() => void exportExcel("evaluation")}
+                >
+                  Excel evaluasi akhir
+                </button>
+                <button
+                  type="button"
+                  disabled={busy || !finalized.length}
+                  onClick={() => void exportEventPdf()}
+                >
+                  PDF laporan kegiatan
+                </button>
+              </div>
+              <p className="privacy-note">
+                Excel internal hanya mencakup sumber penilaian pada snapshot
+                final, dan hanya tersedia bagi Admin Sistem/koordinator. PDF
+                massal hanya berisi rapor Published.
+              </p>
+            </section>
+          )}
           {participantId && selectedRow && (
             <section className="event-manage-card">
               <h2>Preview rapor · {selectedRow.display_name}</h2>

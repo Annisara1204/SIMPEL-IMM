@@ -23,7 +23,7 @@ export async function publishReport(formData: FormData) {
   if (!uuidPattern.test(snapshotId))
     throw new Error("Snapshot rapor tidak valid.");
   const { supabase, role } = await currentUser();
-  if (!["admin_system", "bidang_kader", "instruktur"].includes(role ?? ""))
+  if (!["admin_system", "instruktur"].includes(role ?? ""))
     throw new Error("Akun tidak berwenang menerbitkan rapor.");
   const { error } = await supabase.rpc("publish_assessment_report", {
     target_snapshot_id: snapshotId,
@@ -73,9 +73,22 @@ export async function auditReportExport(input: {
     ].includes(input.exportType)
   )
     throw new Error("Permintaan ekspor tidak valid.");
-  const { supabase, role } = await currentUser();
+  const { supabase, userId, role } = await currentUser();
+  let isAssignedCoordinator = false;
+  if (role === "instruktur") {
+    const { data: assignment } = await supabase
+      .from("instructor_event_assignments")
+      .select("instructor_id")
+      .eq("event_id", input.eventId)
+      .eq("instructor_id", userId)
+      .in("position", ["mot", "vice_mot", "master_observer", "vice_observer"])
+      .limit(1)
+      .maybeSingle();
+    isAssignedCoordinator = assignment !== null;
+  }
   if (
-    !["admin_system", "bidang_kader", "instruktur"].includes(role ?? "") &&
+    role !== "admin_system" &&
+    !isAssignedCoordinator &&
     !(role === "peserta" && input.exportType === "individual_pdf")
   )
     throw new Error("Akun tidak berwenang mengekspor laporan kegiatan.");

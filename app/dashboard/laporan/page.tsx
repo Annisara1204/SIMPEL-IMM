@@ -5,6 +5,7 @@ import { Phase7ReportWorkspace } from "@/components/phase7-report-workspace";
 import { assignParticipantAccount, publishReport } from "./actions";
 import { firstRelated, relatedRows } from "@/lib/relations";
 import { stageLabel } from "@/lib/stage-labels";
+import { isEventModerator } from "@/lib/moderation-access";
 import type {
   AssessmentProgressRow,
   CompetencyFrameworkVersionJoined,
@@ -93,17 +94,13 @@ export default async function ReportingPage({ searchParams }: Props) {
         <DataUnavailable />
       </main>
     );
-  const [{ data: moderator }, { data: rows, error: reportError }] =
-    await Promise.all([
-      supabase.rpc("is_assessment_moderator", {
-        target_event_id: selectedEvent.id,
-      }),
-      supabase.rpc("get_event_report_rows", {
-        target_event_id: selectedEvent.id,
-      }),
-    ]);
-  const canManage =
-    role === "admin_system" || role === "bidang_kader" || moderator === true;
+  const [moderator, { data: rows, error: reportError }] = await Promise.all([
+    isEventModerator(supabase, selectedEvent.id),
+    supabase.rpc("get_event_report_rows", {
+      target_event_id: selectedEvent.id,
+    }),
+  ]);
+  const canManage = role === "admin_system" || moderator === true;
   if (role === "instruktur" && !canManage) redirect("/dashboard");
   const reportRows = (rows ?? []) as EventReportRow[];
   const rubricVersionIds = reportRows

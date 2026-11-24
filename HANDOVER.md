@@ -16,9 +16,9 @@ Otoritas tunggal untuk keadaan aplikasi dan produksi per 24 November 2026 adalah
 
 Narasi yang berlaku sekarang:
 
-- Produksi aktif memakai commit `0448100`, hasil deploy 24 November 2026 pagi. Migrasi `20261123130000` ikut terpasang pada deploy itu.
-- Pekerjaan branch `research/peta-alur-penilaian` (commit sampai `a6d61be`, Fase 1–4 dan uji finalize/ekspor) masih di DEV dan belum di-deploy. Migrasi baru branch `20261124100000` sampai `20261124140000` hanya terpasang di DEV.
-- Deploy lanjutan memerlukan izin tertulis pemilik dan mengikuti `docs/DEPLOYMENT.md`; sebelum itu jalankan Fase 0b seperti tercatat di dokumen status.
+- Deploy 24 November pagi memakai `0448100` dan kini menjadi riwayat.
+- Pekerjaan branch `research/peta-alur-penilaian` sudah di-deploy ke produksi pada 24 November sore. Kode aktif berasal dari commit `69e257f`, termasuk Fase 1–4, uji finalize/ekspor, dan penutupan dokumen. Migrasi baru `20261124100000` sampai `20261124140000` terpasang di produksi.
+- `DISABLE_SIGNUP=true` dan pencabutan grant `anon` sudah dijalankan. Rotasi PAT dan service-role key masih tertunda. Rincian backup, verifikasi, dan rollback ada di `docs/HASIL-FASE5-DEPLOY.md`.
 
 ## Kondisi saat ini
 

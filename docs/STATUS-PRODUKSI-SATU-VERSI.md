@@ -7,22 +7,22 @@ Dokumen ini menjadi otoritas tunggal untuk keadaan aplikasi dan produksi per 24 
 - Aplikasi: IMM Observer, alamat `http://43.173.33.195:8080/`.
 - Server: Ubuntu 24.04 di `43.173.33.195`. Node v22, pm2 `imm`, nginx reverse proxy. Workload lain (`api-jkstok.my.id`, `wms_prod_*`) tetap berjalan dan tidak tersentuh.
 - Database: Supabase self-hosted di server yang sama. API internal `127.0.0.1:8180`, port publik `8081` untuk browser. Cloud project lama `crrqlwlfndhugcqcnkex` sudah di-pause sebagai cadangan beku.
-- Kode yang aktif di produksi: commit `0448100`, hasil deploy 24 November 2026 pagi.
-- Migrasi di produksi: 39 migrasi yang tercatat di handover sebelum pekerjaan branch ini. Migrasi baru branch ini **belum** dipasang di produksi.
+- Kode yang aktif di produksi: hasil branch `research/peta-alur-penilaian` pada commit `69e257f`, di-deploy 24 November 2026 sore. Deploy sebelumnya memakai `0448100` dan kini menjadi riwayat.
+- Migrasi di produksi: 39 migrasi lama ditambah 11 migrasi baru `20261124100000` sampai `20261124140000`. Semua terpasang. Rincian ada di `docs/HASIL-FASE5-DEPLOY.md`.
 - Akun produksi: Admin `annisa@swamedia.co.id` dan akun QA simulasi Observer A/B, Instruktur MoT, dan Bidang Kader. Belum ada akun Peserta.
 - Data produksi: trial DAD dengan peserta simulasi, rubrik, dan beberapa rapor yang sudah diterbitkan. Tidak ada data pribadi peserta nyata yang sengaja dimasukkan.
 - Backup: cron harian 03:15 ke `/home/ubuntu/imm-db-backups/`, retensi 14 hari, skema `auth` belum termasuk di backup otomatis. Salinan lengkap ada di workstation di luar repo.
 - Akses: HTTP polos pada port 8080. Tidak ada domain dan TLS. Pemilik memutuskan ini **final** untuk sementara. Port 8080 dipertahankan.
-- Kunci: PAT dan service-role key pernah tercatat di riwayat sesi lama dan perlu diputar sebelum penggunaan resmi. Belum ada bukti rotasi di dokumen.
-- Keamanan lain: `disable_signup` dan grant anon masih perlu diverifikasi langsung di server. Izin remediasi sudah diberikan pemilik, tetapi belum dijalankan di produksi.
-- Monitoring 5xx belum terpasang. Beberapa kerentanan `npm audit` moderat belum ditindak.
+- Kunci: PAT dan service-role key pernah tercatat di riwayat sesi lama dan perlu diputar. Rotasi sengaja tidak dilakukan saat deploy agar tidak memutus aplikasi; ini jadi jendela pemeliharaan terpisah.
+- Keamanan lain: `DISABLE_SIGNUP=true` terverifikasi di server. Grant `anon` pada dua tabel revisi sudah dicabut dan terverifikasi 0 baris.
+- Monitoring 5xx belum terpasang. Beberapa kerentanan `npm audit` moderat belum ditindak. Enam 502 saat restart deploy bersifat sementara; setelahnya tidak ada 5xx baru.
 
-Keadaan di atas adalah status terakhir yang diketahui dari dokumen lama. Tidak ada pemeriksaan server langsung yang dilakukan selama pengerjaan branch ini.
+Keadaan di atas diperiksa langsung di server pada 24 November 2026 sebelum dan sesudah deploy. Rincian ada di `docs/HASIL-FASE5-DEPLOY.md`.
 
 ## 2. Keadaan branch kerja
 
 - Branch: `research/peta-alur-penilaian`.
-- Commit terakhir: `a6d61be`.
+- Commit sebelum deploy: `69e257f`; hasil deploy tercatat di `docs/HASIL-FASE5-DEPLOY.md`.
 - Fase 2 sampai 4 dan uji finalize/ekspor sudah dikerjakan di DEV dengan data simulasi.
 - DEV lokal memakai Supabase di `127.0.0.1:54322`, Studio `54323`, dan Next.js di `localhost:3100`.
 - Migrasi baru yang sudah dipasang di DEV: `20261124100000` sampai `20261124140000` sesuai urutan di `supabase/migrations/`.
@@ -46,12 +46,12 @@ Keadaan di atas adalah status terakhir yang diketahui dari dokumen lama. Tidak a
 - IoT tetap mengisi Observasi, tetapi tidak melihat rekap penilaian.
 - Kelompok untuk ambang 10 adalah komisariat dalam satu kegiatan.
 - Tanda tangan nama tidak diperlukan; persetujuan pemilik tercatat di `docs/PERSETUJUAN-OWNER-16-PERTANYAAN.md`.
-- Retensi dan izin perbaikan produksi sudah disetujui, tetapi belum dijalankan di produksi.
+- Retensi dan izin perbaikan produksi sudah disetujui. `disable_signup` dan pencabutan grant anon sudah dijalankan; rotasi kunci belum.
 
 ## 4. Yang belum selesai
 
-- Fase 5 deploy produksi. Memerlukan izin tertulis eksplisit. Sebelum deploy, jalankan Fase 0b: nonaktifkan pendaftaran, cabut grant anon, putar kunci, lengkapi backup, dan verifikasi 14 butir produksi.
-- Uji RLS lintas peran penuh dan uji dua akun untuk konflik serta Realtime belum diulang setelah Fase 4.
+- Fase 5 deploy produksi sudah selesai pada 24 November 2026 sore. Rotasi PAT dan service-role key masih tertunda.
+- Uji RLS lintas peran penuh dan uji dua akun untuk konflik serta Realtime belum diulang di produksi setelah deploy.
 - Isi byte PDF unduhan belum dibandingkan dengan baseline.
 - `scripts/retention-apply.sql` belum dijalankan.
 - `NEXT_PUBLIC_PUBLIC_AGGREGATE_EVENT_ID` perlu diisi di lingkungan produksi agar halaman publik menampilkan agregat.

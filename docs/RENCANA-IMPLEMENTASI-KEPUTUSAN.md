@@ -260,17 +260,12 @@ Bukti `curl -i`/SQL dengan JWT `@invalid`, disimpan di `docs/bukti-gate-siklus2/
 ## 7. Daftar terbuka terpusat
 
 1. `[TERBUKA-1]` Format pembulatan tampilan. Tidak menghalangi uji angka mentah `3.5 → 70`; menghalangi uji tampilan.
-2. `[TERBUKA-2]` Definisi "kelompok". Sumber agregat sudah ditetapkan; yang terbuka hanya definisi kelompok sebelum gate Fase 0.
-3. `[TERBUKA-3]` Kewenangan ekspor Kader. Gate: tanda tangan Keamanan sebelum Fase 3 selesai; sampai itu ekspor ditolak.
-4. `[TERBUKA-4]` Arsip identitas di `private_payload`. Gate masuk Fase 3e.
-5. `[TERBUKA-5]` Jalur revisi evaluasi tanpa melanggar `finalized` dan index unik.
-6. `[TERBUKA-6]` Penandatangan tiga peran. Ditutup sebelum Fase 0 masuk.
-7. `[TERBUKA-7]` Filter `target_participant_id` dan aturan empat definisi RPC.
-8. `[TERBUKA-9]` Rincian tombol Finalisasi aplikasi; publish sudah keras.
-9. `[TERBUKA-10]` Default `expires_at` akun Peserta (fallback 30 hari).
-10. `[TERBUKA-11]` Domain HTTPS dan penutupan 8080; ditutup di 0b.
-11. `[TERBUKA-12]` Kewenangan trigger `finalized` untuk koordinator. Menunggu tanda tangan Keamanan/Privasi; sebelum itu Opsi B belum aktif dan Fase 2d belum selesai.
-12. `[TERBUKA-13]` Jika `auth.users.encrypted_password` tidak terbaca oleh fungsi security definer, jangan pakai proksi `updated_at` dan jangan klaim keputusan 1 terpenuhi; putuskan jalur OTP/email sebelum gate Fase 3.
+2. `[TERBUKA-6]` Penandatangan tiga peran. Peran sudah disetujui; **nama belum diisi**. Ditutup sebelum Fase 0 masuk.
+3. `[TERBUKA-11]` Domain HTTPS dan penutupan 8080. Izin sudah diberikan; **nama domain belum diisi**. Ditutup di 0b.
+4. `[TERBUKA-12]` Kewenangan trigger `finalized` untuk koordinator. Persetujuan tombol Finalisasi di aplikasi sudah ada, tetapi aturan database belum; menunggu tanda tangan Keamanan/Privasi. Sebelum itu Opsi B belum aktif dan Fase 2d belum selesai.
+5. `[TERBUKA-13]` Ketersediaan `auth.users.encrypted_password`. Jalur OTP/email sudah disetujui sebagai cadangan; implementasi menunggu pengecekan ketersediaan hash sandi sebelum gate Fase 3.
+
+Butir yang sudah ditutup oleh persetujuan owner 24 November 2026 ada di `docs/PERSETUJUAN-OWNER-16-PERTANYAAN.md`: `[TERBUKA-2]` kelompok per komisariat dalam kegiatan; `[TERBUKA-3]` Kader tanpa nilai mentah; `[TERBUKA-4]` arsip identitas disetujui; `[TERBUKA-5]` revisi dengan evaluasi dan snapshot baru; `[TERBUKA-7]` filter peserta pada RPC; `[TERBUKA-9]` tombol Finalisasi dikunci sampai moderasi selesai; `[TERBUKA-10]` kata sandi Peserta 30 hari; retensi dan izin produksi juga disetujui.
 
 ### Catatan tertutup
 

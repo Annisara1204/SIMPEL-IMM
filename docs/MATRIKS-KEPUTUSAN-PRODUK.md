@@ -55,6 +55,7 @@ Istilah singkat: **snapshot** adalah salinan beku hasil penilaian final yang tid
 - **Rekomendasi saya (bukan keputusan):** C. Ini merangkum dua dokumen tanpa mengubah arti kata "selesai" di halaman Penilaian.
 - **Keputusan pemilik:** B. Gate "semua Observer mengirim" dihapus. Nilai resmi cukup memakai coverage 80 persen, moderasi selesai, dan alasan keputusan terisi. Daftar Observer yang belum mengirim tetap tampil sebagai peringatan, bukan syarat. **Tanggal:** 24 November 2026.
 - **Catatan pelaksanaan:** `assessment-actions.ts:398-413` dan tombol Finalisasi di `submission-controls.tsx:76-88` perlu diselaraskan. `BLUEPRINT.md:48` menjadi usang untuk item ini.
+- **Tambahan 24 November 2026:** gate di aplikasi boleh lunak, tetapi **publish rapor tetap keras**. Snapshot berstatus `provisional` tidak boleh diterbitkan sampai coverage dan moderasi terpenuhi. Ini diputus pemilik setelah reviewer siklus 2 menemukan risiko angka resmi yang belum disetujui masuk rapor.
 - **Dampak kalau diputus berbeda:**
   - Kode yang berubah: `app/dashboard/penilaian/assessment-actions.ts:398-413`, gate `runFinalize` di `app/dashboard/evaluasi/actions.ts` (Tahap 4 dan 5), status `valid`/`ready_for_collective_evaluation` di `lib/phase6-scoring.ts:262,278,286-289`.
   - Snapshot/PDF immutable: tidak mengubah isi snapshot lama. Yang berubah ialah kapan snapshot baru boleh dibuat dan status yang tampil. PDF yang sudah terbit tetap berlaku.

@@ -9,9 +9,12 @@ Hasil eksplorasi branch `research/peta-alur-penilaian` (24 November 2026). Semua
 | `ALUR-PENILAIAN-KANONIK.md` | Rantai 12 langkah dari penugasan sampai rapor, aturan angka, dan 10 kontradiksi K1–K10 | Menjelaskan aplikasi kepada pemilik dan panitia |
 | `INVENTARIS-JALUR-LAMA.md` | 14 entri jalur lama: penulis, pembaca, UI, duplikasi data, rekomendasi mematikan | Menentukan kode lama mana yang aman ditutup |
 | `MATRIKS-RPC-AKSES.md` | 17 RPC, pemanggil, peran, `SECURITY DEFINER`, RLS, dan kontrak yang tidak boleh diubah | Syarat sebelum mengubah alur atau hak akses |
-| `MATRIKS-KEPUTUSAN-PRODUK.md` | 12 pertanyaan terbuka dengan bukti, pilihan, rekomendasi, dan kolom kosong untuk pemilik | Mengumpulkan keputusan yang mengalahkan dokumen lama |
+| `MATRIKS-KEPUTUSAN-PRODUK.md` | 12 keputusan terisi, termasuk publish keras dan tambahan 24 November | Mengalahkan dokumen lama untuk item yang sama |
 | `HASIL-UJI-BROWSER-DEV.md` | 10 skenario yang benar-benar dijalankan di browser lokal | Membedakan bukti runtime dari dugaan kode |
 | `VERIFIKASI-PRODUKSI-YANG-BELUM-DILAKUKAN.md` | 14 item yang belum diverifikasi di server produksi | Daftar periksa sebelum deploy atau rilis berikutnya |
+| `RENCANA-IMPLEMENTASI-KEPUTUSAN.md` | Rencana siklus 5 hasil enam putaran perencanaan, review, dan revisi | Pedoman eksekusi 12 keputusan dengan gate per fase |
+| `REVIEW-SIKLUS-1.md` sampai `REVIEW-SIKLUS-4.md` | Arsip temuan dan skor reviewer tiap siklus | Menjelaskan mengapa rencana berubah |
+| `REVIEW-PENUTUP.md` | Ringkasan penutupan loop dan sisa butir terbuka | Menutup siklus perencanaan |
 
 ## Temuan yang paling berpengaruh
 

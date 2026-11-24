@@ -33,26 +33,26 @@ Sumber keputusan: `docs/MATRIKS-KEPUTUSAN-PRODUK.md` (12 item terisi, including 
 
 ### Fase 0 — Prasyarat, read-only
 
-Urutan: **tanda tangan matriks → Fase 0 baca → izin tertulis 0b → Fase 0b remediasi → gate keluar Fase 0.** Tanda tangan matriks wajib terisi sebelum Fase 0 masuk (`[TERBUKA-6]`); izin 0b diberikan setelah bukti baca Fase 0 lengkap.
+Urutan: **persetujuan pemilik tercatat → Fase 0 baca → izin tertulis 0b → Fase 0b remediasi → gate keluar Fase 0.** Pemilik memutuskan tidak memakai nama penandatangan; persetujuan di `docs/PERSETUJUAN-OWNER-16-PERTANYAAN.md` menjadi bukti. Izin 0b diberikan setelah bukti baca Fase 0 lengkap.
 
-Gate masuk: tiga peran menandatangani matriks (format Bagian 3). Kolom kosong = gate belum lolos (`AGENTS.md:19-21`).
+Gate masuk: persetujuan pemilik sudah tercatat di dokumen persetujuan. Tidak ada kolom nama yang harus diisi (`AGENTS.md:19-21`).
 
 Fase 0 read-only: baca commit, migrasi, env tanpa kunci, grant, log, `df -h`, baseline 5xx/502, isi daftar terbuka. Dilarang menulis ke PROD, memutar kunci, menghapus backup, memakai data nyata.
 
 Bukti 14 butir (`VERIFIKASI:22-37`) adalah **nilai yang diharapkan, diisi setelah verifikasi**. Butir 11 monitoring tetap pemeriksaan baca Fase 0.
 
-Gate keluar: 14 butir "sudah" dengan bukti; lima kontradiksi `VERIFIKASI:14-18` selesai; lima butir kritis dari 0b "sudah" dengan bukti; tiga tanda tangan terisi; `[TERBUKA-2]` definisi kelompok diputus. Uji alur penuh tetap di Fase 5.
+Gate keluar: 14 butir "sudah" dengan bukti, dengan butir domain dan TLS diganti catatan keputusan memakai IP; lima kontradiksi `VERIFIKASI:14-18` selesai; empat butir kritis dari 0b "sudah" dengan bukti; `[TERBUKA-2]` definisi kelompok diputus. Tidak ada tanda tangan nama. Uji alur penuh tetap di Fase 5.
 
 ### Fase 0b `[IZIN]` — remediasi produksi
 
-Gate masuk: izin tertulis + bukti baca Fase 0 lengkap. Gate keluar: lima butir kritis "sudah" dengan bukti dan tanda tangan pelaku. Urutan: izin → tindakan → bukti → tanda tangan.
+Gate masuk: izin tertulis + bukti baca Fase 0 lengkap. Gate keluar: empat butir kritis "sudah" dengan bukti dan catatan pelaku. Urutan: izin → tindakan → bukti → catatan. Tidak ada tanda tangan nama.
 
 | Kritis | Tindakan | Bukti |
 |---|---|---|
 | `disable_signup` (`VERIFIKASI:29`) | set `true` di Auth PROD | konfigurasi + tanggal; pendaftaran ditolak |
 | grant `anon` (`:30`) | `revoke` SELECT di dua tabel moderasi | `role_table_grants` = 0 baris untuk `anon` |
 | PAT + service-role (`:31`) | putar, `.env.production` mode 600, `pm2 restart --update-env`, cabut lama; sinkronkan cron backup | tertulis bertanggal + hash; kunci lama 401; uji restore cron exit 0 |
-| domain + TLS (`:32`) | pasang sertifikat, alihkan 8080 | `https://<DOMAIN_HTTPS>/login` 200 + sertifikat; 8080 bukan 200 |
+| domain + TLS (`:32`) | **Tidak dilakukan.** Pemilik memutuskan tetap memakai IP. 8080 dipertahankan | catatan keputusan di dokumen persetujuan; kredensial Peserta ditunda sampai ada TLS |
 | salinan `auth` (`:33`) | backup harian `auth.users`/`identities` atau re-create terdokumentasi; cek `.env.bak-20261123-202146` | isi cron + daftar berkas + uji restore; hash `.env.bak` |
 
 `npm audit` dikerjakan di 0b tetapi bukan butir kritis; buktinya output 0 kerentanan atau sisa dengan persetujuan Keamanan. Hitungan kritis = **lima**.
@@ -68,15 +68,15 @@ Gate masuk: Fase 0/0b dinyatakan sesuai. Gate keluar: baseline tersimpan, alat h
 
 ### Fase 2 — Skor dan alur penilaian, DEV
 
-Gate masuk: Fase 1 selesai; 7 penguji SQL hijau; hash PDF tersimpan sebelum `lib/scoring.ts:72` disunting. Gate keluar: `npm test` menjalankan tiga berkas `test:phase6` termasuk `tests/scoring.test.ts`; delapan penguji SQL hijau termasuk `rpc_contract_behavior.sql`; `npm run check`/`build` hijau; angka sama hanya pada cakupan lengkap; klausul `security definer` utuh; hash baseline identik; RLS tidak berubah; uji publish provisional ditolak **bersifat defensif**; Opsi B bukan syarat gate sebelum `[TERBUKA-12]` ditandatangani.
+Gate masuk: Fase 1 selesai; 7 penguji SQL hijau; hash PDF tersimpan sebelum `lib/scoring.ts:72` disunting. Gate keluar: `npm test` menjalankan tiga berkas `test:phase6` termasuk `tests/scoring.test.ts`; delapan penguji SQL hijau termasuk `rpc_contract_behavior.sql`; `npm run check`/`build` hijau; angka sama hanya pada cakupan lengkap; klausul `security definer` utuh; hash baseline identik; RLS tidak berubah; uji publish provisional ditolak **bersifat defensif**. `[TERBUKA-12]` sudah diputus: Admin Sistem dan empat subrole koordinator boleh menulis status `finalized`, sehingga Opsi B aktif.
 
-**2a/2b.** `lib/scoring.ts:72` → `(averageOnFivePointScale / 5) * 100`; pertahankan `:69-77`, `:52-66`, batas `:19-29`. Buat `tests/scoring.test.ts`: 4→80 "Baik", 3→60 "Cukup", 3.5→70 "Cukup"; uji nilai mentah dulu, `[TERBUKA-1]` hanya format tampilan. Ubah `package.json:18` `test:phase6` menjadi `node --experimental-strip-types --test tests/scoring.test.ts tests/phase6-scoring.test.ts tests/phase6-recommendations.test.ts`; `npm test` (`:17`) dan `npm run check` (`:20`) mengikutinya. Frasa "selisih 2 poin jadi peringatan" dicabut; `20261113120000:26-33` keras.
+**2a/2b.** `lib/scoring.ts:72` → `(averageOnFivePointScale / 5) * 100`; pertahankan `:69-77`, `:52-66`, batas `:19-29`. Buat `tests/scoring.test.ts`: 4→80 "Baik", 3→60 "Cukup", 3.5→70 "Cukup"; uji nilai mentah dulu. `[TERBUKA-1]` sudah diputus: semua tampilan memakai **satu angka desimal**; snapshot tetap menyimpan dua angka desimal. Ubah `package.json:18` `test:phase6` menjadi `node --experimental-strip-types --test tests/scoring.test.ts tests/phase6-scoring.test.ts tests/phase6-recommendations.test.ts`; `npm test` (`:17`) dan `npm run check` (`:20`) mengikutinya. Frasa "selisih 2 poin jadi peringatan" dicabut; `20261113120000:26-33` keras.
 
 **2c.** Di `lib/phase6-scoring.ts:168-267`, `notObservedIndicators` (`:226-234`) bukan penyebut. `coverageDenominator = max(0, plannedCount - jumlah baris average===null && notObserved>0)`; `coverage = coverageDenominator>0 ? valid.length/coverageDenominator*100 : 0`; `valid = valid.length>=1 && coverage>=coverageThreshold`. Tambah `coverageDenominator` ke `AspectAggregate` (`:46-58`) dan teks alasan `:290-295`. Enam kasus uji dengan angka eksplisit: (1) 1 skor + 1 N/O + 1 pending → penyebut 2, coverage 50, invalid pada 80; (2) 1 skor + 2 N/O → 100 valid; (3) semua N/O → 0 invalid; (4) dua skor + satu N/O pada indikator sama → penyebut 2, coverage 100; (5) N/O tidak mengurangi penyebut skor; (6) tepat 50 pada ambang 50 valid. Fixture `:143-155` diperbarui. Sumber ambang produksi = `assessment_scoring_policies.minimum_coverage` (`20261112170000:114`), bukan konstanta JS.
 
-**2d — Opsi B, aktivasi bertanda tangan.** Rentang hapus benar di `assessment-actions.ts` = `:383-423`; pertahankan `:353-382` termasuk `:378-382`. Tipe `:356` → `"submitted" | "draft"`. Di `submission-controls.tsx`: `:17` tetap tiga nilai, `:25` → dua nilai, hapus `:38` dan tombol `:76-88`, teks `:54` jadi "X dari Y observer mengirim penilaian (informasi; tidak menghalangi finalisasi)". `observasi/page.tsx:567-575` tetap memakai `finalizedCount` dari server.
+**2d — Opsi B, diaktifkan sesuai keputusan pemilik.** Rentang hapus benar di `assessment-actions.ts` = `:383-423`; pertahankan `:353-382` termasuk `:378-382`. Tipe `:356` → `"submitted" | "draft"`. Di `submission-controls.tsx`: `:17` tetap tiga nilai, `:25` → dua nilai, hapus `:38` dan tombol `:76-88`, teks `:54` jadi "X dari Y observer mengirim penilaian (informasi; tidak menghalangi finalisasi)". `observasi/page.tsx:567-575` tetap memakai `finalizedCount` dari server.
 
-Perubahan trigger `20261111160000:136-138` (opsi a) aktif **hanya setelah** `[TERBUKA-12]` ditandatangani Pemilik Keamanan/Privasi: ganti dengan `if new.status='finalized' and not public.is_assessment_moderator((select p.event_id from public.participants p where p.id=new.participant_id)) then raise exception ... using errcode='42501'; end if;`. Helper mencakup `admin_system` (`20261112170000:16`); header `security definer set search_path=''` (`:129`) tetap. Sebelum tanda tangan, pakai opsi (b): RPC baru `finalize_submission_as_admin(target_participant uuid, target_rubric_versions jsonb)`, `security definer set search_path=''`, menolak `42501` bila `not public.is_admin_system()`, lalu menjalankan penulis server di bawah. Koordinator hanya memfinalisasi evaluasi; penulis status server tidak dipakai koordinator. Tombol Admin `submission-controls.tsx:76-88` **tidak dihapus sebelum tanda tangan**; penghapusan di 2d berlaku saat `[TERBUKA-12]` ditutup. Gate tidak boleh mengklaim Opsi B aktif, dan **Fase 2d tidak dinyatakan selesai sebelum tanda tangan itu**. Penulis server setelah `20261113120000:70`: `update assessment_submissions set status='finalized', finalized_at=now(), finalized_by=(select auth.uid()) where participant_id=target_participant and status='submitted' and rubric_version_id in (select jsonb_array_elements_text(target_rubric_versions)::uuid);`.
+Perubahan trigger `20261111160000:136-138` (opsi a) **diaktifkan**: ganti dengan `if new.status='finalized' and not public.is_assessment_moderator((select p.event_id from public.participants p where p.id=new.participant_id)) then raise exception ... using errcode='42501'; end if;`. Helper mencakup `admin_system` (`20261112170000:16`), jadi yang boleh menulis `finalized` adalah Admin Sistem dan empat subrole koordinator. Header `security definer set search_path=''` (`:129`) tetap. RPC sementara `finalize_submission_as_admin` dan opsi (b) tidak dipakai. Tombol Admin `submission-controls.tsx:76-88` dihapus di 2d. Penulis server setelah `20261113120000:70`: `update assessment_submissions set status='finalized', finalized_at=now(), finalized_by=(select auth.uid()) where participant_id=target_participant and status='submitted' and rubric_version_id in (select jsonb_array_elements_text(target_rubric_versions)::uuid);`.
 
 **2e.** Migrasi > `20261123130000`, delapan argumen persis `20261113120000:4-7`, header `returns uuid language plpgsql security definer set search_path = '' as $$` utuh. Tambah `next_revision integer;` di `declare` `:9`; isi dari `select coalesce(max(s.revision),0)+1 ... where collective_evaluation_id=target_evaluation_id`; ganti literal `1` di `:72`. Pertahankan RLS `:228`, trigger `:253`, index unik `20261113000000:29-31`, immutable `20261112170000:330-331`. Jalur revisi `[TERBUKA-5]`.
 
@@ -173,7 +173,7 @@ grant execute on function public.has_active_participant_access() to authenticate
 
 Versi tanpa argumen dipakai policy `participants_read_own_published_report` (`20261112180000:8`) dan `assessment_report_publications_read` (`:25`); helper satu argumen kembali salah untuk UUID orang lain.
 
-`public.confirm_participant_password_change()` security definer `set search_path=''`: ambil baris `participant_access` milik `auth.uid()`, tolak bila tidak aktif, `encrypted_password_at_link is null`, atau `auth.users.encrypted_password` sama dengan hash saat penautan; jika berbeda, tulis `password_changed_at=now(), encrypted_password_at_link=current_hash`. Tidak memakai proksi `updated_at`. `clear_my_must_change_password()` menolak bila `password_changed_at is null`, dan setelah konfirmasi sukses men-set `must_change_password=false` untuk baris ber-`account_user_id=auth.uid()` (jika tidak, rapor tetap `P0003`). Helper `has_active_participant_access(uuid)` tetap memakai `pa.account_user_id=(select auth.uid())`, tambah `target_participant_id is not null`, dan sediakan versi tanpa argumen untuk Policy; helper satu argumen mengembalikan `false` untuk UUID orang lain. Semua helper dan RPC konfirmasi memakai `security definer set search_path=''`, nama lengkap, grant hanya `authenticated`. Uji: `updateUser({data})` → hash sama → konfirmasi `42501`, rapor `P0003`; `updateUser({password})` → hash beda → konfirmasi sukses, clear sukses, rapor terbaca; konfirmasi dua kali → kedua ditolak. Uji REST `/rest/v1/participant_access`: 0 baris untuk `authenticated`, 401/403 untuk `anon`. `[TERBUKA-10]` default `expires_at` fallback 30 hari. `[TERBUKA-13]` baru: bila `auth.users.encrypted_password` tidak terbaca oleh fungsi security definer di project target, jangan pakai proksi `updated_at` dan jangan klaim keputusan 1 terpenuhi; putuskan jalur OTP/email sebelum gate Fase 3.
+`public.confirm_participant_password_change()` security definer `set search_path=''`: ambil baris `participant_access` milik `auth.uid()`, tolak bila tidak aktif, `encrypted_password_at_link is null`, atau `auth.users.encrypted_password` sama dengan hash saat penautan; jika berbeda, tulis `password_changed_at=now(), encrypted_password_at_link=current_hash`. Tidak memakai proksi `updated_at`. `clear_my_must_change_password()` menolak bila `password_changed_at is null`, dan setelah konfirmasi sukses men-set `must_change_password=false` untuk baris ber-`account_user_id=auth.uid()` (jika tidak, rapor tetap `P0003`). Helper `has_active_participant_access(uuid)` tetap memakai `pa.account_user_id=(select auth.uid())`, tambah `target_participant_id is not null`, dan sediakan versi tanpa argumen untuk Policy; helper satu argumen mengembalikan `false` untuk UUID orang lain. Semua helper dan RPC konfirmasi memakai `security definer set search_path=''`, nama lengkap, grant hanya `authenticated`. Uji: `updateUser({data})` → hash sama → konfirmasi `42501`, rapor `P0003`; `updateUser({password})` → hash beda → konfirmasi sukses, clear sukses, rapor terbaca; konfirmasi dua kali → kedua ditolak. Uji REST `/rest/v1/participant_access`: 0 baris untuk `authenticated`, 401/403 untuk `anon`. `[TERBUKA-10]` default `expires_at` fallback 30 hari. `[TERBUKA-13]` sudah diputus: tidak ada SMTP, TOTP, atau penyedia pihak ketiga. Pendaftaran dan kata sandi biasa dipakai. Bukti ganti sandi hanya perbandingan hash sandi di server. Jika `auth.users.encrypted_password` tidak terbaca, kewajiban ganti sandi tidak boleh diklaim terpenuhi dan gate Fase 3d gagal sampai ada solusi. Jalur OTP/email dibatalkan.
 
 **3e — Retensi, agregat, backup.** Gate masuk: arsip identitas `private_payload` (`20261112170000:312-325`) ditandatangani. Dikecualikan dari delete: `assessment_snapshots`, `assessment_snapshot_private_sources`, `assessment_report_publications`, audit, `collective_evaluations`, `assessment_moderations`, `development_recommendations`, `observation_revisions`, dan **`participant_access.participant_id`** (FK `NO ACTION` dari migrasi baru 3d). Peserta dengan turunan itu diskip: identitas diarsipkan di `private_payload`, baris ditandai **kolom baru `archived_at`** dan `account_user_id=null`, demikian pula `participant_access.account_user_id=null` **dan `encrypted_password_at_link=null`**. Baris tanpa turunan restrict dihapus; cascade mengikuti. Jangan ubah FK atau hapus snapshot. Dry-run `count(*)` sebelum=sesudah untuk snapshot, publikasi, audit, evaluasi, `participant_access`; hash PDF identik. Cron 03:20 `/etc/cron.d/imm-retention` setelah backup 03:15.
 
@@ -189,7 +189,7 @@ Tutup 14 entri `INVENTARIS-JALUR-LAMA.md:14-24`. Hanya `get_event_assessment_sum
 
 ### Fase 5 — Deploy PROD dan uji ulang
 
-Gate masuk: Fase 1-4 dinyatakan sesuai; izin tertulis Produk dan Infrastruktur; lima butir kritis masih "sudah" dan TLS aktif; backup sebelum migrasi (dump, direktori, hash `.env.production`, salinan `auth`, uji restore); `.env.bak-20261123-202146` terverifikasi; bukti rotasi Fase 0b masih berlaku. Rotasi hanya sekali di 0b.
+Gate masuk: Fase 1-4 dinyatakan sesuai; izin tertulis pemilik; empat butir kritis masih "sudah"; backup sebelum migrasi (dump, direktori, hash `.env.production`, salinan `auth`, uji restore); `.env.bak-20261123-202146` terverifikasi; bukti rotasi Fase 0b masih berlaku. TLS tidak menjadi syarat karena pemilik memakai IP; kredensial Peserta tidak dibagikan pada fase ini. Rotasi hanya sekali di 0b.
 
 Urutan: backup → migrasi + penguji SQL → rsync tanpa `--delete`/`--delete-excluded` (`DEPLOYMENT.md:35-39`) → `npm ci --include=dev` → `npm run build` → `pm2 restart imm` → smoke → RPT-001..005 dan alur penuh `@invalid` → ulang uji PROD.
 
@@ -197,13 +197,13 @@ Smoke: `http://43.173.33.195:8080/` → 200 hanya cek halaman tanpa kredensial, 
 
 ### Fase 6 — Penutupan dokumen
 
-Gate masuk: pemilik menyatakan Fase 5 sesuai. Perbarui 13 dokumen: `BLUEPRINT.md`, `HANDOVER.md`, `IMPLEMENTATION_PLAN.md`, `docs/DEPLOYMENT.md`, `docs/LANGKAH-PASANG-MIGRASI-DAN-UJI.md`, `docs/KEPUTUSAN-KOREKSI-ALUR.md`, `docs/VERIFIKASI-PRODUKSI-YANG-BELUM-DILAKUKAN.md`, `docs/RENCANA-IMPLEMENTASI-KOREKSI-ALUR.md`, `docs/PETA-ALUR-PENILAIAN.md`, `docs/QA_PHASE8_TEST_PLAN.md`, `docs/MATRIKS-RPC-AKSES.md`, `docs/INVENTARIS-JALUR-LAMA.md`, `docs/ALUR-PENILAIAN-KANONIK.md`. Otoritas status = tabel 14 butir. Klaim yang harus hilang: "migrasi belum ada", "deploy ditunda", "database kosong/belum ada admin", "belum ada domain/TLS/HTTP polos", "regression belum dijalankan", "belum ada jadwal backup", "disable_signup false/grant anon ada", "`PGRST_DB_MAX_ROWS=1000`". Gate keluar: tiga peran menandatangani status akhir dengan tanggal penandatanganan masing-masing.
+Gate masuk: pemilik menyatakan Fase 5 sesuai. Perbarui 13 dokumen: `BLUEPRINT.md`, `HANDOVER.md`, `IMPLEMENTATION_PLAN.md`, `docs/DEPLOYMENT.md`, `docs/LANGKAH-PASANG-MIGRASI-DAN-UJI.md`, `docs/KEPUTUSAN-KOREKSI-ALUR.md`, `docs/VERIFIKASI-PRODUKSI-YANG-BELUM-DILAKUKAN.md`, `docs/RENCANA-IMPLEMENTASI-KOREKSI-ALUR.md`, `docs/PETA-ALUR-PENILAIAN.md`, `docs/QA_PHASE8_TEST_PLAN.md`, `docs/MATRIKS-RPC-AKSES.md`, `docs/INVENTARIS-JALUR-LAMA.md`, `docs/ALUR-PENILAIAN-KANONIK.md`. Otoritas status = tabel 14 butir. Klaim yang harus hilang: "migrasi belum ada", "deploy ditunda", "database kosong/belum ada admin", "belum ada domain/TLS/HTTP polos" tidak dihapus, melainkan dicatat sebagai keputusan pemilik untuk sementara memakai IP; "regression belum dijalankan", "belum ada jadwal backup", "disable_signup false/grant anon ada", "`PGRST_DB_MAX_ROWS=1000`". Gate keluar: persetujuan pemilik atas status akhir tercatat di dokumen persetujuan. Tidak ada tanda tangan nama.
 
 ---
 
 ## 3. Penandatanganan dan perintah
 
-Format pengesahan matriks: tiga blok Pemilik Produk, Infrastruktur, Keamanan/Privasi; masing-masing Nama, Tanggal, Tanda tangan; catatan opsional. Tanggal diisi saat penandatanganan dengan `Get-Date -Format yyyy-MM-dd`; 24/11/2026 hanya tanggal penyusunan. Lingkup: Produk = keputusan 1-12 dan publish keras; Infrastruktur = butir 1-5, 9-14 dari 14 butir `VERIFIKASI:24-37`; Keamanan = butir 6-8. Butir 11 monitoring hanya di Infrastruktur.
+Pengesahan matriks tidak memakai nama atau tanda tangan. Pemilik memutuskan persetujuan cukup tercatat di `docs/PERSETUJUAN-OWNER-16-PERTANYAAN.md` dengan tanggal 24 November 2026. Ruang lingkup persetujuan tetap: keputusan 1-12, publish keras, perbaikan produksi, dan izin lanjutan. Butir 11 monitoring termasuk pemeriksaan Infrastruktur.
 
 Laptop Windows, PowerShell (Pemilik Produk/Keamanan):
 
@@ -231,7 +231,7 @@ Konvensi bukti: `docs/bukti-gate-siklus2/fase-N-sesuai.md` untuk N = 0, 0b, 1-6 
 ## 4. Strategi pengujian
 
 - **Otomatis:** `tests/scoring.test.ts` baru dan `package.json:18`; enam kasus N/O; `tests/phase6-recommendations.test.ts`, `tests/phase7-files.test.ts`; `npm run check`, `npm run build`; `npm test` menjalankan tiga berkas `test:phase6`.
-- **SQL:** delapan berkas di `supabase/tests/` termasuk `rpc_contract_behavior.sql`. Di DEV dengan `begin; ... rollback;`. Fixture snapshot dibuat dengan `set local role service_role` atau seed migrasi karena INSERT snapshot dicabut dari `authenticated` (`20261112170000:309,324`); assertion dengan `set local role authenticated; set local request.jwt.claim.sub='<qa-id>'`. Periksa signature delapan argumen, `P0002`, `P0003`, hash sandi sebelum/sesudah `updateUser`, publish ditolak untuk snapshot yang tidak memenuhi syarat, trigger `finalized` menerima koordinator setelah tanda tangan.
+- **SQL:** delapan berkas di `supabase/tests/` termasuk `rpc_contract_behavior.sql`. Di DEV dengan `begin; ... rollback;`. Fixture snapshot dibuat dengan `set local role service_role` atau seed migrasi karena INSERT snapshot dicabut dari `authenticated` (`20261112170000:309,324`); assertion dengan `set local role authenticated; set local request.jwt.claim.sub='<qa-id>'`. Periksa signature delapan argumen, `P0002`, `P0003`, hash sandi sebelum/sesudah `updateUser`, publish ditolak untuk snapshot yang tidak memenuhi syarat, trigger `finalized` menerima Admin dan empat subrole koordinator.
 - **Browser dan peran:** konflik dua penilai, N/O sampai Evaluasi, finalize/publish/ekspor, RLS lintas peran, sesi kedaluwarsa; Observer membaca baris sendiri; IoT tidak membaca orang lain tetapi tetap menulis; Kader hanya rekap; Peserta flag sandi.
 - **Regresi PDF:** bandingkan `sha256sum` dengan baseline sebelum `lib/scoring.ts:72` diubah; jangan hitung ulang `snapshot_data`.
 
@@ -259,24 +259,22 @@ Bukti `curl -i`/SQL dengan JWT `@invalid`, disimpan di `docs/bukti-gate-siklus2/
 
 ## 7. Daftar terbuka terpusat
 
-1. `[TERBUKA-1]` Format pembulatan tampilan. Tidak menghalangi uji angka mentah `3.5 → 70`; menghalangi uji tampilan.
-2. `[TERBUKA-6]` Penandatangan tiga peran. Peran sudah disetujui; **nama belum diisi**. Ditutup sebelum Fase 0 masuk.
-3. `[TERBUKA-11]` Domain HTTPS dan penutupan 8080. Izin sudah diberikan; **nama domain belum diisi**. Ditutup di 0b.
-4. `[TERBUKA-12]` Kewenangan trigger `finalized` untuk koordinator. Persetujuan tombol Finalisasi di aplikasi sudah ada, tetapi aturan database belum; menunggu tanda tangan Keamanan/Privasi. Sebelum itu Opsi B belum aktif dan Fase 2d belum selesai.
-5. `[TERBUKA-13]` Ketersediaan `auth.users.encrypted_password`. Jalur OTP/email sudah disetujui sebagai cadangan; implementasi menunggu pengecekan ketersediaan hash sandi sebelum gate Fase 3.
+1. `[TERBUKA-13]` Ketersediaan `auth.users.encrypted_password` di project target. Jalur OTP/email dibatalkan; jika hash tidak terbaca, Fase 3d tidak lolos.
+
+Empat butir sudah ditutup oleh keputusan pemilik 24 November 2026: `[TERBUKA-1]` satu angka desimal, `[TERBUKA-6]` tanpa nama penandatangan, `[TERBUKA-11]` tetap memakai IP, dan `[TERBUKA-12]` Admin serta empat koordinator boleh menulis `finalized`. Untuk `[TERBUKA-13]`, jalur sudah diputus menjadi perbandingan hash sandi tanpa OTP; yang masih dicek hanyalah ketersediaan hash di project target. Rincian ada di `docs/PERSETUJUAN-OWNER-16-PERTANYAAN.md`.
 
 Butir yang sudah ditutup oleh persetujuan owner 24 November 2026 ada di `docs/PERSETUJUAN-OWNER-16-PERTANYAAN.md`: `[TERBUKA-2]` kelompok per komisariat dalam kegiatan; `[TERBUKA-3]` Kader tanpa nilai mentah; `[TERBUKA-4]` arsip identitas disetujui; `[TERBUKA-5]` revisi dengan evaluasi dan snapshot baru; `[TERBUKA-7]` filter peserta pada RPC; `[TERBUKA-9]` tombol Finalisasi dikunci sampai moderasi selesai; `[TERBUKA-10]` kata sandi Peserta 30 hari; retensi dan izin produksi juga disetujui.
 
 ### Catatan tertutup
 
-- Opsi B untuk status `finalized` dipilih sebagai desain akhir di 2d, tetapi aktivasinya menunggu `[TERBUKA-12]`. Ini bukan entri terbuka.
+- Opsi B aktif. Yang boleh menulis `finalized` adalah Admin Sistem dan empat subrole koordinator, sesuai keputusan pemilik 24 November 2026.
 - `revisi-siklus3-b.md:30-34` tentang migrasi penandaan snapshot provisional dinyatakan kedaluwarsa.
 
 ## 8. Ringkasan untuk pemilik
 
 **Istilah:** *provisional* = sementara, penilaian belum memenuhi syarat terbit, tersimpan sebagai draf, bukan rapor resmi. *Coverage* = seberapa banyak indikator dinilai dalam aspek, ambang 80%. *N/O* = Belum diamati, tanpa skor, tidak mengurangi penyebut coverage. *5xx/502* = kesalahan server di log nginx, dibandingkan baseline. *Sidik PDF* = sidik jari SHA256 untuk membuktikan PDF lama tidak berubah.
 
-**Tindakan pemilik:** tanda tangani matriks sebelum Fase 0; beri izin tertulis 0b setelah bukti baca Fase 0; nyatakan tiap fase sesuai sebelum fase berikutnya; tanda tangani `[TERBUKA-3]`, `[TERBUKA-12]`, dan `[TERBUKA-13]` tepat pada waktunya.
+**Tindakan pemilik:** persetujuan sudah tercatat, tidak perlu nama; beri izin tertulis 0b setelah bukti baca Fase 0; nyatakan tiap fase sesuai sebelum fase berikutnya. Konsekuensi memakai IP tanpa TLS: kata sandi Peserta tidak dibagikan sampai ada domain.
 
 - **Fase 0/0b:** 14 pemeriksaan, lima kontradiksi, lima prasyarat dibetulkan dengan izin. Bisa diulang: baca commit, migrasi, sertifikat, log.
 - **Fase 1:** angka baseline dan sidik PDF. Bisa diulang: unduh PDF lama, cocokkan sidik.
@@ -288,14 +286,14 @@ Butir yang sudah ditutup oleh persetujuan owner 24 November 2026 ada di `docs/PE
 
 ## 9. Yang tidak boleh diubah
 
-RLS dan pengecekan peran di server; `is_assessment_moderator`; snapshot dan PDF yang sudah terbit; trigger immutable; migrasi lama; grant/revoke kecuali signature yang diubah di Fase 4; index unik `(collective_evaluation_id, revision)`; dependency; data produksi sebelum izin; `PGRST_DB_MAX_ROWS`; batas kategori `lib/scoring.ts:19-29` dan format `toFixed` sampai `[TERBUKA-1]` diputus.
+RLS dan pengecekan peran di server; `is_assessment_moderator`; snapshot dan PDF yang sudah terbit; trigger immutable; migrasi lama; grant/revoke kecuali signature yang diubah di Fase 4; index unik `(collective_evaluation_id, revision)`; dependency; data produksi sebelum izin; `PGRST_DB_MAX_ROWS`; batas kategori `lib/scoring.ts:19-29`. Format tampilan sudah diputus satu angka desimal.
 
 ## 10. Risiko top 10
 
 | # | Risiko | Mitigasi |
 |---|---|---|
 | 1 | Status PROD dua versi | Isi 14 butir, hapus klaim lama |
-| 2 | Fitur baru sebelum tinjauan | Gate Fase 0/0b bertanda tangan |
+| 2 | Fitur baru sebelum tinjauan | Gate Fase 0/0b ber persetujuan tercatat |
 | 3 | Data pribadi nyata terpakai | Akun QA simulasi, ambang 10 di RPC |
 | 4 | Snapshot/PDF lama berubah | Hash baseline, tanpa recalc |
 | 5 | Nomor revisi tidak terpakai | Jalur revisi diputus dulu |

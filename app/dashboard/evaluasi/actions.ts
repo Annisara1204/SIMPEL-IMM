@@ -379,7 +379,10 @@ export async function generateAutomaticRecommendations(formData: FormData) {
       .select("id,event_id")
       .eq("id", participantId)
       .maybeSingle(),
-    supabase.rpc("get_event_assessment_summary", { target_event_id: eventId }),
+    supabase.rpc("get_event_assessment_summary", {
+      target_event_id: eventId,
+      target_participant_id: participantId,
+    }),
     supabase
       .from("rubric_versions")
       .select(
@@ -590,7 +593,10 @@ async function runFinalize(
       .eq("participant_id", participantId)
       .eq("rubric_version_id", rubricVersionId)
       .maybeSingle(),
-    supabase.rpc("get_event_assessment_summary", { target_event_id: eventId }),
+    supabase.rpc("get_event_assessment_summary", {
+      target_event_id: eventId,
+      target_participant_id: participantId,
+    }),
     supabase
       .from("assessment_scoring_policies")
       .select("minimum_coverage,review_score_delta")

@@ -133,6 +133,7 @@ export default async function CollectiveEvaluationPage({
   const { data: summaryRows, error: summaryError } = eventId
     ? await supabase.rpc("get_event_assessment_summary", {
         target_event_id: eventId,
+        target_participant_id: participantId ?? null,
       })
     : { data: [], error: null };
   const { data: policy } = await supabase

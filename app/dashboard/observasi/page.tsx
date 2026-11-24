@@ -170,6 +170,19 @@ export default async function ObservationsPage({
   const mappedIndicators = new Map(
     (materialMappings ?? []).map((mapping) => [mapping.indicator_id, mapping]),
   );
+  // Trial rubrik bisa memiliki indikator tanpa competency_indicator_id. Bila
+  // tidak ada satu pun yang cocok dengan pemetaan materi, tampilkan seluruh
+  // indikator versi aktif agar materi tetap bisa dinilai.
+  const hasMaterialMapping =
+    Boolean(selectedMaterial?.competency_material_id) &&
+    (activeVersion?.rubric_aspects ?? []).some((aspect) =>
+      (aspect.rubric_indicator_aspects ?? []).some((mapping) => {
+        const indicator = firstRelated(mapping.rubric_indicators);
+        return indicator
+          ? mappedIndicators.has(indicator.competency_indicator_id)
+          : false;
+      }),
+    );
 
   const eventAssignments = (assignments ?? []).filter(
     (assignment) => assignment.event_id === selectedEvent?.id,
@@ -515,7 +528,7 @@ export default async function ObservationsPage({
                               mapping.rubric_indicators,
                             );
                             return indicator &&
-                              (!selectedMaterial?.competency_material_id ||
+                              (!hasMaterialMapping ||
                                 mappedIndicators.has(
                                   indicator.competency_indicator_id,
                                 ))
@@ -642,7 +655,7 @@ export default async function ObservationsPage({
                                     );
                                     return (
                                       indicator &&
-                                      (!selectedMaterial?.competency_material_id ||
+                                      (!hasMaterialMapping ||
                                         mappedIndicators.has(
                                           indicator.competency_indicator_id,
                                         ))
@@ -667,7 +680,7 @@ export default async function ObservationsPage({
                                       indicator.competency_indicator_id,
                                     );
                                     if (
-                                      selectedMaterial?.competency_material_id &&
+                                      hasMaterialMapping &&
                                       (!masterMapping ||
                                         masterMapping.competency_indicator_rubric_version_id !==
                                           indicator.competency_indicator_rubric_version_id)

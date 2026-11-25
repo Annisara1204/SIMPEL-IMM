@@ -4,7 +4,7 @@
 **Pengguna OS:** `ubuntu` (uid 1000, sudo, docker)
 **Akses SSH:** key `~/.ssh/imm_prod_43-173-33-195` di workstation pengembangan (private key tidak pernah keluar dari workstation)
 
-> **Status terkini (25 November 2026):** `docs/STATUS-PRODUKSI-SATU-VERSI.md` adalah otoritas tunggal. Kode aktif di produksi = commit `a43bd27` (deploy 25 November). Database memakai Supabase self-hosted di server yang sama; project cloud lama `crrqlwlfndhugcqcnkex` hanya cadangan beku yang di-pause. Pekerjaan branch `research/peta-alur-penilaian` sudah masuk `main` dan di-deploy. Bagian bertanda "riwayat" di bawah adalah catatan 13 November dan tidak menggambarkan keadaan sekarang.
+> **Status terkini (25 November 2026):** `docs/STATUS-PRODUKSI-SATU-VERSI.md` adalah otoritas tunggal. Kode aktif di produksi = commit `a9ae78b` (deploy 25 November). Database memakai Supabase self-hosted di server yang sama; project cloud lama `crrqlwlfndhugcqcnkex` hanya cadangan beku yang di-pause. Pekerjaan branch `research/peta-alur-penilaian` sudah masuk `main` dan di-deploy. Bagian bertanda "riwayat" di bawah adalah catatan 13 November dan tidak menggambarkan keadaan sekarang.
 
 ## Yang berjalan di server ini
 
@@ -43,7 +43,7 @@ Target yang seharusnya dipakai aplikasi adalah **Supabase self-hosted** di serve
 
 ## Cara memperbarui aplikasi (deploy ulang)
 
-Prosedur ini dipakai untuk pembaruan aplikasi. Kode yang aktif sekarang `a43bd27` (deploy 25 November 2026).
+Prosedur ini dipakai untuk pembaruan aplikasi. Kode yang aktif sekarang `a9ae78b` (deploy 25 November 2026).
 
 ```powershell
 # dari workstation, repo ini
@@ -81,7 +81,7 @@ Ringkasan keadaan terkini; rincian ada di `docs/STATUS-PRODUKSI-SATU-VERSI.md` d
 3. ~~Service role key~~ — **selesai** (13 Nov 2026): `SUPABASE_SERVICE_ROLE_KEY` terpasang di `.env.production` (mode 600), pm2 restart `--update-env`, aplikasi online. Fitur pembuatan akun Instruktur perbantuan di `/dashboard/pengguna` aktif (belum diuji dengan pembuatan akun sungguhan). Kunci perlu diputar sebelum penggunaan resmi (butir 8).
 4. **Monitoring** — belum ada alerting 5xx (butir 11); pm2 restart otomatis hanya untuk crash.
 5. ~~Seed data produksi~~ — **selesai**: data trial DAD sudah ada (lihat bagian "Seed trial produksi" di bawah, riwayat 13 Nov 2026).
-6. ~~Deploy branch ini~~ — selesai 24–25 November 2026. Hasil branch `research/peta-alur-penilaian` sudah di-deploy; kode aktif `a43bd27`.
+6. ~~Deploy branch ini~~ — selesai 24–25 November 2026. Hasil branch `research/peta-alur-penilaian` sudah di-deploy; kode aktif `a9ae78b`.
 
 ## Seed trial produksi (13 November 2026 — riwayat)
 

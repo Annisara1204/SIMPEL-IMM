@@ -46,11 +46,11 @@ Keadaan di atas diperiksa langsung di server pada 24 November 2026 sebelum dan s
 - IoT tetap mengisi Observasi, tetapi tidak melihat rekap penilaian.
 - Kelompok untuk ambang 10 adalah komisariat dalam satu kegiatan.
 - Tanda tangan nama tidak diperlukan; persetujuan pemilik tercatat di `docs/PERSETUJUAN-OWNER-16-PERTANYAAN.md`.
-- Retensi dan izin perbaikan produksi sudah disetujui. `disable_signup` dan pencabutan grant anon sudah dijalankan; rotasi kunci belum.
+- Retensi dan izin perbaikan produksi sudah disetujui. `disable_signup` dan pencabutan grant anon sudah dijalankan. Rotasi PAT dan service-role key **tidak dilakukan sesuai keputusan pemilik**, bukan tertunda.
 
 ## 4. Yang belum selesai
 
-- Fase 5 deploy produksi sudah selesai pada 24 November 2026 sore. Rotasi PAT dan service-role key masih tertunda.
+- Fase 5 deploy produksi sudah selesai pada 24 November 2026 sore. Rotasi PAT dan service-role key tidak dilakukan sesuai keputusan pemilik.
 - Uji RLS lintas peran produksi sudah dijalankan dan dua celah diperbaiki lewat migrasi `20261124150000`. Rincian ada di `docs/HASIL-UJI-RLS-PROD.md`.
 - Uji konflik dua penilai dan Realtime sudah dijalankan di DEV; perbaikan panel rekan dipasang di produksi lewat migrasi `20261124160000`. Rincian ada di `docs/HASIL-UJI-KONFLIK-REALTIME.md`.
 - Isi byte PDF unduhan belum dibandingkan dengan baseline.

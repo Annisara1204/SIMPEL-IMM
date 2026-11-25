@@ -7,7 +7,7 @@ Dokumen ini menjadi otoritas tunggal untuk keadaan aplikasi dan produksi per 24 
 - Aplikasi: IMM Observer, alamat `http://43.173.33.195:8080/`.
 - Server: Ubuntu 24.04 di `43.173.33.195`. Node v22, pm2 `imm`, nginx reverse proxy. Workload lain (`api-jkstok.my.id`, `wms_prod_*`) tetap berjalan dan tidak tersentuh.
 - Database: Supabase self-hosted di server yang sama. API internal `127.0.0.1:8180`, port publik `8081` untuk browser. Cloud project lama `crrqlwlfndhugcqcnkex` sudah di-pause sebagai cadangan beku.
-- Kode yang aktif di produksi: `main` commit `6efa0d8`, di-deploy 25 November 2026. Deploy ini menyertakan hasil branch `research/peta-alur-penilaian`, perbaikan 24 November, pembersihan lima peringatan lint, dan RPC ringkas untuk dashboard staf. Deploy sebelumnya memakai `76c653b` dan kini menjadi riwayat.
+- Kode yang aktif di produksi: `main` commit `694dfa3`, di-deploy 25 November 2026. Deploy ini menyertakan hasil branch `research/peta-alur-penilaian`, perbaikan 24 November, pembersihan lima peringatan lint, RPC ringkas untuk dashboard staf, dan DTO ringkas panel Laporan dengan muat-saat-ekspor. Deploy sebelumnya memakai `6efa0d8` dan kini menjadi riwayat.
 - Migrasi di produksi: 39 migrasi lama ditambah 11 migrasi baru `20261124100000` sampai `20261124140000`. Semua terpasang. Rincian ada di `docs/HASIL-FASE5-DEPLOY.md`.
 - Akun produksi: Admin `annisa@swamedia.co.id` dan akun QA simulasi Observer A/B, Instruktur MoT, dan Bidang Kader. Belum ada akun Peserta.
 - Data produksi: trial DAD dengan peserta simulasi, rubrik, dan beberapa rapor yang sudah diterbitkan. Tidak ada data pribadi peserta nyata yang sengaja dimasukkan.
@@ -56,7 +56,7 @@ Keadaan di atas diperiksa langsung di server pada 24 November 2026 sebelum dan s
 - Isi byte PDF unduhan belum dibandingkan dengan baseline.
 - `scripts/retention-apply.sql` sudah dijalankan sekali pada 25 November 2026 dengan backup segar; tidak ada kandidat, jadi tidak ada data yang dihapus atau diarsipkan. Rincian ada di `docs/HASIL-RETENSI-PROD.md`. Cron otomatis belum dipasang.
 - `NEXT_PUBLIC_PUBLIC_AGGREGATE_EVENT_ID` sudah diisi di produksi dengan event `48880b89-de78-4e72-a82b-e2bb89f74fbd` pada 25 November 2026 dan aplikasi di-build ulang. Agregat publik belum tampil karena jumlah peserta dengan rapor Published masih 2, di bawah ambang 10 per komisariat.
-- Pemisahan payload `snapshot_data`: dashboard staf memakai RPC `get_staff_event_summary` (migrasi `20261125100000`, sudah terpasang di produksi). Panel Laporan kini mengirim DTO ringkas dan mengambil snapshot penuh lewat Server Action `loadReportSnapshots` hanya saat ekspor. Baseline PDF `docs/baseline-pdf-sha256.csv`; PDF individual dan ZIP terbukti identik dengan baseline di DEV. **Perubahan panel Laporan belum di-deploy ke produksi.**
+- Pemisahan payload `snapshot_data`: dashboard staf memakai RPC `get_staff_event_summary` (migrasi `20261125100000`, sudah terpasang di produksi). Panel Laporan kini mengirim DTO ringkas dan mengambil snapshot penuh lewat Server Action `loadReportSnapshots` hanya saat ekspor. Baseline PDF `docs/baseline-pdf-sha256.csv`; PDF individual dan ZIP terbukti identik dengan baseline di DEV. Perubahan panel Laporan di-deploy ke produksi pada 25 November 2026 dengan backup aplikasi dan env terlebih dahulu; tujuh halaman smoke balas 200 dan tidak ada error baru setelah restart.
 - Klaim status lama di `docs/DEPLOYMENT.md` dan `docs/QA_PHASE8_TEST_PLAN.md` sudah diselaraskan dengan dokumen ini pada 25 November 2026.
 
 ## 5. Aturan pembaruan

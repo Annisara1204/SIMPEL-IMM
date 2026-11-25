@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { DashboardAssessmentResults } from "@/components/dashboard-assessment-results";
 import { createClient } from "@/lib/supabase/server";

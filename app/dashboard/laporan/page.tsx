@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { Phase7ReportWorkspace } from "@/components/phase7-report-workspace";
@@ -79,7 +78,7 @@ export default async function ReportingPage({ searchParams }: Props) {
   }
   if (!["admin_system", "bidang_kader", "instruktur"].includes(role))
     redirect("/dashboard");
-  const { data: events, error: eventError } = await supabase
+  const { data: events } = await supabase
     .from("events")
     .select("id,name,theme,organizer,commissariat,location,starts_on,ends_on")
     .order("starts_on", { ascending: false });

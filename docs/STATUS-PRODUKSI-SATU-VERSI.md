@@ -38,7 +38,7 @@ Keadaan di atas diperiksa langsung di server pada 24 November 2026 sebelum dan s
 - Metode akses Peserta: username dan kata sandi biasa. Tidak ada SMTP, TOTP, atau penyedia pihak ketiga.
 - Karena tidak ada domain dan TLS, akun serta rapor Peserta tidak dibagikan. Fase 3d dan RPT-001 sampai RPT-005 ditunda.
 - Publish rapor tetap keras. Snapshot `provisional` tidak boleh diterbitkan.
-- Guard aplikasi lain lunak: coverage dan moderasi yang belum selesai menjadi peringatan dan status sementara, bukan penolakan simpan.
+- Guard lunak hanya untuk simpan draf: coverage dan moderasi yang belum selesai menjadi peringatan dan status sementara, bukan penolakan simpan. Finalisasi tetap menolak bila coverage atau moderasi belum selesai.
 - Skor 0–100 memakai `(skor aspek / 5) × bobot`. Tampilan memakai satu angka desimal. Snapshot menyimpan dua angka desimal.
 - N/O dibuang dari denominator coverage.
 - Yang boleh menulis status `finalized`: Admin Sistem dan empat subrole koordinator.

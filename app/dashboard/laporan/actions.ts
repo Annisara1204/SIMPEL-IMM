@@ -19,6 +19,21 @@ async function currentUser() {
   return { supabase, userId, role: profile?.role ?? null };
 }
 
+async function assertEventActive(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  eventId: string,
+) {
+  const { data: event, error } = await supabase
+    .from("events")
+    .select("archived_at")
+    .eq("id", eventId)
+    .maybeSingle();
+  if (error || !event)
+    throw new Error("Kegiatan tidak ditemukan atau akses ditolak.");
+  if (event.archived_at)
+    throw new Error("Kegiatan sudah diarsipkan. Pulihkan terlebih dahulu.");
+}
+
 export async function publishReport(formData: FormData) {
   const snapshotId = String(formData.get("snapshotId") ?? "");
   if (!uuidPattern.test(snapshotId))
@@ -26,6 +41,13 @@ export async function publishReport(formData: FormData) {
   const { supabase, role } = await currentUser();
   if (!["admin_system", "instruktur"].includes(role ?? ""))
     throw new Error("Akun tidak berwenang menerbitkan rapor.");
+  const { data: snapshot } = await supabase
+    .from("assessment_snapshots")
+    .select("event_id")
+    .eq("id", snapshotId)
+    .maybeSingle();
+  if (!snapshot) throw new Error("Snapshot rapor tidak ditemukan.");
+  await assertEventActive(supabase, snapshot.event_id);
   const { error } = await supabase.rpc("publish_assessment_report", {
     target_snapshot_id: snapshotId,
   });
@@ -44,6 +66,13 @@ export async function assignParticipantAccount(formData: FormData) {
     throw new Error(
       "Hanya Admin Sistem yang dapat menghubungkan akun peserta.",
     );
+  const { data: participant } = await supabase
+    .from("participants")
+    .select("event_id")
+    .eq("id", participantId)
+    .maybeSingle();
+  if (!participant) throw new Error("Peserta tidak ditemukan.");
+  await assertEventActive(supabase, participant.event_id);
   const { error } = await supabase.rpc("assign_participant_account", {
     target_participant_id: participantId,
     target_user_id: userId,
@@ -93,6 +122,7 @@ export async function auditReportExport(input: {
     !(role === "peserta" && input.exportType === "individual_pdf")
   )
     throw new Error("Akun tidak berwenang mengekspor laporan kegiatan.");
+  await assertEventActive(supabase, input.eventId);
   const { error } = await supabase.rpc("record_assessment_export", {
     target_event_id: input.eventId,
     target_export_type: input.exportType,
@@ -114,11 +144,24 @@ export async function loadReportSnapshots(
   const supabase = await createClient();
   const { data } = await supabase
     .from("assessment_snapshots")
-    .select("id,snapshot_data")
+    .select("id,event_id,snapshot_data")
     .in("id", ids);
+  const eventIds = [...new Set((data ?? []).map((row) => row.event_id))];
+  const { data: events } = eventIds.length
+    ? await supabase.from("events").select("id,archived_at").in("id", eventIds)
+    : { data: [] };
+  const archivedIds = new Set(
+    (events ?? [])
+      .filter((event) => event.archived_at)
+      .map((event) => event.id),
+  );
   const result: Record<string, ReportSnapshotData> = {};
   for (const row of data ?? []) {
-    if (row.snapshot_data && typeof row.snapshot_data === "object") {
+    if (
+      !archivedIds.has(row.event_id) &&
+      row.snapshot_data &&
+      typeof row.snapshot_data === "object"
+    ) {
       result[row.id] = row.snapshot_data as unknown as ReportSnapshotData;
     }
   }

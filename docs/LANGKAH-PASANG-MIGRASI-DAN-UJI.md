@@ -4,9 +4,10 @@ Dokumen ini untuk memastikan perubahan koreksi alur aman sebelum deploy. **Janga
 
 ## Keadaan migrasi (24 November 2026)
 
-- **DEV** (`127.0.0.1:54322`): migrasi baru sudah terpasang sampai `20261124140000`, termasuk `20261123130000_dad_single_recommendation_per_evaluation_v1.sql`.
-- **PROD** (Supabase self-hosted di `43.173.33.195`): baru 39 migrasi lama yang tercatat di handover. Migrasi `20261123130000` dan `20261124100000` sampai `20261124140000` **belum** dipasang.
-- Kode yang aktif di produksi masih `0448100` (deploy 24 November pagi untuk kode lama). Branch `research/peta-alur-penilaian` **belum** di-deploy.
+- **Catatan 25 November 2026:** bagian "keadaan migrasi" di bawah adalah riwayat saat dokumen dibuat. Status terkini ada di `docs/STATUS-PRODUKSI-SATU-VERSI.md`.
+- **DEV** (`127.0.0.1:54322`): migrasi baru terpasang sampai `20261125120000`.
+- **PROD** (Supabase self-hosted di `43.173.33.195`): migrasi `20261123130000`, `20261124100000` sampai `20261124160000`, serta `20261125100000`/`20261125110000`/`20261125120000` sudah terpasang.
+- Kode aktif produksi per 25 November 2026: `a43bd27`. Branch `research/peta-alur-penilaian` sudah masuk `main` dan di-deploy.
 
 Kode saat ini bergantung pada kolom `is_active` di tabel `development_recommendations`. Tanpa migrasi di bawah, halaman Evaluasi Kolektif akan gagal memuat. Itu sebabnya migrasi harus dipasang lebih dulu.
 

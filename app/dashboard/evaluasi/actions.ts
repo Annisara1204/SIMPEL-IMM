@@ -30,6 +30,15 @@ async function requireModerator(eventId: string) {
     throw new Error(
       "Hanya Admin Sistem atau koordinator instruktur kegiatan yang dapat memoderasi hasil.",
     );
+  const { data: event, error: eventError } = await supabase
+    .from("events")
+    .select("archived_at")
+    .eq("id", eventId)
+    .maybeSingle();
+  if (eventError || !event)
+    throw new Error("Kegiatan tidak ditemukan atau akses ditolak.");
+  if (event.archived_at)
+    throw new Error("Kegiatan sudah diarsipkan. Pulihkan terlebih dahulu.");
   return { supabase, userId };
 }
 

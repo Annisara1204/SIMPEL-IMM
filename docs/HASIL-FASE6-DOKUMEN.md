@@ -16,7 +16,7 @@ Tanggal: 24 November 2026. Branch: `research/peta-alur-penilaian`. Kegiatan ini 
 ## Hasil
 
 - Klaim lama seperti "belum ada kode diubah", "deploy ditunda", "database kosong", "belum ada admin", dan "regression belum dijalankan" sudah ditandai sebagai riwayat atau dihapus dari dokumen aktif.
-- Keadaan yang benar tercatat jelas: produksi memakai kode lama `0448100` dan 39 migrasi; pekerjaan branch sampai `a6d61be` hanya di DEV dan belum di-deploy.
+- Keadaan saat dokumen ini dibuat: produksi memakai kode lama `0448100` dan 39 migrasi. **Riwayat**, bukan status terkini; per 25 November 2026 produksi memakai `a43bd27` dan seluruh migrasi branch sudah terpasang. Lihat `docs/STATUS-PRODUKSI-SATU-VERSI.md`.
 - Keputusan IP tanpa TLS dicatat sebagai keputusan pemilik, bukan kekurangan yang belum terselesaikan.
 - 14 butir verifikasi produksi tetap berstatus belum diverifikasi di server. Izin remediasi sudah ada, tetapi belum dijalankan.
 - RPT-001 sampai RPT-005 tetap ditunda karena tidak ada akun Peserta.

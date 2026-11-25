@@ -77,7 +77,7 @@ Verifikasi: `npm run check` + `npm run build` hijau; browser lokal (3100, DEV): 
 3. **`useActionState` / penyatuan pola error server action** (241 `throw`). Perilaku sekarang: error tertangkap `error.tsx` (baru) dengan pesan Indonesia — tidak teknis tapi aman. Penyatuan pola per-form = perubahan besar perilaku form; butuh per-form review.
 4. **`proxy.ts` + `getClaims()` per request** — perlu verifikasi konfigurasi signing key Supabase (HS256 vs RS256) di dashboard Supabase, bukan hanya kode; dicatat sebagai temuan.
 5. **Konsolidasi 8 nilai breakpoint → 3** dan konsolidasi skala radius/font-size — murni kosmetik, risiko visual luas; lakukan bertahap dengan diff visual per halaman.
-6. **`lib/dashboard-results.ts`** adalah kode hampir-mati (hanya dipanggil bila `phase7Home == null`) — dibiarkan; penghapusan menunggu keputusan produk.
+6. **`lib/dashboard-results.ts`** ternyata tidak hampir-mati: `app/dashboard/profil-peserta/page.tsx` memanggilnya selalu untuk Instruktur, selain sebagai fallback di `/dashboard`. Dibiarkan; penghapusan menunggu keputusan produk dan migrasi data lama. Rincian di `docs/INVENTARIS-JALUR-LAMA.md:64-71`.
 7. **Konten publik "DAD Simulasi 2026"** masih tampil (dengan tag `CONTOH SIMULASI` yang jujur) — keputusan pemilik produk: ganti dengan data nyata atau hapus sebelum rilis resmi; portal tetap `noindex` untuk sementara.
 8. **Upload/rename `.sample-tag`, `.empty-state` vs `.users-empty`, `.pill` tunggal** — duplikasi lencana ada tapi tidak berbahaya; seragamkan saat kesempatan berikutnya menyentuh komponen tersebut.
 9. **Split `components/role-dashboard.tsx` menjadi server shell + island client kecil** — bagian dari #1.

@@ -156,7 +156,7 @@ Istilah singkat: **snapshot** adalah salinan beku hasil penilaian final yang tid
 ### 10. Status akhir proyek: koreksi alur final atau masih terbuka
 
 - **Pertanyaan:** Apakah koreksi alur 23 November sudah final dan boleh dilanjut ke item terbuka di atas, atau masih harus diverifikasi dan ditinjau dulu?
-- **Konteks (riwayat):** Dokumen keputusan dulu menyatakan belum ada kode yang diubah, sementara handover mencatat Tahap 1 sampai 8 selesai dan deploy PROD 24 November untuk kode lama `0448100`. Pertentangan itu sudah diselesaikan pada Fase 6: `docs/STATUS-PRODUKSI-SATU-VERSI.md` menjadi otoritas tunggal. Pekerjaan branch `research/peta-alur-penilaian` sampai `a6d61be` sudah diuji di DEV, belum di-deploy. Aturan proyek tetap melarang pemakaian data nyata sebelum keamanan, privasi, biaya, dan backup ditinjau.
+- **Konteks (riwayat):** Dokumen keputusan dulu menyatakan belum ada kode yang diubah, sementara handover mencatat Tahap 1 sampai 8 selesai dan deploy PROD 24 November untuk kode lama `0448100`. Pertentangan itu sudah diselesaikan pada Fase 6: `docs/STATUS-PRODUKSI-SATU-VERSI.md` menjadi otoritas tunggal. Pekerjaan branch `research/peta-alur-penilaian` sudah diuji di DEV dan di-deploy ke produksi 24–25 November 2026. Aturan proyek tetap melarang pemakaian data nyata sebelum keamanan, privasi, biaya, dan backup ditinjau.
 - **Bukti (path:line):** `docs/STATUS-PRODUKSI-SATU-VERSI.md` (status otoritas), `HANDOVER.md` bagian "Status produksi — satu versi", `docs/HASIL-FASE2-DEV.md` sampai `docs/HASIL-UJI-FINALIZE-EKSPOR-DEV.md` (bukti DEV), `AGENTS.md:19-21,33-34`.
 - **Pilihan yang masuk akal:**
   - A. Nyatakan koreksi alur final dan tutup; lanjut ke keputusan terbuka 1 sampai 9.

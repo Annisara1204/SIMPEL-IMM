@@ -3,7 +3,7 @@
 Dibuat 24 November 2026 pada branch `research/peta-alur-penilaian`.
 Tujuan: daftar lengkap objek dan jalur lama yang masih hidup berdampingan dengan alur Phase 5/6, supaya pemilik bisa memilih mana yang dimatikan.
 
-Batas pemeriksaan awal: hanya membaca berkas di repo. Karena itu semua angka jumlah baris, jumlah duplikat, dan isi baris lama ditulis **tidak diverifikasi**. Bukti asal berupa `path:line` dari repo. Pembaruan 24 November memakai hasil Fase 4 di DEV, bukan pemeriksaan produksi. Otoritas status ada di `docs/STATUS-PRODUKSI-SATU-VERSI.md`; bukti pembersihan ada di `docs/HASIL-FASE4-DEV.md`.
+Batas pemeriksaan awal: hanya membaca berkas di repo. Karena itu semua angka jumlah baris, jumlah duplikat, dan isi baris lama ditulis **tidak diverifikasi**. Bukti asal berupa `path:line` dari repo dan **bukan otoritas** bila nomor baris sudah bergeser; cek kode aktual. Pembaruan 24 November memakai hasil Fase 4 di DEV, bukan pemeriksaan produksi. Otoritas status ada di `docs/STATUS-PRODUKSI-SATU-VERSI.md`; bukti pembersihan ada di `docs/HASIL-FASE4-DEV.md`. Entri 3 sudah dikoreksi pada 25 November: `lib/dashboard-results.ts` dipakai selalu oleh `/dashboard/profil-peserta`, bukan hanya fallback.
 
 ## Ringkasan
 

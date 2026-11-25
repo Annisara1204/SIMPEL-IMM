@@ -78,6 +78,21 @@ async function authorizedClient() {
   return (await authorizedActor()).supabase;
 }
 
+async function assertEventActive(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  eventId: string,
+) {
+  const { data: event, error } = await supabase
+    .from("events")
+    .select("archived_at")
+    .eq("id", eventId)
+    .maybeSingle();
+  if (error || !event)
+    throw new Error("Kegiatan tidak ditemukan atau akses ditolak.");
+  if (event.archived_at)
+    throw new Error("Kegiatan sudah diarsipkan. Pulihkan terlebih dahulu.");
+}
+
 export async function updateEvent(formData: FormData) {
   const { supabase, userId, role } = await authorizedActor();
   const id = String(formData.get("id") ?? "");
@@ -247,6 +262,7 @@ export async function addParticipant(formData: FormData) {
     .maybeSingle();
   if (commissariatError || !commissariat)
     throw new Error("Pilih Komisariat yang masih aktif.");
+  await assertEventActive(supabase, eventId);
   const participantId = crypto.randomUUID();
   const photoPath = await uploadParticipantPhoto(
     supabase,
@@ -318,6 +334,7 @@ export async function editParticipant(formData: FormData) {
     .maybeSingle();
   if (currentError || !current)
     throw new Error("Peserta tidak ditemukan atau akses ditolak.");
+  await assertEventActive(supabase, current.event_id);
   const newPhoto = photo instanceof File && photo.size > 0;
   const newPhotoPath = newPhoto
     ? await uploadParticipantPhoto(
@@ -359,9 +376,11 @@ export async function removeParticipant(formData: FormData) {
     throw new Error("ID peserta tidak valid.");
   const { data: current } = await supabase
     .from("participants")
-    .select("photo_path")
+    .select("event_id, photo_path")
     .eq("id", participantId)
     .maybeSingle();
+  if (!current) throw new Error("Peserta tidak ditemukan atau akses ditolak.");
+  await assertEventActive(supabase, current.event_id);
   const { error } = await supabase
     .from("participants")
     .delete()

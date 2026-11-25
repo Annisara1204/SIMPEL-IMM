@@ -1,6 +1,6 @@
 # Keputusan Koreksi Alur (23 November 2026)
 
-Dokumen ini mencatat keputusan pemilik atas koreksi alur dari catatan teman pemilik. Keputusan ini mengubah sebagian rancangan di `BLUEPRINT.md`. Koreksi sudah diimplementasikan dan diuji di DEV pada branch `research/peta-alur-penilaian`; deploy PROD untuk branch ini belum dilakukan. Otoritas status ada di `docs/STATUS-PRODUKSI-SATU-VERSI.md`, dan pemetaan keputusan ke produk ada di `docs/MATRIKS-KEPUTUSAN-PRODUK.md`.
+Dokumen ini mencatat keputusan pemilik atas koreksi alur dari catatan teman pemilik. Keputusan ini mengubah sebagian rancangan di `BLUEPRINT.md`. Koreksi sudah diimplementasikan, diuji di DEV, dan **di-deploy ke produksi 24–25 November 2026**. Otoritas status ada di `docs/STATUS-PRODUKSI-SATU-VERSI.md`, dan pemetaan keputusan ke produk ada di `docs/MATRIKS-KEPUTUSAN-PRODUK.md`.
 
 ## Latar belakang
 
@@ -75,4 +75,4 @@ Catatan tangan berisi lima koreksi: rekomendasi per peserta bukan per materi, ca
 
 ## Status implementasi
 
-Semua keputusan sudah lengkap, diimplementasikan, dan diuji di DEV pada branch `research/peta-alur-penilaian`. Deploy ke PROD belum dilakukan; kode yang aktif di produksi masih `0448100` (deploy 24 November pagi untuk kode lama). Lihat `docs/STATUS-PRODUKSI-SATU-VERSI.md`. Rincian kerja ada di `RENCANA-IMPLEMENTASI-KOREKSI-ALUR.md`, dan pemetaan keputusan ke produk ada di `docs/MATRIKS-KEPUTUSAN-PRODUK.md`.
+Semua keputusan sudah lengkap, diimplementasikan, diuji di DEV, dan di-deploy ke produksi 24–25 November 2026. Kode aktif terakhir ada di `docs/STATUS-PRODUKSI-SATU-VERSI.md`. Deploy 24 November pagi untuk `0448100` adalah riwayat kode lama. Rincian kerja ada di `RENCANA-IMPLEMENTASI-KOREKSI-ALUR.md`, dan pemetaan keputusan ke produk ada di `docs/MATRIKS-KEPUTUSAN-PRODUK.md`.

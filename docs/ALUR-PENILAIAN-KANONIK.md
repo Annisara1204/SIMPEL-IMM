@@ -1,6 +1,6 @@
 # Alur Penilaian: Versi yang Benar
 
-Dokumen ini menjelaskan apa yang **benar-benar terjadi** di aplikasi di branch `research/peta-alur-penilaian`, bukan apa yang tertulis di dokumen lama. Sumbernya adalah kode di `app/`, `lib/`, `supabase/migrations/`, hasil Fase 2–4 (`docs/HASIL-FASE2-DEV.md`, `docs/HASIL-FASE3-DEV.md`, `docs/HASIL-FASE3EFG-DEV.md`, `docs/HASIL-FASE4-DEV.md`), dan uji browser lokal 24 November 2026. Status produksi mengikuti `docs/STATUS-PRODUKSI-SATU-VERSI.md`; perubahan di bawah baru berlaku di DEV. Bagian 4 mencatat status akhir K1–K10.
+Dokumen ini menjelaskan apa yang **benar-benar terjadi** di aplikasi di branch `research/peta-alur-penilaian`, bukan apa yang tertulis di dokumen lama. Sumbernya adalah kode di `app/`, `lib/`, `supabase/migrations/`, hasil Fase 2–4 (`docs/HASIL-FASE2-DEV.md`, `docs/HASIL-FASE3-DEV.md`, `docs/HASIL-FASE3EFG-DEV.md`, `docs/HASIL-FASE4-DEV.md`), dan uji browser lokal 24 November 2026. Status produksi mengikuti `docs/STATUS-PRODUKSI-SATU-VERSI.md`; perubahan di bawah sudah berlaku di produksi sejak 24–25 November 2026. Bagian 4 mencatat status akhir K1–K10.
 
 Bacaan untuk panitia: "Observer mengisi nilai sendiri-sendiri. Sistem merangkum nilai yang sudah dikirim. Koordinator meninjau selisih, menulis kesimpulan, lalu mengunci rapor."
 

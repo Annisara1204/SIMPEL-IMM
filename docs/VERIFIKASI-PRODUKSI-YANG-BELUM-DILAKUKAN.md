@@ -1,8 +1,8 @@
 # Verifikasi Produksi yang Belum Dilakukan
 
-Dokumen ini adalah daftar periksa, bukan laporan hasil. Saya **tidak mengakses server produksi** selama sesi ini. Tidak ada deploy, migrasi, perubahan konfigurasi, rotasi kunci, atau penulisan data ke produksi. Semua pekerjaan ada di branch `research/peta-alur-penilaian` dan memakai data simulasi lokal.
+Dokumen ini adalah daftar periksa, bukan laporan hasil. **Riwayat (24 November 2026):** pada saat penulisan saya tidak mengakses server produksi; semua pekerjaan ada di branch `research/peta-alur-penilaian` dengan data simulasi lokal. Banyak butir di bawah sudah terselesaikan pada 25 November 2026, jangan dibaca sebagai status terkini.
 
-Otoritas keadaan produksi adalah `docs/STATUS-PRODUKSI-SATU-VERSI.md` (24 November 2026). Dokumen itu mencatat kode aktif `0448100`, Supabase self-hosted, backup 03:15, akun admin, dan keputusan pemilik. Pemilik sudah memberikan **izin remediasi**, tetapi izin itu belum dijalankan di produksi. Seluruh 14 butir di bawah tetap **Belum** sampai ada bukti pemeriksaan server langsung.
+Otoritas keadaan produksi adalah `docs/STATUS-PRODUKSI-SATU-VERSI.md`. Klaim kode aktif `0448100` dan deploy yang belum terjadi di dokumen ini adalah riwayat. Status terkini: kode aktif `a43bd27`, seluruh migrasi branch terpasang, dan sebagian butir verifikasi sudah dijalankan langsung di server.
 
 ## Kenapa tidak saya jalankan
 

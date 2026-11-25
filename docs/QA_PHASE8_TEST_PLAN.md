@@ -36,7 +36,7 @@ Tabel test case di bawah adalah catatan asal 12–13 November dan belum dihapus.
 | ATS-002, ATS-003, ATS-004, ATS-005 | Belum diulang setelah Fase 4 | Khusus ATS-003, Kirim berulang sudah diuji 13 November, tetapi tidak diulang setelah perubahan terbaru |
 | EVA-002, EVA-005 | Sebagian | Draf rekomendasi dan redirect Observer diuji 13 November; belum diulang setelah Fase 4 |
 
-Ringkasan verifikasi otomatis terbaru: `npm run check` 0 error, 5 peringatan lama, 22 tes lolos; `npm run build` berhasil; 8 dari 8 penguji SQL lolos; dry-run retensi lolos tetapi `scripts/retention-apply.sql` belum dijalankan. `NEXT_PUBLIC_PUBLIC_AGGREGATE_EVENT_ID` belum diisi di produksi. Windows `EPERM` dan CI runner hanya bisa diverifikasi pemilik.
+Ringkasan verifikasi otomatis terbaru (25 November 2026): `npm run check` 0 error, 0 peringatan, 22 tes lolos; `npm run build` berhasil; 8 dari 8 penguji SQL lolos; `scripts/retention-apply.sql` sudah dijalankan sekali dengan nol kandidat, tetapi cron otomatis belum dipasang. `NEXT_PUBLIC_PUBLIC_AGGREGATE_EVENT_ID` sudah diisi di produksi, namun agregat publik belum tampil karena jumlah peserta ber-rapor Published masih di bawah ambang 10 per komisariat. Windows `EPERM` dan CI runner hanya bisa diverifikasi pemilik.
 
 ## Ringkasan audit awal (sebelum pengujian)
 

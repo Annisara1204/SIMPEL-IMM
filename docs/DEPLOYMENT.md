@@ -4,7 +4,7 @@
 **Pengguna OS:** `ubuntu` (uid 1000, sudo, docker)
 **Akses SSH:** key `~/.ssh/imm_prod_43-173-33-195` di workstation pengembangan (private key tidak pernah keluar dari workstation)
 
-> **Status terkini (24 November 2026):** `docs/STATUS-PRODUKSI-SATU-VERSI.md` adalah otoritas tunggal. Kode aktif di produksi = commit `0448100` (deploy 24 November pagi). Database memakai Supabase self-hosted di server yang sama; project cloud lama `crrqlwlfndhugcqcnkex` hanya cadangan beku yang di-pause. Branch `research/peta-alur-penilaian` **belum** di-deploy. Bagian bertanda "riwayat" di bawah adalah catatan 13 November dan tidak menggambarkan keadaan sekarang.
+> **Status terkini (25 November 2026):** `docs/STATUS-PRODUKSI-SATU-VERSI.md` adalah otoritas tunggal. Kode aktif di produksi = commit `76c653b` (deploy 25 November). Database memakai Supabase self-hosted di server yang sama; project cloud lama `crrqlwlfndhugcqcnkex` hanya cadangan beku yang di-pause. Pekerjaan branch `research/peta-alur-penilaian` sudah masuk `main` dan di-deploy. Bagian bertanda "riwayat" di bawah adalah catatan 13 November dan tidak menggambarkan keadaan sekarang.
 
 ## Yang berjalan di server ini
 
@@ -23,14 +23,14 @@
 
 ## Isi `.env.production` (server)
 
-`/home/ubuntu/imm-app/.env.production` (mode 600) berisi `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` (server-only, dipakai `lib/supabase/admin.ts`, tidak pernah masuk repo/git/frontend), dan `NEXT_PUBLIC_SITE_URL=http://43.173.33.195:8080`. Jangan mencetak nilai kunci di dokumen ini.
+`/home/ubuntu/imm-app/.env.production` (mode 600) berisi `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` (server-only, dipakai `lib/supabase/admin.ts`, tidak pernah masuk repo/git/frontend), `NEXT_PUBLIC_SITE_URL=http://43.173.33.195:8080`, dan `NEXT_PUBLIC_PUBLIC_AGGREGATE_EVENT_ID=48880b89-de78-4e72-a82b-e2bb89f74fbd` (bukan rahasia). Jangan mencetak nilai kunci di dokumen ini.
 
 Target yang seharusnya dipakai aplikasi adalah **Supabase self-hosted** di server yang sama: API internal `127.0.0.1:8180`, port publik `8081` untuk browser. Project cloud lama `crrqlwlfndhugcqcnkex` sudah di-pause sebagai cadangan beku dan bukan target aplikasi. Butir 5 di `docs/VERIFIKASI-PRODUKSI-YANG-BELUM-DILAKUKAN.md` masih perlu mengonfirmasi isi file ini langsung di server.
 
 ## Database produksi (Supabase self-hosted)
 
 - Instance self-hosted di server yang sama. API internal `127.0.0.1:8180`, port publik `8081` untuk browser. Project cloud lama `crrqlwlfndhugcqcnkex` hanya cadangan beku yang di-pause.
-- **39 migrasi lama** terpasang sesuai catatan handover sebelum pekerjaan branch ini. Migrasi baru branch ini (`20261123130000` dan `20261124100000` sampai `20261124140000`) **belum** dipasang di produksi. Rincian ada di `docs/STATUS-PRODUKSI-SATU-VERSI.md` bagian 1–2 dan `docs/LANGKAH-PASANG-MIGRASI-DAN-UJI.md`.
+- **39 migrasi lama** terpasang sesuai catatan handover sebelum pekerjaan branch ini. Migrasi baru (`20261123130000` dan `20261124100000` sampai `20261124160000`) sudah dipasang di produksi. Rincian ada di `docs/STATUS-PRODUKSI-SATU-VERSI.md` bagian 1–2 dan `docs/LANGKAH-PASANG-MIGRASI-DAN-UJI.md`.
 - Data produksi: trial DAD dengan peserta simulasi, rubrik, dan beberapa rapor yang sudah diterbitkan. Tidak ada data pribadi peserta nyata yang sengaja dimasukkan.
 - Data di server ini adalah **produksi**: jangan jalankan pengujian yang menulis data ke produksi.
 - Regression SQL (`supabase/tests/*.sql`) belum dijalankan di produksi. Di DEV, 8 dari 8 penguji SQL lolos (lihat `docs/STATUS-PRODUKSI-SATU-VERSI.md` bagian 2).
@@ -43,7 +43,7 @@ Target yang seharusnya dipakai aplikasi adalah **Supabase self-hosted** di serve
 
 ## Cara memperbarui aplikasi (deploy ulang)
 
-Prosedur ini dipakai setelah izin deploy branch ini diberikan. Kode yang aktif sekarang masih `0448100`.
+Prosedur ini dipakai untuk pembaruan aplikasi. Kode yang aktif sekarang `76c653b` (deploy 25 November 2026).
 
 ```powershell
 # dari workstation, repo ini
@@ -81,7 +81,7 @@ Ringkasan keadaan terkini; rincian ada di `docs/STATUS-PRODUKSI-SATU-VERSI.md` d
 3. ~~Service role key~~ — **selesai** (13 Nov 2026): `SUPABASE_SERVICE_ROLE_KEY` terpasang di `.env.production` (mode 600), pm2 restart `--update-env`, aplikasi online. Fitur pembuatan akun Instruktur perbantuan di `/dashboard/pengguna` aktif (belum diuji dengan pembuatan akun sungguhan). Kunci perlu diputar sebelum penggunaan resmi (butir 8).
 4. **Monitoring** — belum ada alerting 5xx (butir 11); pm2 restart otomatis hanya untuk crash.
 5. ~~Seed data produksi~~ — **selesai**: data trial DAD sudah ada (lihat bagian "Seed trial produksi" di bawah, riwayat 13 Nov 2026).
-6. **Deploy branch ini** — belum. `research/peta-alur-penilaian` belum di-deploy ke produksi; yang aktif adalah `0448100`. Perlu izin tertulis eksplisit dan Fase 0b.
+6. ~~Deploy branch ini~~ — selesai 24–25 November 2026. Hasil branch `research/peta-alur-penilaian` sudah di-deploy; kode aktif `76c653b`.
 
 ## Seed trial produksi (13 November 2026 — riwayat)
 

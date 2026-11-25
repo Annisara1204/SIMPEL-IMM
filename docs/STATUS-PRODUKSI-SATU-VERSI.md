@@ -7,7 +7,7 @@ Dokumen ini menjadi otoritas tunggal untuk keadaan aplikasi dan produksi per 24 
 - Aplikasi: IMM Observer, alamat `http://43.173.33.195:8080/`.
 - Server: Ubuntu 24.04 di `43.173.33.195`. Node v22, pm2 `imm`, nginx reverse proxy. Workload lain (`api-jkstok.my.id`, `wms_prod_*`) tetap berjalan dan tidak tersentuh.
 - Database: Supabase self-hosted di server yang sama. API internal `127.0.0.1:8180`, port publik `8081` untuk browser. Cloud project lama `crrqlwlfndhugcqcnkex` sudah di-pause sebagai cadangan beku.
-- Kode yang aktif di produksi: hasil branch `research/peta-alur-penilaian` pada commit `69e257f`, di-deploy 24 November 2026 sore. Deploy sebelumnya memakai `0448100` dan kini menjadi riwayat.
+- Kode yang aktif di produksi: `main` commit `76c653b`, di-deploy 25 November 2026. Deploy ini menyertakan hasil branch `research/peta-alur-penilaian`, perbaikan 24 November, dan pembersihan lima peringatan lint. Deploy sebelumnya memakai `69e257f` dan kini menjadi riwayat.
 - Migrasi di produksi: 39 migrasi lama ditambah 11 migrasi baru `20261124100000` sampai `20261124140000`. Semua terpasang. Rincian ada di `docs/HASIL-FASE5-DEPLOY.md`.
 - Akun produksi: Admin `annisa@swamedia.co.id` dan akun QA simulasi Observer A/B, Instruktur MoT, dan Bidang Kader. Belum ada akun Peserta.
 - Data produksi: trial DAD dengan peserta simulasi, rubrik, dan beberapa rapor yang sudah diterbitkan. Tidak ada data pribadi peserta nyata yang sengaja dimasukkan.
@@ -26,7 +26,7 @@ Keadaan di atas diperiksa langsung di server pada 24 November 2026 sebelum dan s
 - Fase 2 sampai 4 dan uji finalize/ekspor sudah dikerjakan di DEV dengan data simulasi.
 - DEV lokal memakai Supabase di `127.0.0.1:54322`, Studio `54323`, dan Next.js di `localhost:3100`.
 - Migrasi baru yang sudah dipasang di DEV: `20261124100000` sampai `20261124140000` sesuai urutan di `supabase/migrations/`.
-- `npm run check` terakhir: 0 error, 5 peringatan lama, 22 tes lolos.
+- `npm run check` terakhir: 0 error, 0 peringatan, 22 tes lolos.
 - `npm run build` terakhir: berhasil.
 - 8 dari 8 penguji SQL lolos di DEV.
 - Dry-run retensi lolos. `retention-apply.sql` belum dijalankan.
@@ -55,8 +55,8 @@ Keadaan di atas diperiksa langsung di server pada 24 November 2026 sebelum dan s
 - Uji konflik dua penilai dan Realtime sudah dijalankan di DEV; perbaikan panel rekan dipasang di produksi lewat migrasi `20261124160000`. Rincian ada di `docs/HASIL-UJI-KONFLIK-REALTIME.md`.
 - Isi byte PDF unduhan belum dibandingkan dengan baseline.
 - `scripts/retention-apply.sql` sudah dijalankan sekali pada 25 November 2026 dengan backup segar; tidak ada kandidat, jadi tidak ada data yang dihapus atau diarsipkan. Rincian ada di `docs/HASIL-RETENSI-PROD.md`. Cron otomatis belum dipasang.
-- `NEXT_PUBLIC_PUBLIC_AGGREGATE_EVENT_ID` perlu diisi di lingkungan produksi agar halaman publik menampilkan agregat.
-- Dokumen lama masih berisi klaim status yang bertentangan. Fase 6 memperbaruinya untuk merujuk ke dokumen ini.
+- `NEXT_PUBLIC_PUBLIC_AGGREGATE_EVENT_ID` sudah diisi di produksi dengan event `48880b89-de78-4e72-a82b-e2bb89f74fbd` pada 25 November 2026 dan aplikasi di-build ulang. Agregat publik belum tampil karena jumlah peserta dengan rapor Published masih 2, di bawah ambang 10 per komisariat.
+- Klaim status lama di `docs/DEPLOYMENT.md` dan `docs/QA_PHASE8_TEST_PLAN.md` sudah diselaraskan dengan dokumen ini pada 25 November 2026.
 
 ## 5. Aturan pembaruan
 

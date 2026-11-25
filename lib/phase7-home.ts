@@ -124,6 +124,7 @@ export async function loadStaffPhase7Home(
   const { data: events } = await supabase
     .from("events")
     .select("id,name")
+    .is("archived_at", null)
     .order("starts_on", { ascending: false });
   const summaries = await Promise.all(
     (events ?? []).map((event: { id: string; name: string }) =>

@@ -72,6 +72,7 @@ export async function loadDashboardAssessmentData(
     supabase
       .from("events")
       .select("id, name, participants(id, display_name)")
+      .is("archived_at", null)
       .order("starts_on", { ascending: false }),
     supabase
       .from("rubric_versions")

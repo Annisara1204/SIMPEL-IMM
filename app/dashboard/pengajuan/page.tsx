@@ -74,6 +74,7 @@ export default async function CommissariatApplicationsPage() {
     supabase
       .from("events")
       .select("id, name, starts_on, ends_on, status")
+      .is("archived_at", null)
       .order("starts_on", { ascending: true }),
     supabase
       .from("commissariat_submissions")

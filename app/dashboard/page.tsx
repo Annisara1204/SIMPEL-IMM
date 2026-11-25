@@ -168,6 +168,7 @@ export default async function DashboardPage() {
         .select(
           "id, name, participants(id, display_name, commissariat, major, entry_year, position)",
         )
+        .is("archived_at", null)
         .in("id", eventIds)
         .order("starts_on", { ascending: false });
       instructorParticipantEvents = (events ?? []).map((event) => ({

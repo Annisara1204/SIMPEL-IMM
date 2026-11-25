@@ -96,6 +96,7 @@ export default async function CollectiveEvaluationPage({
   const { data: events } = await supabase
     .from("events")
     .select("id,name,starts_on,ends_on")
+    .is("archived_at", null)
     .order("starts_on", { ascending: false });
   const selectedEvent =
     (events ?? []).find((item) => item.id === eventId) ?? null;

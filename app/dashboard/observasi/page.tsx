@@ -84,6 +84,7 @@ export default async function ObservationsPage({
   const eventQuery = supabase
     .from("events")
     .select("id, name, starts_on, participants(id, display_name)")
+    .is("archived_at", null)
     .order("starts_on", { ascending: false });
   const [
     { data: events, error: eventsError },

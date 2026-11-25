@@ -44,6 +44,7 @@ export default async function AnalitikPage() {
   const { data: eventsData } = await supabase
     .from("events")
     .select("id,name,starts_on,ends_on")
+    .is("archived_at", null)
     .order("starts_on", { ascending: false });
   const events = (eventsData ?? []) as AnalitikEvent[];
 

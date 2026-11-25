@@ -82,6 +82,7 @@ export default async function ReportingPage({ searchParams }: Props) {
   const { data: events } = await supabase
     .from("events")
     .select("id,name,theme,organizer,commissariat,location,starts_on,ends_on")
+    .is("archived_at", null)
     .order("starts_on", { ascending: false });
   const selectedEvent =
     (events ?? []).find((item) => item.id === requestedEventId) ??

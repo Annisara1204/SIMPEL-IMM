@@ -58,7 +58,7 @@ export default async function CommissariatReviewPage() {
         "screening_published",
       ])
       .order("submitted_at", { ascending: true }),
-    supabase.from("events").select("id, name"),
+    supabase.from("events").select("id, name").is("archived_at", null),
   ]);
 
   const [mandateUrls, submissionPhotoUrls] = await Promise.all([

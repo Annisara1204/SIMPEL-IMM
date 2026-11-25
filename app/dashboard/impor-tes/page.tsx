@@ -35,6 +35,7 @@ export default async function TestImportPage() {
     supabase
       .from("events")
       .select("id, name")
+      .is("archived_at", null)
       .order("starts_on", { ascending: false }),
     supabase
       .from("test_imports")

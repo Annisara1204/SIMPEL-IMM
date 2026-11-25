@@ -43,6 +43,7 @@ export default async function InstructorParticipantProfilesPage({
         .select(
           "id, name, starts_on, participants(id, display_name, commissariat, commissariat_id, major, entry_year, position, photo_path, commissariat_record:commissariats(name))",
         )
+        .is("archived_at", null)
         .in("id", eventIds)
         .order("starts_on", { ascending: false })
     : { data: [], error: null };

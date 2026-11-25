@@ -62,6 +62,7 @@ export default async function ParticipantsPage() {
       .select(
         "id, name, participants(id, display_name, commissariat, commissariat_id, student_number, group_name, major, entry_year, position, photo_path, created_at, commissariat_record:commissariats(name))",
       )
+      .is("archived_at", null)
       .order("starts_on", { ascending: false }),
     supabase
       .from("commissariats")

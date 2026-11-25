@@ -56,6 +56,7 @@ Keadaan di atas diperiksa langsung di server pada 24 November 2026 sebelum dan s
 - Isi byte PDF unduhan belum dibandingkan dengan baseline.
 - `scripts/retention-apply.sql` sudah dijalankan sekali pada 25 November 2026 dengan backup segar; tidak ada kandidat, jadi tidak ada data yang dihapus atau diarsipkan. Rincian ada di `docs/HASIL-RETENSI-PROD.md`. Cron otomatis belum dipasang.
 - `NEXT_PUBLIC_PUBLIC_AGGREGATE_EVENT_ID` sudah diisi di produksi dengan event `48880b89-de78-4e72-a82b-e2bb89f74fbd` pada 25 November 2026 dan aplikasi di-build ulang. Agregat publik belum tampil karena jumlah peserta dengan rapor Published masih 2, di bawah ambang 10 per komisariat.
+- Pemisahan payload `snapshot_data` baru dikerjakan pada dashboard staf lewat RPC `get_staff_event_summary` (migrasi `20261125100000`). Panel Laporan masih mengirim `snapshot_data` penuh untuk keperluan ekspor; pemisahan penuh belum dikerjakan. Kode dan migrasi ini belum di-deploy ke produksi.
 - Klaim status lama di `docs/DEPLOYMENT.md` dan `docs/QA_PHASE8_TEST_PLAN.md` sudah diselaraskan dengan dokumen ini pada 25 November 2026.
 
 ## 5. Aturan pembaruan

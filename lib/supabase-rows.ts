@@ -115,6 +115,18 @@ export type EventReportRow = {
   publication_revision: number | null;
 };
 
+// ---------- Phase 7: RPC get_staff_event_summary ----------
+export type StaffEventSummaryRow = {
+  participants: number;
+  finalized: number;
+  published: number;
+  provisional: number;
+  passed: number;
+  not_passed: number;
+  further_discussion: number;
+  average_score: number | null;
+};
+
 // ---------- Phase 7: RPC get_event_assessment_progress ----------
 export type AssessmentProgressRow = {
   observer_id: string;

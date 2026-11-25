@@ -7,7 +7,7 @@
 import type { createClient } from "./supabase/server";
 import { firstRelated, type Relation } from "./relations";
 import { stageLabel } from "./stage-labels";
-import type { EventReportRow, ParticipantReport } from "./supabase-rows";
+import type { ParticipantReport, StaffEventSummaryRow } from "./supabase-rows";
 
 type Supabase = Awaited<ReturnType<typeof createClient>>;
 
@@ -77,9 +77,9 @@ async function summarizeEvent(
   supabase: Supabase,
   event: { id: string; name: string },
 ): Promise<StaffEventSummary> {
-  const [{ data: rows, error }, { data: progress }, { data: versions }] =
+  const [{ data: summary, error }, { data: progress }, { data: versions }] =
     await Promise.all([
-      supabase.rpc("get_event_report_rows", { target_event_id: event.id }),
+      supabase.rpc("get_staff_event_summary", { target_event_id: event.id }),
       supabase.rpc("get_event_assessment_progress", {
         target_event_id: event.id,
       }),
@@ -89,11 +89,7 @@ async function summarizeEvent(
         .eq("event_id", event.id)
         .eq("status", "active"),
     ]);
-  const reports = (rows ?? []) as EventReportRow[];
-  const final = reports.filter((row) => row.snapshot_id);
-  const scores = final
-    .map((row) => Number(row.snapshot_data?.overall?.score))
-    .filter(Number.isFinite);
+  const row = (summary?.[0] ?? null) as StaffEventSummaryRow | null;
   const versionIds = (versions ?? []).map((item: { id: string }) => item.id);
   const { data: submissions } = versionIds.length
     ? await supabase
@@ -105,22 +101,14 @@ async function summarizeEvent(
   return {
     id: event.id,
     name: event.name,
-    participants: reports.length,
-    finalized: final.length,
-    published: reports.filter((row) => row.published_at).length,
-    provisional: reports.length - final.length,
-    passed: final.filter(
-      (row) => row.snapshot_data?.collective?.decision === "pass",
-    ).length,
-    notPassed: final.filter(
-      (row) => row.snapshot_data?.collective?.decision === "not_pass",
-    ).length,
-    furtherDiscussion: final.filter(
-      (row) => row.snapshot_data?.collective?.decision === "further_discussion",
-    ).length,
-    averageScore: scores.length
-      ? scores.reduce((sum, score) => sum + score, 0) / scores.length
-      : null,
+    participants: row?.participants ?? 0,
+    finalized: row?.finalized ?? 0,
+    published: row?.published ?? 0,
+    provisional: row?.provisional ?? 0,
+    passed: row?.passed ?? 0,
+    notPassed: row?.not_passed ?? 0,
+    furtherDiscussion: row?.further_discussion ?? 0,
+    averageScore: row?.average_score ?? null,
     reviewers: progress?.length ?? 0,
     sessions: versions?.length ?? 0,
     assessmentSubmissions: submissions?.length ?? 0,

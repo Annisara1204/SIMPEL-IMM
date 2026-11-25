@@ -1,0 +1,37 @@
+DROP TABLE
+CREATE TABLE
+DROP TABLE
+SELECT 0
+INSERT 0 1
+BEGIN
+psql:<stdin>:6: NOTICE:  schema "pg_temp" does not exist, skipping
+psql:<stdin>:21: NOTICE:  table "retention_candidates" does not exist, skipping
+INSERT 0 0
+UPDATE 0
+UPDATE 0
+DELETE 0
+DELETE 0
+INSERT 0 1
+=== JUMLAH SEBELUM vs SESUDAH SIMULASI ===
+      phase       | snapshots | publications | publication_audit | export_audit | evaluations | participant_access | participants | test_results | identity_archives 
+------------------+-----------+--------------+-------------------+--------------+-------------+--------------------+--------------+--------------+-------------------
+ sebelum          |         5 |            2 |                 2 |            2 |           7 |                  0 |           48 |            0 |                 0
+ sesudah_simulasi |         5 |            2 |                 2 |            2 |           7 |                  0 |           48 |            0 |                 0
+(2 rows)
+
+=== GATE: tabel dikecualikan wajib before = after ===
+ aman 
+------
+ t
+(1 row)
+
+=== DAMPAK SIMULASI (jumlah, bukan identitas) ===
+ diskip_diarsipkan | dihapus 
+-------------------+---------
+                 0 |       0
+(1 row)
+
+ROLLBACK
+=== SIDIK PDF (wajib, di luar SQL) ===
+Bandingkan sha256sum/Get-FileHash semua PDF dengan docs/baseline-pdf-sha256.csv; semua baris harus OK.
+Simpan keluaran di docs/bukti-gate-siklus2/retensi-dry-run-<tanggal>.txt sebelum apply.

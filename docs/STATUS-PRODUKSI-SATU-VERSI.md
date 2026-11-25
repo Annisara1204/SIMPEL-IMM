@@ -54,7 +54,7 @@ Keadaan di atas diperiksa langsung di server pada 24 November 2026 sebelum dan s
 - Uji RLS lintas peran produksi sudah dijalankan dan dua celah diperbaiki lewat migrasi `20261124150000`. Rincian ada di `docs/HASIL-UJI-RLS-PROD.md`.
 - Uji konflik dua penilai dan Realtime sudah dijalankan di DEV; perbaikan panel rekan dipasang di produksi lewat migrasi `20261124160000`. Rincian ada di `docs/HASIL-UJI-KONFLIK-REALTIME.md`.
 - Isi byte PDF unduhan belum dibandingkan dengan baseline.
-- `scripts/retention-apply.sql` belum dijalankan.
+- `scripts/retention-apply.sql` sudah dijalankan sekali pada 25 November 2026 dengan backup segar; tidak ada kandidat, jadi tidak ada data yang dihapus atau diarsipkan. Rincian ada di `docs/HASIL-RETENSI-PROD.md`. Cron otomatis belum dipasang.
 - `NEXT_PUBLIC_PUBLIC_AGGREGATE_EVENT_ID` perlu diisi di lingkungan produksi agar halaman publik menampilkan agregat.
 - Dokumen lama masih berisi klaim status yang bertentangan. Fase 6 memperbaruinya untuk merujuk ke dokumen ini.
 

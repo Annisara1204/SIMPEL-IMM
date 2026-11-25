@@ -19,6 +19,8 @@ export type ReportFileData = {
     ends_on?: string | null;
   };
   publishedAt?: string | null;
+  /** Dipakai hanya untuk mengambil snapshot penuh saat ekspor. */
+  snapshotId?: string | null;
   snapshotData: ReportSnapshotData;
   indicatorNames?: Record<string, string>;
   eventSummary?: boolean;

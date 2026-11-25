@@ -4,7 +4,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { auditReportExport } from "@/app/dashboard/laporan/actions";
+import {
+  auditReportExport,
+  loadReportSnapshots,
+} from "@/app/dashboard/laporan/actions";
 import {
   downloadBulkReports,
   downloadIndividualReport,
@@ -117,6 +120,17 @@ export function Phase7ReportWorkspace(props: Props) {
     assignAction,
     autoDownloadSnapshotId,
   } = props;
+  const fullSnapshots = useRef<Record<string, ReportSnapshotData>>({});
+  const loadSnapshots = useCallback(async (ids: string[]) => {
+    const missing = [
+      ...new Set(ids.filter((id) => id && !fullSnapshots.current[id])),
+    ];
+    if (missing.length) {
+      const loaded = await loadReportSnapshots(missing);
+      fullSnapshots.current = { ...fullSnapshots.current, ...loaded };
+    }
+    return fullSnapshots.current;
+  }, []);
   const [groupFilter, setGroupFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [scopeFilter, setScopeFilter] = useState("all");
@@ -312,30 +326,43 @@ export function Phase7ReportWorkspace(props: Props) {
     if (!event) throw new Error("Pilih kegiatan terlebih dahulu.");
     await auditReportExport({ eventId: event.id, exportType, filters });
   };
-  const buildReportFiles = () =>
-    bulkRows
-      .map((row) =>
-        toReport(
+  async function buildReportFiles(): Promise<ReportFileData[]> {
+    await loadSnapshots(
+      bulkRows.map((row) => row.snapshot_id).filter((id): id is string => !!id),
+    );
+    return bulkRows
+      .map((row) => {
+        const report = toReport(
           row,
           event,
           indicatorNames,
           versionInfoBySnapshot[row.snapshot_id ?? ""] ?? [],
-        ),
-      )
+        );
+        if (!report || !row.snapshot_id) return report;
+        const full = fullSnapshots.current[row.snapshot_id];
+        return full ? { ...report, snapshotData: full } : report;
+      })
       .filter((item): item is ReportFileData => !!item);
+  }
 
   const exportIndividual = useCallback(
     async (report: ReportFileData) => {
       setBusy(true);
       setMessage("");
       try {
+        let finalReport = report;
+        if (report.snapshotId && role !== "peserta") {
+          await loadSnapshots([report.snapshotId]);
+          const full = fullSnapshots.current[report.snapshotId];
+          if (full) finalReport = { ...report, snapshotData: full };
+        }
         const reportEventId =
           event?.id ?? String(participantReport?.event?.id ?? "");
         await auditReportExport({
           eventId: reportEventId,
           exportType: "individual_pdf",
         });
-        downloadIndividualReport(report);
+        downloadIndividualReport(finalReport);
       } catch (error) {
         setMessage(
           error instanceof Error ? error.message : "PDF gagal dibuat.",
@@ -344,7 +371,7 @@ export function Phase7ReportWorkspace(props: Props) {
         setBusy(false);
       }
     },
-    [event, participantReport],
+    [event, participantReport, role, loadSnapshots],
   );
   const autoDownloadedRef = useRef<string | null>(null);
   useEffect(() => {
@@ -370,7 +397,7 @@ export function Phase7ReportWorkspace(props: Props) {
     exportIndividual,
   ]);
   async function exportBulk() {
-    const reportFiles = buildReportFiles();
+    const reportFiles = await buildReportFiles();
     setBusy(true);
     setProgress({ done: 0, total: reportFiles.length });
     setMessage("");
@@ -647,6 +674,7 @@ export function Phase7ReportWorkspace(props: Props) {
       participant: participantReport.participant,
       event: participantReport.event,
       publishedAt: participantReport.published_at,
+      snapshotId: participantReport.snapshot_id,
       snapshotData: participantReport.snapshot_data,
       indicatorNames: participantReport.indicator_names ?? {},
       versionInfo: participantReport.version_info ?? [],
@@ -1313,6 +1341,7 @@ function toReport(
       ends_on: event?.ends_on,
     },
     publishedAt: row.published_at,
+    snapshotId: row.snapshot_id,
     snapshotData: row.snapshot_data,
     indicatorNames,
     versionInfo,

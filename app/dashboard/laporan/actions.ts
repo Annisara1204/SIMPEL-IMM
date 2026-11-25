@@ -4,6 +4,7 @@ import { uuidPattern } from "@/lib/validation";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import type { ReportSnapshotData } from "@/lib/supabase-rows";
 
 async function currentUser() {
   const supabase = await createClient();
@@ -98,4 +99,28 @@ export async function auditReportExport(input: {
     target_filters: input.filters ?? {},
   });
   if (error) throw new Error(error.message || "Audit ekspor gagal disimpan.");
+}
+
+/**
+ * Snapshot penuh untuk PDF/ZIP. Halaman Laporan mengirim hanya DTO ringkas;
+ * fungsi dipanggil saat ekspor. RLS tabel assessment_snapshots sendiri yang
+ * membatasi hasil ke Admin Sistem dan koordinator kegiatan yang ditugaskan.
+ */
+export async function loadReportSnapshots(
+  snapshotIds: string[],
+): Promise<Record<string, ReportSnapshotData>> {
+  const ids = [...new Set(snapshotIds.filter((id) => uuidPattern.test(id)))];
+  if (!ids.length) return {};
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("assessment_snapshots")
+    .select("id,snapshot_data")
+    .in("id", ids);
+  const result: Record<string, ReportSnapshotData> = {};
+  for (const row of data ?? []) {
+    if (row.snapshot_data && typeof row.snapshot_data === "object") {
+      result[row.id] = row.snapshot_data as unknown as ReportSnapshotData;
+    }
+  }
+  return result;
 }

@@ -15,6 +15,7 @@ import type {
   RubricVersionJoined,
 } from "@/lib/supabase-rows";
 import { DataUnavailable } from "@/components/data-unavailable";
+import { compactReportSnapshot } from "@/lib/report-snapshot-dto";
 
 type Props = {
   searchParams: Promise<{
@@ -101,7 +102,10 @@ export default async function ReportingPage({ searchParams }: Props) {
   ]);
   const canManage = role === "admin_system" || moderator === true;
   if (role === "instruktur" && !canManage) redirect("/dashboard");
-  const reportRows = (rows ?? []) as EventReportRow[];
+  const reportRows = ((rows ?? []) as EventReportRow[]).map((row) => ({
+    ...row,
+    snapshot_data: compactReportSnapshot(row.snapshot_data),
+  }));
   const rubricVersionIds = reportRows
     .flatMap((row) => row.rubric_version_ids ?? [])
     .filter((id) => typeof id === "string");

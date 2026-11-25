@@ -8,7 +8,7 @@ Dokumen ini menjadi otoritas tunggal untuk keadaan aplikasi dan produksi per 24 
 - Server: Ubuntu 24.04 di `43.173.33.195`. Node v22, pm2 `imm`, nginx reverse proxy. Workload lain (`api-jkstok.my.id`, `wms_prod_*`) tetap berjalan dan tidak tersentuh.
 - Database: Supabase self-hosted di server yang sama. API internal `127.0.0.1:8180`, port publik `8081` untuk browser. Cloud project lama `crrqlwlfndhugcqcnkex` sudah di-pause sebagai cadangan beku.
 - Kode yang aktif di produksi: `main` commit `a9ae78b`, di-deploy 25 November 2026. Deploy ini menyertakan hasil branch `research/peta-alur-penilaian`, perbaikan 24 November, pembersihan lima peringatan lint, RPC ringkas untuk dashboard staf, DTO ringkas panel Laporan dengan muat-saat-ekspor, fitur arsip kegiatan, perbaikan rekap peserta unik, dan penguncian aksi tulis pada kegiatan berarsip. Deploy sebelumnya memakai `a43bd27` dan kini menjadi riwayat.
-- Migrasi di produksi: 39 migrasi lama ditambah 11 migrasi baru `20261124100000` sampai `20261124140000`. Semua terpasang. Rincian ada di `docs/HASIL-FASE5-DEPLOY.md`.
+- Migrasi di produksi: seluruh 56 berkas di `supabase/migrations/` terpasang, termasuk `20261123130000`, `20261124100000` sampai `20261124160000`, dan `20261125100000` sampai `20261125120000`. Rincian deploy ada di `docs/HASIL-FASE5-DEPLOY.md`.
 - Akun produksi: Admin `annisa@swamedia.co.id` dan akun QA simulasi Observer A/B, Instruktur MoT, dan Bidang Kader. Belum ada akun Peserta.
 - Data produksi: trial DAD dengan peserta simulasi, rubrik, dan beberapa rapor yang sudah diterbitkan. Tidak ada data pribadi peserta nyata yang sengaja dimasukkan.
 - Backup: cron harian 03:15 ke `/home/ubuntu/imm-db-backups/`, retensi 14 hari, skema `auth` belum termasuk di backup otomatis. Salinan lengkap ada di workstation di luar repo.
@@ -44,7 +44,7 @@ Keadaan di atas diperiksa langsung di server pada 24 November 2026 sebelum dan s
 - Yang boleh menulis status `finalized`: Admin Sistem dan empat subrole koordinator.
 - Bidang Kader hanya menerima rekap, tanpa `snapshot_data`, bukti, catatan rinci, evaluate, atau ekspor.
 - IoT tetap mengisi Observasi, tetapi tidak melihat rekap penilaian.
-- Kelompok untuk ambang 10 adalah komisariat dalam satu kegiatan.
+- Kelompok untuk ambang 10 adalah komisariat dalam satu kegiatan. RPC `get_commissariat_event_summary` tersedia, tetapi dashboard Komisariat belum memakainya.
 - Tanda tangan nama tidak diperlukan; persetujuan pemilik tercatat di `docs/PERSETUJUAN-OWNER-16-PERTANYAAN.md`.
 - Retensi dan izin perbaikan produksi sudah disetujui. `disable_signup` dan pencabutan grant anon sudah dijalankan. Rotasi PAT dan service-role key **tidak dilakukan sesuai keputusan pemilik**, bukan tertunda.
 
@@ -53,7 +53,7 @@ Keadaan di atas diperiksa langsung di server pada 24 November 2026 sebelum dan s
 - Fase 5 deploy produksi sudah selesai pada 24 November 2026 sore. Rotasi PAT dan service-role key tidak dilakukan sesuai keputusan pemilik.
 - Uji RLS lintas peran produksi sudah dijalankan dan dua celah diperbaiki lewat migrasi `20261124150000`. Rincian ada di `docs/HASIL-UJI-RLS-PROD.md`.
 - Uji konflik dua penilai dan Realtime sudah dijalankan di DEV; perbaikan panel rekan dipasang di produksi lewat migrasi `20261124160000`. Rincian ada di `docs/HASIL-UJI-KONFLIK-REALTIME.md`.
-- Isi byte PDF unduhan belum dibandingkan dengan baseline.
+- Isi byte PDF sudah dibandingkan dengan baseline `docs/baseline-pdf-sha256.csv`; PDF individual dan PDF dalam ZIP identik di DEV.
 - `scripts/retention-apply.sql` sudah dijalankan sekali pada 25 November 2026 dengan backup segar; tidak ada kandidat, jadi tidak ada data yang dihapus atau diarsipkan. Rincian ada di `docs/HASIL-RETENSI-PROD.md`. Cron otomatis belum dipasang dan **prioritasnya diturunkan pemilik**; tidak mendesak saat ini.
 - `NEXT_PUBLIC_PUBLIC_AGGREGATE_EVENT_ID` sudah diisi di produksi dengan event `48880b89-de78-4e72-a82b-e2bb89f74fbd` pada 25 November 2026 dan aplikasi di-build ulang. Agregat publik belum tampil karena jumlah peserta dengan rapor Published masih 2, di bawah ambang 10 per komisariat.
 - Pemisahan payload `snapshot_data`: dashboard staf memakai RPC `get_staff_event_summary` (migrasi `20261125100000`, sudah terpasang di produksi). Panel Laporan kini mengirim DTO ringkas dan mengambil snapshot penuh lewat Server Action `loadReportSnapshots` hanya saat ekspor. Baseline PDF `docs/baseline-pdf-sha256.csv`; PDF individual dan ZIP terbukti identik dengan baseline di DEV. Perubahan panel Laporan di-deploy ke produksi pada 25 November 2026 dengan backup aplikasi dan env terlebih dahulu; tujuh halaman smoke balas 200 dan tidak ada error baru setelah restart.

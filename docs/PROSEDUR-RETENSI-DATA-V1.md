@@ -1,6 +1,6 @@
 # Prosedur Retensi Data — V1
 
-Status: **draft Fase 3e, belum dijalankan**. Berkas ini hanya meresmikan prosedur. Tidak ada migrasi, penghapusan, backup, atau cron yang dijalankan saat penulisan.
+Status: **V1 dijalankan sekali pada 25 November 2026** dengan backup segar; tidak ada kandidat, jadi tidak ada data yang dihapus atau diarsipkan. Bukti: `docs/HASIL-RETENSI-PROD.md`. Cron otomatis belum dipasang dan prioritasnya diturunkan pemilik. Berkas ini meresmikan prosedur, bukan klaim bahwa cron sudah berjalan.
 
 Sumber keputusan: `docs/PERSETUJUAN-OWNER-16-PERTANYAAN.md` butir 14 dan 15, `docs/RENCANA-IMPLEMENTASI-KEPUTUSAN.md` Fase 3e, `docs/revisi-siklus3-c.md`, `docs/revisi-siklus4-a.md`, `docs/revisi-siklus5-final.md` A7, dan `docs/revisi-siklus2-c.md` bagian backup.
 
@@ -8,7 +8,7 @@ Sumber keputusan: `docs/PERSETUJUAN-OWNER-16-PERTANYAAN.md` butir 14 dan 15, `do
 
 | Versi | Tanggal    | Perubahan                                                                                                                                    | Status                  |
 | ----- | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------- |
-| V1    | 2026-11-24 | Versi awal. Angka retensi dari persetujuan owner; aturan skip FK; arsip `private_payload`; dry-run wajib; cron 03:20; backup PII terenkripsi | draft, belum dieksekusi |
+| V1    | 2026-11-24 | Versi awal. Angka retensi dari persetujuan owner; aturan skip FK; arsip `private_payload`; dry-run wajib; cron 03:20; backup PII terenkripsi | dijalankan 25 Nov 2026, 0 kandidat; cron belum dipasang |
 
 Perubahan angka retensi atau daftar tabel wajib menaikkan versi dan tanggal. Konfigurasi lama tidak diubah diam-diam.
 
@@ -16,7 +16,7 @@ Perubahan angka retensi atau daftar tabel wajib menaikkan versi dan tanggal. Kon
 
 - Persetujuan owner butir 14 dan 15 sudah tercatat (24 November 2026).
 - Arsip identitas di `private_payload` sudah disetujui dan buktinya disimpan.
-- Fase 3d sudah terpasang, karena `participant_access` dipakai prosedur ini.
+- Tabel `participant_access` sudah terpasang (`20261124130000`); akun dan RPC Peserta (Fase 3d) tetap ditunda sesuai `docs/STATUS-PRODUKSI-SATU-VERSI.md` §3.
 - Migrasi `20261124120000_phase3e_public_aggregate_retention_archive.sql` sudah terpasang. Migrasi ini menambah kolom `participants.archived_at` dan tabel arsip `public.retention_identity_archives`. Tidak ada FK yang diubah.
 - Backup harian 03:15 berhasil dan terverifikasi sebelum prosedur 03:20 berjalan.
 
@@ -26,12 +26,12 @@ Tanpa semua syarat itu, prosedur tidak boleh dijalankan.
 
 | Data                                                                         | Lama simpani                 | Dasar                   | Tindakan setelah lewat                                                                                                |
 | ---------------------------------------------------------------------------- | ---------------------------- | ----------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| Surat Mandat (`commissariat-mandates`, `mandate_path`)                       | Sampai hasil seleksi terbit  | Owner butir 14          | Hapus objek setelah `commissariat_submissions.screening_published_at` terisi dan bukti hasil seleksi tersimpan        |
-| Foto peserta (`submission-photos`, `photo_path`)                             | Sampai rapor tidak tersedia  | Owner butir 14          | Hapus objek saat rapor tidak lagi tersedia (peserta dihapus atau publikasi tidak dapat diakses)                       |
+| Surat Mandat (`commissariat-mandates`, `mandate_path`)                       | Sampai hasil seleksi terbit  | Owner butir 14          | Hapus objek setelah `commissariat_submissions.administrative_published_at` terisi dan bukti hasil seleksi tersimpan. **Belum terotomatisasi**; skrip retensi V1 tidak menyentuh objek Storage.        |
+| Foto peserta (`submission-photos`, `photo_path`)                             | Sampai rapor tidak tersedia  | Owner butir 14          | Hapus objek saat rapor tidak lagi tersedia (peserta dihapus atau publikasi tidak dapat diakses). **Belum terotomatisasi**; skrip retensi V1 tidak menyentuh objek Storage.                       |
 | Nilai dan riwayat (`test_results`, hasil observasi yang bukan arsip wajib)   | 2 tahun                      | Owner butir 14          | Hapus baris lewat `scripts/retention-apply.sql`                                                                       |
 | Log audit administrasi/ekspor/publikasi                                      | 5 tahun                      | Owner butir 14          | Baris audit lewat 5 tahun dievaluasi Admin; prosedur V1 **tidak menghapus** tabel audit yang dikecualikan di bagian 4 |
 | Backup harian                                                                | 14 hari                      | Owner butir 14          | Hapus berkas lebih tua dari 14 hari, catat nama dan tanggal penghapusan                                               |
-| Salinan rahasia skema `auth` (`auth.users`, `auth.identities`, `.env.bak-*`) | 30 hari setelah rotasi kunci | Owner butir 14, Fase 0b | Hapus setelah 30 hari terhitung dari tanggal rotasi, bukan dari tanggal backup                                        |
+| Salinan rahasia skema `auth` (`auth.users`, `auth.identities`, `.env.bak-*`) | 30 hari setelah rotasi kunci | Owner butir 14, Fase 0b | Hapus setelah 30 hari terhitung dari tanggal rotasi, bukan dari tanggal backup. **Riwayat:** rotasi PAT dan service-role key tidak dilakukan sesuai keputusan pemilik; skema `auth` tidak masuk backup harian otomatis. Salinan penuh ada di workstation di luar repo. Lihat `docs/STATUS-PRODUKSI-SATU-VERSI.md`.                                        |
 
 "Log audit 5 tahun" berarti data audit dipertahankan minimal 5 tahun. Penghapusan setelah itu memerlukan keputusan tertulis baru dan versi prosedur berikutnya.
 
@@ -98,7 +98,7 @@ Bila ada satu saja angka berubah atau sidik PDF beda, gate gagal. Jangan lanjut 
 
 Urutan: backup 03:15 selesai dan terverifikasi → dry-run 03:20 → apply 03:20. `retention-apply.sql` berisi `BEGIN`/`COMMIT` dan pemeriksaan ulang jumlah tabel dikecualikan; bila berubah, transaksi di-rollback. Log harian disimpan, bukan dihapus oleh retensi.
 
-Kredensial dibaca dari `/home/ubuntu/imm-app/.env.production` mode 600 lewat `SUPABASE_SERVICE_ROLE_KEY` yang sudah diputar di Fase 0b. Tidak ada kunci di repo, di frontend, atau di berkas cron.
+Kredensial dibaca dari `/home/ubuntu/imm-app/.env.production` mode 600 lewat `SUPABASE_SERVICE_ROLE_KEY`. Tidak ada kunci di repo, di frontend, atau di berkas cron. **Riwayat:** Fase 0b tidak memutar kunci sesuai keputusan pemilik; lihat `docs/STATUS-PRODUKSI-SATU-VERSI.md` §3.
 
 ## 8. Backup PII
 
@@ -106,7 +106,7 @@ Kredensial dibaca dari `/home/ubuntu/imm-app/.env.production` mode 600 lewat `SU
 - Kunci: hanya di workstation Infrastruktur dan satu media offline. Tidak di server, tidak di `.env`, tidak di git.
 - Akses: grup Unix `imm-backup` berisi Infrastruktur dan Keamanan. Direktori backup `chgrp imm-backup` dan `chmod 0770`. Semua akses administratif lewat `sudo` dan tercatat di log.
 - Retensi: hapus berkas lebih tua dari 14 hari dengan `find <direktori> -type f -mtime +14 -delete`; setiap penghapusan dicatat (nama, ukuran, hash, tanggal, pelaku).
-- Salinan rahasia `auth`: ikut backup harian dan dipertahankan 30 hari setelah rotasi kunci. Hash `.env.bak-20261123-202146` dan hash kunci baru disimpan sebagai bukti.
+- Salinan rahasia `auth`: **tidak** ikut backup harian otomatis. Salinan penuh disimpan manual di workstation di luar repo. Rotasi kunci tidak dilakukan sesuai keputusan pemilik, sehingga hash kunci baru belum tersedia. Lihat `docs/STATUS-PRODUKSI-SATU-VERSI.md` bagian 1 dan 3.
 
 ## 9. Kriteria restore lengkap
 

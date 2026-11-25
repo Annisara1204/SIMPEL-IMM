@@ -81,13 +81,13 @@ Pengguna pemula; gunakan bahasa Indonesia sederhana dan jelaskan istilah teknis 
 - **Bidang Kader hanya menerima rekap.** **Usang:** akses lama ke "nilai untuk pemantauan" dan `snapshot_data`. Bidang Kader tidak menerima `snapshot_data`, bukti, catatan rinci, `evaluate`, atau ekspor. Catatan observasi rinci tetap privat bagi Observer/Instruktur yang ditugaskan dan Admin Sistem. Lihat `docs/STATUS-PRODUKSI-SATU-VERSI.md` §3.
 - **Peserta (keputusan 24 Nov 2026):** akses memakai username dan kata sandi biasa, tanpa SMTP, TOTP, atau penyedia pihak ketiga. **Usang:** akses sementara/token dengan masa berlaku. Karena produksi memakai IP tanpa domain/TLS, akun dan rapor Peserta tidak dibagikan; Fase 3d serta RPT-001 sampai RPT-005 ditunda. Bila dibuka kelak, Peserta melihat hanya miliknya: ringkasan nilai sementara (bukan data mentah Observer) dan catatan pengembangan/perhatian, dengan penanda bahwa nilai masih sementara.
 - **Publik** hanya melihat agregat yang aman: tanpa nama peserta, nilai individual, atau catatan privat. Tinjau ambang minimum agregat agar orang tidak bisa dikenali dari kelompok kecil.
-- **Komisariat** hanya mendapat informasi/laporan yang diizinkan; cakupan tepatnya belum diputuskan.
+- **Komisariat** hanya mendapat informasi/laporan yang diizinkan. **Sudah diputuskan (24 Nov 2026):** kelompok ambang 10 adalah komisariat dalam satu kegiatan; RPC `get_commissariat_event_summary` tersedia, tetapi dashboard Komisariat belum memakainya.
 - Hak akses wajib diverifikasi di server dan basis data, bukan hanya dengan menyembunyikan menu.
 
 ### Pretest/posttest dan AI/laporan
 
 - Uji coba awal memakai Google Forms. Hasil diimpor dari ekspor Google Sheets.
-- Pencocokan sementara menggunakan nama + komisariat karena kode unik belum dikumpulkan. Baris tak cocok/ambigu harus ditinjau dan dikonfirmasi Bidang Kader sebelum hasil disimpan.
+- Pencocokan sementara menggunakan nama + komisariat karena kode unik belum dikumpulkan. Baris tak cocok/ambigu harus ditinjau dan dikonfirmasi Admin Sistem/Super Admin sebelum hasil disimpan. **Usang:** peninjauan oleh Bidang Kader; impor dan konfirmasi kini hanya Admin Sistem.
 - Tahap 5 memakai berkas Excel `.xlsx` sesuai pilihan pengguna. Aturan terbaru pengguna: fitur impor ditunda untuk role Bidang Kader dan hanya tersedia bagi Admin Sistem/Super Admin. Jika peserta/jenis tes yang sama sudah memiliki nilai, impor baru disimpan sebagai riwayat dan Admin Sistem harus memilih dengan eksplisit nilai mana yang dipakai.
 - Tes langsung di website ditunda.
 - AI opsional hanya untuk draf narasi/insight; tidak menghitung skor, menentukan kelulusan, mengarang angka, atau menyimpulkan karakter dari skor. Minimalkan/anonymize data; API key hanya di server.
@@ -276,7 +276,7 @@ Jangan mengarang keputusan di bawah. Tanyakan satu per satu saat diperlukan:
 - Rubrik/indikator final dan contoh data simulasi untuk rubrik.
 - **Sudah diputuskan (24 Nov 2026), bukan lagi terbuka:** pembulatan dan rumus tampilan nilai agregat. Skor 0–100 memakai `(skor aspek / 5) × bobot`, tampilan satu angka desimal, snapshot dua angka desimal. Lihat `docs/STATUS-PRODUKSI-SATU-VERSI.md` §3.
 - Kapan setiap Observer dianggap selesai dan bagaimana tugas tidak lengkap ditangani.
-- Cakupan akses Komisariat dan ambang minimum agregat publik.
+- **Sudah diputuskan (24 Nov 2026), bukan lagi terbuka:** cakupan akses Komisariat dan ambang agregat publik. Lihat `docs/STATUS-PRODUKSI-SATU-VERSI.md` §3.
 - Format ekspor Google Sheets, impor ulang/duplikat, dan format rapor.
 - Retensi/penghapusan data dan backup untuk penggunaan resmi.
 - **Sudah diputuskan (24 Nov 2026), bukan lagi terbuka:** Peserta memakai username dan kata sandi biasa, tanpa SMTP/TOTP. Untuk sementara akun dan rapor Peserta tidak dibagikan karena produksi memakai IP tanpa TLS.

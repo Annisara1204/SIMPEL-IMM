@@ -2,7 +2,7 @@
 
 Dokumen ini bersifat **mengikat setelah diisi dan ditandatangani pemilik**. Untuk item yang sama, dokumen ini mengalahkan `BLUEPRINT.md`, `docs/KEPUTUSAN-KOREKSI-ALUR.md`, dan `HANDOVER.md` yang lebih lama. Sebelum diisi, semua item masih terbuka dan belum boleh dianggap final (`AGENTS.md:21`).
 
-Status 24 November 2026: ke-12 item sudah berisi keputusan. Item 2 sampai 6 dijawab pemilik satu per satu. Tujuh sisanya mengikuti rekomendasi yang tertulis di dokumen ini, sesuai arahan pemilik pada sesi yang sama. Tanda tangan masih kosong.
+Status 25 November 2026: ke-12 item sudah berisi keputusan. Item 2 sampai 6 dijawab pemilik satu per satu. Tujuh sisanya mengikuti rekomendasi yang tertulis di dokumen ini, sesuai arahan pemilik pada sesi yang sama. Tanda tangan tidak diperlukan; persetujuan pemilik tercatat di `docs/PERSETUJUAN-OWNER-16-PERTANYAAN.md` butir 1.
 
 Cara pakai: baca Pertanyaan, Konteks, dan Bukti. Pilih salah satu opsi atau tuliskan sendiri pada baris `Keputusan pemilik`, lalu isi tanggal. Menulis "Sepakat dengan rekomendasi" juga sah. Kolom `Dampak kalau diputus berbeda` dipakai pengeksekusi untuk mengetahui bagian mana yang perlu diubah.
 
@@ -20,7 +20,7 @@ Istilah singkat: **snapshot** adalah salinan beku hasil penilaian final yang tid
   - B. Token sekali pakai lewat tautan, tanpa kata sandi.
   - C. Token untuk undangan awal, lalu aktivasi username + kata sandi.
 - **Rekomendasi saya (bukan keputusan):** A bila peserta perlu membuka rapor berulang kali; B bila cukup sekali baca. Dua-duanya tetap memerlukan kolom kedaluwarsa dan pencabutan.
-- **Keputusan pemilik:** A. Username + kata sandi sementara, masa berlaku diatur, wajib diganti saat masuk pertama. Dipilih karena peserta dapat membuka rapor lebih dari satu kali. **Tanggal:** 24 November 2026.
+- **Keputusan pemilik:** A. Username + kata sandi sementara, masa berlaku diatur, wajib diganti saat masuk pertama. Dipilih karena peserta dapat membuka rapor lebih dari satu kali. **Tanggal:** 24 November 2026. **Usang (24 Nov 2026):** keputusan akhir memakai username dan kata sandi biasa tanpa masa berlaku, dan akun/rapor Peserta tidak dibagikan sampai ada domain/TLS. Lihat `docs/STATUS-PRODUKSI-SATU-VERSI.md` §3.
 - **Catatan pelaksanaan:** Token tidak dipakai pada versi ini. Kolom kedaluwarsa dan pencabutan tetap disiapkan bila metode diubah kemudian. Rapor yang sudah terbit tidak ditulis ulang.
 - **Dampak kalau diputus berbeda:**
   - Kode yang berubah: `app/dashboard/laporan/actions.ts:35-51` (penautan akun hanya oleh Admin Sistem), RPC `get_my_published_assessment_report` di `supabase/migrations/20261112180000_dad_reporting_publication_v1.sql:106`, tabel `participant_access` (`BLUEPRINT.md:221`), daftar uji `docs/QA_PHASE8_TEST_PLAN.md:183-187`.
@@ -200,8 +200,7 @@ Istilah singkat: **snapshot** adalah salinan beku hasil penilaian final yang tid
 Dengan menandatangani, pemilik menetapkan semua kolom `Keputusan pemilik` di atas sebagai keputusan resmi. Dokumen ini mengalahkan dokumen lama untuk item yang sama.
 
 - Tanggal pengisian: 24 / 11 / 2026
-- Nama pemilik: ________________________________________
-- Tanda tangan: _________________________________________
+- Persetujuan pemilik tidak memerlukan tanda tangan nama; tercatat di `docs/PERSETUJUAN-OWNER-16-PERTANYAAN.md` butir 1. Lihat juga `docs/STATUS-PRODUKSI-SATU-VERSI.md` §3.
 
 Catatan pemilik (opsional):
 

@@ -18,7 +18,7 @@ Dokumen ini menjadi acuan bersama `docs/MATRIKS-KEPUTUSAN-PRODUK.md`. Bila ada p
 | 7 | Filter peserta pada RPC rekap | **Ya.** Ditambah masukan opsional agar rekap diambil untuk satu peserta, menggantikan kirim 3.069 baris ke browser. |
 | 8 | Jalur revisi rapor | **Buat evaluasi dan snapshot revisi baru.** Snapshot lama tidak diubah. |
 | 9 | Akses Kader ke nilai mentah | **Tidak.** Kader hanya menerima rekap tanpa bukti dan catatan rinci. |
-| 10 | Masa berlaku kata sandi Peserta | **30 hari** sejak kegiatan selesai, dapat dicabut kapan saja. |
+| 10 | Masa berlaku kata sandi Peserta | **30 hari** sejak kegiatan selesai, dapat dicabut kapan saja. **Dibatalkan 24 November 2026:** akun dan rapor Peserta tidak dibagikan karena produksi memakai IP tanpa TLS; bila dibuka kelak memakai username dan kata sandi biasa tanpa masa berlaku. Lihat `docs/STATUS-PRODUKSI-SATU-VERSI.md` §3. |
 | 11 | Bukti ganti kata sandi | **Tidak ada SMTP, TOTP, atau pihak ketiga.** Pakai pendaftaran dan kata sandi biasa. Bukti ganti sandi mengandalkan perbandingan hash sandi di server. Jalur OTP atau email dibatalkan. |
 | 12 | Satu akun untuk satu Peserta | **Ya.** Satu akun hanya ditaut ke satu peserta. |
 | 13 | Akses IoT | **Ya.** IoT tetap mengisi Observasi, tidak melihat rekap penilaian. |

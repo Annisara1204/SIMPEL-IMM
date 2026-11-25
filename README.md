@@ -29,7 +29,7 @@ Halaman utama adalah portal publik simulasi. Login internal tersedia melalui tom
 Login sungguhan membutuhkan proyek Supabase gratis. Jangan kirim kata sandi atau kunci rahasia ke chat.
 
 1. Buat proyek Supabase untuk pengujian dan simpan kata sandi basis data dengan aman.
-2. Di **SQL Editor**, jalankan seluruh migrasi di `supabase/migrations` **sesuai urutan nama berkas** (dari yang paling awal sampai `20261112190000...`). Migrasi mengatur tabel profil, role, RLS, kegiatan/peserta, rubrik, observasi, pengajuan Komisariat, framework dan rubric engine DAD, workspace penilaian, scoring kolektif, hingga pelaporan/publikasi. Untuk proyek yang sudah menjalankan migrasi lama, jalankan hanya migrasi yang belum.
+2. Di **SQL Editor**, jalankan seluruh migrasi di `supabase/migrations` **sesuai urutan nama berkas** (dari yang paling awal sampai berkas terakhir di direktori tersebut). Migrasi mengatur tabel profil, role, RLS, kegiatan/peserta, rubrik, observasi, pengajuan Komisariat, framework dan rubric engine DAD, workspace penilaian, scoring kolektif, pelaporan/publikasi, arsip kegiatan, dan rekap peserta unik. Untuk proyek yang sudah menjalankan migrasi lama, jalankan hanya migrasi yang belum; daftar dan status otoritas ada di `docs/STATUS-PRODUKSI-SATU-VERSI.md`.
 3. Di pengaturan autentikasi, aktifkan pendaftaran email agar instruktur tetap dapat mendaftar sendiri. Akun baru tetap tanpa role dan tidak dapat memakai dashboard sampai Superadmin memberi role. Atur konfirmasi email sesuai kebijakan uji dan izinkan URL pengalihan `http://localhost:3000/auth/callback`.
 4. Buat file `.env.local` dari `.env.example`, lalu isi:
 
@@ -55,12 +55,10 @@ where id = 'GANTI-DENGAN-UUID-PENGGUNA';
 
 ## Yang sudah tersedia dan verifikasinya
 
-- **Phase 2–4** (framework kompetensi, rubric engine, mapping materi): migrasi dan SQL regression lulus menurut laporan pengguna; preview di `/dashboard/kerangka`.
-- **Phase 5** (workspace penilaian independen, autosave, konflik, Realtime): migrasi terpasang; regression lulus; uji browser/dua akun/Conflict/Realtime **belum**.
-- **Phase 6** (agregasi kolektif, moderasi, snapshot final immutable): migrasi terpasang; regression lulus; uji browser/finalisasi **belum**.
-- **Phase 7** (dashboard hasil, publikasi rapor, ekspor PDF/ZIP/Excel): migrasi terpasang; regression dilaporkan berhasil; uji browser/publikasi/ekspor **belum**.
+- **Phase 2–4** (framework kompetensi, rubric engine, mapping materi): migrasi dan penguji SQL lulus; halaman `/dashboard/kerangka` tersedia.
+- **Phase 5–7** (penilaian independen, agregasi kolektif, dashboard, publikasi, ekspor): migrasi terpasang; uji browser dua akun, konflik, Realtime, finalisasi, publikasi, dan ekspor sudah dijalankan. Rincian di `HANDOVER.md`.
 
-Detail kondisi terkini: `HANDOVER.md`. Rencana uji browser: `docs/QA_PHASE8_TEST_PLAN.md`. Spesifikasi trial: `docs/TRIAL_DAD_COMPETENCY_FRAMEWORK.md`. Riwayat verifikasi per sesi: `docs/archive/`.
+Detail kondisi terkini dan kode aktif: `docs/STATUS-PRODUKSI-SATU-VERSI.md` (otoritas tunggal), bukan ringkasan lama di `HANDOVER.md`. Rencana uji: `docs/QA_PHASE8_TEST_PLAN.md`. Spesifikasi trial: `docs/TRIAL_DAD_COMPETENCY_FRAMEWORK.md`. Riwayat verifikasi per sesi: `docs/archive/`.
 
 ## Batasan yang diketahui
 
@@ -80,7 +78,7 @@ Detail kondisi terkini: `HANDOVER.md`. Rencana uji browser: `docs/QA_PHASE8_TEST
 
 - Skor tiap peserta-indikator independen per Observer/Instruktur (bukan satu nilai bersama); observer lain tampil baca-saja.
 - Catatan observasi dipisah per penulis dan kategori; catatan privat tidak otomatis masuk rapor.
-- Nilai agregat memakai rata-rata berbobot dengan normalisasi bobot indikator/aspek sesuai data diamati (`(rata-rata − 1) ÷ 4 × 100`); kategori: 0–<60 Perlu pengembangan, 60–<75 Cukup, 75–<90 Baik, 90–100 Sangat baik.
+- Nilai agregat memakai `(skor aspek / 5) × bobot aspek`; tampilan satu angka desimal, snapshot menyimpan dua angka desimal. Kategori: 0–<60 Perlu pengembangan, 60–<75 Cukup, 75–<90 Baik, 90–100 Sangat baik.
 - Rubrik berversi dan tidak bisa diubah setelah aktif; perubahan membuat versi baru.
 - Rapor peserta hanya tersedia setelah snapshot final **dipublikasikan** eksplisit; ekspor skor rinci hanya untuk Admin Sistem/koordinator.
 - Tidak ada AI pada perhitungan skor; AI ditunda dan hanya untuk draf narasi bila nanti disepakati.

@@ -127,7 +127,11 @@ export async function updateEvent(formData: FormData) {
     updated_at: new Date().toISOString(),
     ...(role === "admin_system" ? { name } : {}),
   };
-  const { error } = await supabase.from("events").update(updates).eq("id", id);
+  const { error } = await supabase
+    .from("events")
+    .update(updates)
+    .eq("id", id)
+    .is("archived_at", null);
   if (error)
     throw new Error(
       "Kegiatan gagal disimpan. Pastikan migrasi Tahap 3 sudah dijalankan.",
@@ -177,6 +181,34 @@ export async function createEvent(formData: FormData) {
   revalidatePath("/dashboard/penilaian");
   revalidatePath("/dashboard/pengajuan");
   redirect("/dashboard/kegiatan?create=success");
+}
+
+async function setEventArchived(formData: FormData, archived: boolean) {
+  const { supabase, role } = await authorizedActor();
+  if (role !== "admin_system")
+    throw new Error("Hanya Admin Sistem yang dapat mengarsipkan kegiatan.");
+  const id = String(formData.get("id") ?? "");
+  if (!uuidPattern.test(id)) throw new Error("Kegiatan tidak valid.");
+  const query = supabase
+    .from("events")
+    .update({ archived_at: archived ? new Date().toISOString() : null })
+    .eq("id", id);
+  const { error } = await (archived
+    ? query.is("archived_at", null)
+    : query.not("archived_at", "is", null));
+  if (error)
+    throw new Error(
+      archived ? "Kegiatan gagal diarsipkan." : "Kegiatan gagal dipulihkan.",
+    );
+  revalidatePath("/dashboard/kegiatan");
+}
+
+export async function archiveEvent(formData: FormData) {
+  await setEventArchived(formData, true);
+}
+
+export async function restoreEvent(formData: FormData) {
+  await setEventArchived(formData, false);
 }
 
 export async function addParticipant(formData: FormData) {

@@ -199,6 +199,7 @@ export type EventRow = {
   location?: string | null;
   starts_on?: string | null;
   ends_on?: string | null;
+  archived_at?: string | null;
 };
 
 // ---------- Relasi join yang dipakai di beberapa halaman ----------

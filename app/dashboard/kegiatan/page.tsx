@@ -1,7 +1,12 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { createEvent, updateEvent } from "./actions";
+import {
+  archiveEvent,
+  createEvent,
+  restoreEvent,
+  updateEvent,
+} from "./actions";
 import { DataUnavailable } from "@/components/data-unavailable";
 
 const statusNames = {
@@ -11,7 +16,10 @@ const statusNames = {
 } as const;
 
 type ActivitiesPageProps = {
-  searchParams: Promise<{ create?: string | string[] }>;
+  searchParams: Promise<{
+    create?: string | string[];
+    archived?: string | string[];
+  }>;
 };
 
 export default async function ActivitiesPage({
@@ -45,6 +53,10 @@ export default async function ActivitiesPage({
   const createStatus = Array.isArray(params.create)
     ? params.create[0]
     : params.create;
+  const rawArchived = Array.isArray(params.archived)
+    ? params.archived[0]
+    : params.archived;
+  const showArchived = profile.role === "admin_system" && rawArchived === "1";
   const { data: assignments, error: assignmentError } =
     profile.role === "observer"
       ? await supabase
@@ -57,15 +69,20 @@ export default async function ActivitiesPage({
   const eventQuery = supabase
     .from("events")
     .select(
-      "id, name, theme, organizer, commissariat, location, starts_on, ends_on, status, participants(id)",
-    )
-    .order("starts_on", { ascending: false });
+      "id, name, theme, organizer, commissariat, location, starts_on, ends_on, status, archived_at, participants(id)",
+    );
+  const archiveScopedQuery = showArchived
+    ? eventQuery.not("archived_at", "is", null)
+    : eventQuery.is("archived_at", null);
+  const orderedQuery = archiveScopedQuery.order("starts_on", {
+    ascending: false,
+  });
   const eventResult =
     profile.role === "observer"
       ? assignedEventIds.length
-        ? await eventQuery.in("id", assignedEventIds)
+        ? await orderedQuery.in("id", assignedEventIds)
         : { data: [], error: assignmentError }
-      : await eventQuery;
+      : await orderedQuery;
   const events = eventResult.data;
   const error = eventResult.error ?? assignmentError;
   return (
@@ -94,6 +111,19 @@ export default async function ActivitiesPage({
         </p>
       )}
       {createStatus === "failed" && <DataUnavailable />}
+      {profile.role === "admin_system" && (
+        <p className="users-notice">
+          {showArchived ? (
+            <Link prefetch={false} href="/dashboard/kegiatan">
+              ← Kembali ke kegiatan aktif
+            </Link>
+          ) : (
+            <Link prefetch={false} href="/dashboard/kegiatan?archived=1">
+              Lihat kegiatan yang diarsipkan
+            </Link>
+          )}
+        </p>
+      )}
       {profile.role === "admin_system" && (
         <section className="event-manage-card">
           <div className="event-manage-title">
@@ -195,10 +225,24 @@ export default async function ActivitiesPage({
                 {statusNames[event.status as keyof typeof statusNames] ??
                   "Status tidak dikenal"}
               </span>
+              {event.archived_at && (
+                <span className="agenda-status">Arsip</span>
+              )}
             </div>
             <p className="participant-total">
               <strong>{event.participants.length}</strong> peserta terdaftar
             </p>
+            {profile.role === "admin_system" && (
+              <form
+                action={showArchived ? restoreEvent : archiveEvent}
+                className="event-archive-form"
+              >
+                <input type="hidden" name="id" value={event.id} />
+                <button type="submit">
+                  {showArchived ? "Pulihkan kegiatan" : "Arsipkan kegiatan"}
+                </button>
+              </form>
+            )}
             <details>
               <summary>Ubah informasi kegiatan</summary>
               <form action={updateEvent} className="event-edit-form">
@@ -283,9 +327,9 @@ export default async function ActivitiesPage({
       )}
       <p className="privacy-note">
         Observer hanya melihat kegiatan yang ditugaskan, dan tidak dapat
-        mengubah nama kegiatan. Untuk trial ini, gunakan peserta, foto, dan
-        hasil penilaian simulasi sampai akses, privasi, serta cadangan data
-        diperiksa.
+        mengubah nama kegiatan atau mengarsipkannya. Mengarsipkan hanya
+        menyembunyikan kegiatan dari daftar aktif; peserta, rubrik, dan hasil
+        penilaian tetap tersimpan dan dapat dipulihkan Admin Sistem.
       </p>
     </main>
   );

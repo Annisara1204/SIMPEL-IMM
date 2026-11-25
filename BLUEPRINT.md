@@ -20,6 +20,7 @@ Pengguna pemula; gunakan bahasa Indonesia sederhana dan jelaskan istilah teknis 
 ### Kegiatan dan penilaian
 
 - Uji coba pertama memakai satu kegiatan DAD simulasi.
+- **Keputusan 25 Nov 2026:** kegiatan tidak dihapus permanen lewat aplikasi. Admin Sistem dapat **mengarsipkan** kegiatan agar hilang dari daftar aktif; peserta, rubrik, dan hasil penilaian tetap utuh serta dapat dipulihkan. Observer yang ditugaskan tidak boleh mengarsipkan atau memulihkan.
 - Pelatihan lazimnya 2–3 hari, 6–9 materi. Tiap materi dapat memuat aspek kognitif/perilaku dengan sejumlah indikator.
 - Gambar yang diberikan pengguna adalah referensi struktur (KPI/aspek/indikator, bobot/target, dan lembar Observer); angka dan bobot dalam gambar hanya contoh, bukan ketentuan final.
 - Perlu halaman **Pengaturan Penilaian** untuk mengatur skala, aspek/indikator, bobot, target dan aturan sesuai kesepakatan instruktur.

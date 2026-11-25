@@ -1221,6 +1221,19 @@ p {
   color: var(--color-primary);
   font-size: 18px;
 }
+.event-archive-form {
+  margin: 0 0 12px;
+}
+.event-archive-form button {
+  min-height: 34px;
+  border: 1px solid var(--color-border-input);
+  border-radius: 7px;
+  background: var(--color-surface);
+  color: var(--color-primary);
+  padding: 0 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
 .event-manage-card details {
   padding-top: 12px;
 }

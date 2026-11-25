@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import type { StaffEventSummaryRow } from "@/lib/supabase-rows";
 
 type AnalitikEvent = {
   id: string;
@@ -22,10 +23,6 @@ type EventRecap = {
 };
 
 const NON_SCORE_ROLES = ["admin_system", "bidang_kader"];
-
-function emptyDecisions() {
-  return { pass: 0, not_pass: 0, further_discussion: 0, undecided: 0 };
-}
 
 export default async function AnalitikPage() {
   const supabase = await createClient();
@@ -50,56 +47,30 @@ export default async function AnalitikPage() {
 
   const recaps: EventRecap[] = await Promise.all(
     events.map(async (event) => {
-      const [participantsResult, snapshotsResult, publicationsResult] =
-        await Promise.all([
-          supabase.rpc("get_event_assessment_participants", {
-            target_event_id: event.id,
-          }),
-          supabase
-            .from("assessment_snapshots")
-            .select("id,participant_id,snapshot_data")
-            .eq("event_id", event.id),
-          supabase
-            .from("assessment_report_publications")
-            .select("participant_id,published_at")
-            .eq("event_id", event.id),
-        ]);
-
-      const decisions = emptyDecisions();
-      const finalizedParticipants = new Set<string>();
-      for (const snapshot of snapshotsResult.data ?? []) {
-        if (snapshot.participant_id)
-          finalizedParticipants.add(snapshot.participant_id);
-        const decision = (
-          snapshot.snapshot_data as {
-            collective?: { decision?: string };
-          } | null
-        )?.collective?.decision;
-        if (
-          decision === "pass" ||
-          decision === "not_pass" ||
-          decision === "further_discussion"
-        )
-          decisions[decision] += 1;
-        else decisions.undecided += 1;
-      }
-
-      const publishedParticipants = new Set<string>();
-      for (const publication of publicationsResult.data ?? []) {
-        if (publication.participant_id)
-          publishedParticipants.add(publication.participant_id);
-      }
-
+      const { data, error } = await supabase.rpc("get_staff_event_summary", {
+        target_event_id: event.id,
+      });
+      const summary = (data?.[0] ?? null) as StaffEventSummaryRow | null;
+      const finalized = summary?.finalized ?? 0;
+      const passed = summary?.passed ?? 0;
+      const notPassed = summary?.not_passed ?? 0;
+      const furtherDiscussion = summary?.further_discussion ?? 0;
       return {
         id: event.id,
         name: event.name ?? "Kegiatan tanpa nama",
         startsOn: event.starts_on,
-        participants: participantsResult.error
-          ? null
-          : (participantsResult.data ?? []).length,
-        finalized: finalizedParticipants.size,
-        published: publishedParticipants.size,
-        decisions,
+        participants: error ? null : (summary?.participants ?? 0),
+        finalized,
+        published: summary?.published ?? 0,
+        decisions: {
+          pass: passed,
+          not_pass: notPassed,
+          further_discussion: furtherDiscussion,
+          undecided: Math.max(
+            0,
+            finalized - passed - notPassed - furtherDiscussion,
+          ),
+        },
       };
     }),
   );

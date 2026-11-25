@@ -47,7 +47,8 @@ Pengguna pemula; gunakan bahasa Indonesia sederhana dan jelaskan istilah teknis 
 - Observer dapat memilih `Belum diamati`; indikator tersebut tidak diberi skor dan bobotnya tidak ikut dihitung untuk peserta itu.
 - Jika hanya sebagian indikator dalam aspek berstatus `Belum diamati`, bobot indikator yang memiliki skor dinormalisasi ulang agar aspek tetap berjumlah 100% untuk hasil peserta tersebut.
 - Jika seluruh indikator dalam aspek berstatus `Belum diamati`, aspek dikeluarkan dari nilai keseluruhan dan bobot aspek yang diamati dinormalisasi ulang.
-- Nilai untuk setiap jenis penilaian menjadi resmi setelah seluruh Observer yang ditugaskan menyelesaikan jenis penilaian tersebut. Status selesai dicatat terpisah per jenis.
+- Nilai untuk setiap jenis penilaian menjadi resmi setelah seluruh Observer yang ditugaskan menyelesaikan jenis penilaian tersebut. Status selesai dicatat terpisah per jenis. **Usang sebagian (25 Nov 2026):** aturan "seluruh Observer selesai" tidak lagi dipakai sebagai gate finalize; lihat `docs/MATRIKS-KEPUTUSAN-PRODUK.md:56-57`. Status per jenis tetap dicatat.
+- **Keputusan 25 Nov 2026:** angka ringkasan kegiatan menghitung **peserta unik**. Final dan published dihitung sekali per peserta memakai snapshot terbaru. Bidang Kader menerima rekap agregat yang sama dengan Admin, tanpa data rinci.
 - Kategori nilai 0–100: 0–<60 **Perlu pengembangan**, 60–<75 **Cukup**, 75–<90 **Baik**, dan 90–100 **Sangat baik**.
 - Persetujuan/review Bidang Kader pada rapor ditunda dari versi awal sederhana; dapat ditambahkan pada pengembangan selanjutnya.
 

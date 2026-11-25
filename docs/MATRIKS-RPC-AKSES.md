@@ -11,13 +11,13 @@ Semua `path:line` di bawah sudah diverifikasi dengan grep pada berkas kerja ini.
 
 "Definisi akhir" berarti `create or replace function` terakhir yang berlaku menurut urutan nama berkas migrasi (angka depan = waktu). `create or replace` yang berulang dicatat di kolom risiko.
 
-Status produksi dan hasil verifikasi mengikuti `docs/STATUS-PRODUKSI-SATU-VERSI.md`. Migrasi `20261124100000` sampai `20261124140000` sudah dipasang di DEV dan mengubah empat definisi di bawah, tetapi **belum** dipasang di produksi. Daftar 17 RPC tetap berlaku; empat barisnya diperbarui, bukan dihapus.
+Status produksi dan hasil verifikasi mengikuti `docs/STATUS-PRODUKSI-SATU-VERSI.md`. Migrasi `20261124100000` sampai `20261124160000`, `20261125100000`, dan `20261125120000` sudah dipasang di produksi. Tabel 17 RPC tetap berlaku; empat barisnya diperbarui, bukan dihapus, dan dua RPC tambahan tercatat di bawah.
 
 ## Ringkasan hitungan
 
 | Yang dihitung | Hasil | Keterangan |
 |---|---|---|
-| RPC unik yang dipetakan | **17** | Sesuai daftar; semua ditemukan di migrasi dan dipanggil aplikasi |
+| RPC unik yang dipetakan | **17 + 2 tambahan** | Tabel memuat 17 RPC awal; dua RPC baru tercatat di bawah |
 | `security definer` | **17 dari 17** | Semuanya juga memakai `set search_path = ''` |
 | Bisa menulis / audit | **10** | `finalize`, `publish`, `assign`, `record_export`, `commit_test_import`, dan 5 RPC pengajuan Komisariat |
 | Baca-saja | **7** | 5 `get_*`, `is_assessment_moderator`, `list_instructor_public_identity` |
@@ -27,6 +27,11 @@ Status produksi dan hasil verifikasi mengikuti `docs/STATUS-PRODUKSI-SATU-VERSI.
 | Definisi akhir berubah di Fase 2–4 (DEV) | **4** | `get_event_assessment_summary`, `finalize_collective_evaluation`, `publish_assessment_report`, `record_assessment_export` |
 
 Catatan `PGRST_DB_MAX_ROWS`: batas ini berlaku untuk **response PostgREST**, jadi semua RPC yang mengembalikan kumpulan baris berpotensi terpotong, bukan hanya satu. Yang terdokumentasi terkena adalah `get_event_assessment_summary`. Tiga RPC `get_*` lain mengembalikan satu baris per peserta/penilai dan baru berisiko pada kegiatan besar; `list_instructor_public_identity` jumlahnya kecil. Migrasi `20261124140000` menambah filter peserta, tetapi hanya bekerja bila pemanggil mengirim argumen kedua. Halaman Evaluasi mengirim `null` bila belum ada peserta terpilih (`A/evaluasi/page.tsx:136`), jadi risiko pemotongan masih ada untuk rekap seluruh kegiatan.
+
+### RPC tambahan di luar tabel awal
+
+- `get_public_event_aggregate(uuid)` — `M/20261124120000_phase3e_public_aggregate_retention_archive.sql:27`. Dipanggil `A/page.tsx:30`. Satu-satunya RPC dengan grant `anon` (`:114`). Hanya `event_id`, `total_participants`, dan `groups`; tanpa identitas atau `snapshot_data`.
+- `get_staff_event_summary(uuid)` — definisi akhir `M/20261125120000_staff_summary_unique_participants_v1.sql`. Dipanggil `L/phase7-home.ts` dan `A/analitik/page.tsx`. `security definer`, `set search_path=''`, grant `authenticated`. Admin, Bidang Kader, dan koordinator kegiatan mendapat rekap agregat yang sama: peserta unik, final/published per peserta, distribusi keputusan dari snapshot terbaru, dan rata-rata skor. Rencana lama `get_event_report_summary_for_kader` hanya ada di dokumen dan **digantikan** RPC ini.
 
 ## Matriks 17 RPC
 

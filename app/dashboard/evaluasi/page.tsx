@@ -12,8 +12,10 @@ import { stageLabel } from "@/lib/stage-labels";
 import { isEventModerator } from "@/lib/moderation-access";
 import type {
   AssessmentSummaryRow,
+  ReportSnapshotData,
   RubricVersionJoined,
 } from "@/lib/supabase-rows";
+import { buildAutoCompetencyMap } from "@/lib/auto-competency";
 import {
   approveDevelopmentRecommendation,
   approveFinalizePublishReport,
@@ -146,6 +148,33 @@ export default async function CollectiveEvaluationPage({
     .select("minimum_coverage,review_score_delta")
     .eq("id", true)
     .maybeSingle();
+  const { data: eventSnapshots } = eventId
+    ? await supabase
+        .from("assessment_snapshots")
+        .select("id,participant_id,snapshot_data,finalized_at,revision")
+        .eq("event_id", eventId)
+    : { data: [] };
+  const snapshotRows = (eventSnapshots ?? []).map((snapshot) => ({
+    participant_id: snapshot.participant_id as string,
+    display_name:
+      participantRows.find((person) => person.id === snapshot.participant_id)
+        ?.display_name ?? "Peserta",
+    snapshot_id: snapshot.id as string,
+    snapshot_data: snapshot.snapshot_data as ReportSnapshotData | null,
+    finalized_at: snapshot.finalized_at as string | null,
+    publication_revision: (snapshot.revision as number | null) ?? null,
+  }));
+  const autoCompetency = eventId
+    ? buildAutoCompetencyMap({
+        participants: participantRows.map((person) => ({
+          id: person.id,
+          display_name: person.display_name,
+        })),
+        summaryRows: (summaryRows ?? []) as AssessmentSummaryRow[],
+        snapshotRows,
+        minimumCoverage: Number(policy?.minimum_coverage ?? 80),
+      })
+    : null;
   const versionListAll = (versions ?? []) as unknown as (RubricVersionJoined & {
     assessment_type_id?: string | null;
     rubric_assessment_types?: { name: string } | { name: string }[] | null;
@@ -370,6 +399,58 @@ export default async function CollectiveEvaluationPage({
             ← Pilih kegiatan lain
           </Link>
           <h2>{selectedEvent.name}</h2>
+          {autoCompetency && autoCompetency.columns.length > 0 && (
+            <section className="rubric-edit">
+              <h3>Peta kompetensi otomatis</h3>
+              <p className="data-caption">
+                Semua peserta tampil. Status Final memakai nilai dari rapor;
+                status Sementara memakai penilaian terkini. Bobot aspek dapat
+                berasal dari rubrik berbeda sehingga totalnya bisa lebih dari
+                100%; nilai sementara dinormalisasi dari aspek yang tersedia.
+                Materi terarsipkan tidak ikut dalam nilai sementara.
+              </p>
+              <div className="competency-matrix-scroll">
+                <table className="competency-matrix">
+                  <thead>
+                    <tr>
+                      <th scope="col">Peserta</th>
+                      {autoCompetency.columns.map((column) => (
+                        <th key={column.name} scope="col">
+                          {column.name}
+                          <small>Bobot {column.weight}%</small>
+                        </th>
+                      ))}
+                      <th scope="col">Nilai akhir</th>
+                      <th scope="col">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {autoCompetency.rows.map((row) => (
+                      <tr key={row.participantId}>
+                        <th scope="row">{row.displayName}</th>
+                        {autoCompetency.columns.map((column) => {
+                          const score = row.aspectScores.get(column.name);
+                          return (
+                            <td key={column.name}>
+                              {score === undefined ? "—" : score.toFixed(1)}
+                            </td>
+                          );
+                        })}
+                        <td>
+                          {row.finalScore === null
+                            ? "—"
+                            : row.finalScore.toFixed(1)}
+                        </td>
+                        <td>
+                          {row.status === "final" ? "Final" : "Sementara"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          )}
           <h3>Pilih peserta</h3>
           {participantRows.map((person) => (
             <Link

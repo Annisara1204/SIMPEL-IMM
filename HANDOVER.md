@@ -528,3 +528,11 @@ Dampak lain: aksi di `app/dashboard/evaluasi/actions.ts` (draf rekomendasi otoma
 - Berubah: `components/phase7-report-workspace.tsx`, `lib/participant-summary.ts` (baru), `tests/participant-summary.test.ts` (baru), `package.json`, `BLUEPRINT.md`.
 - Verifikasi: `npm run check` lolos dengan 27 tes (tambah 3 tes gabungan), build lolos, browser DEV merender halaman Laporan tanpa error. Hitungan memakai data produksi yang dibaca read-only menghasilkan Angga 66,25 (Lulus), Fadilla 59,50 (Tidak Lulus), Albian 31,00 (Perlu Pembahasan Lanjutan), dengan sel aspek terisi.
 - **Deploy produksi selesai 26 November 2026 19:56 WIB:** backup `/home/ubuntu/imm-app.bak-2026-11-26-195606-full` dan `/home/ubuntu/.env.production.bak-2026-11-26-195606`; hash env identik; rsync tanpa `--delete`; build OK; `pm2 restart imm --update-env` (restart ke-28, online). Smoke delapan halaman 200; bundle memuat ringkasan baru; log bersih; hitungan data tidak berubah. Kode aktif: `7ae5941`. Tidak ada migrasi. Pengguna wajib Ctrl+F5.
+
+## Peta kompetensi otomatis di Evaluasi Kolektif (26 November 2026, DEV)
+
+- Pemilik meminta laporan kompetensi otomatis untuk semua peserta, termasuk yang belum difinalisasi, dengan nilai sementara. Ditambah bagian "Peta kompetensi otomatis" di halaman Evaluasi Kolektif saat memilih peserta.
+- Peserta dengan snapshot final memakai nilai gabungan dan aspek dari rapor. Peserta tanpa snapshot memakai agregasi `get_event_assessment_summary` melalui `calculateAspectAggregates`/`calculateOverallScore`, dinormalisasi dari aspek yang tersedia, dan diberi status Sementara. Aspek disatukan berdasarkan nama.
+- Berubah: `lib/auto-competency.ts` (baru), `app/dashboard/evaluasi/page.tsx`, `package.json`, `tests/auto-competency.test.ts` (baru), `BLUEPRINT.md`.
+- Verifikasi: `npm run check` lolos dengan 29 tes, build lolos, browser DEV menampilkan tabel dengan baris Final dan Sementara. Hitungan memakai data produksi yang dibaca read-only: 33 peserta, 3 Final dan 30 Sementara; contoh Aliyya 65,1, Azra 70,8, Elvando 67,2. Tidak ada migrasi atau penulisan data produksi.
+- **Belum di-deploy ke PROD**, menunggu persetujuan deploy.

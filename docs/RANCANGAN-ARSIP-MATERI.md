@@ -85,6 +85,7 @@ Guard aplikasi dipasang pada `createRubricVersion` dan `setTrainingMaterialFrame
 - Tautan "Lihat materi yang diarsipkan" memakai query `?showArchived=1`, mengikuti pola halaman Kegiatan.
 - Baris materi terarsipkan diberi badge "Arsip", tidak bisa dipilih, dan tombolnya berubah menjadi "Pulihkan materi" untuk Admin Sistem.
 - Baris aktif mendapat tombol "Arsipkan materi" untuk Admin Sistem, dengan teks singkat: materi hilang dari pemilih, nilai lama tetap tersimpan, dan perlu memulihkan untuk memakainya lagi.
+- Pada halaman detail rubrik, versi aktif mendapat tombol "Arsipkan versi". Tombol ini menutup versi aktif tanpa mengaktifkan versi baru, sehingga materi bisa masuk ke daftar arsip. Tombol "Aktifkan versi" lama tetap dipakai untuk pergantian rubrik normal.
 
 ### `/dashboard/observasi`
 

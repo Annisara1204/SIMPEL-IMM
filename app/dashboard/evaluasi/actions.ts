@@ -17,6 +17,38 @@ import type {
   RubricVersionJoined,
 } from "@/lib/supabase-rows";
 
+type ActionResult<T> = { ok: true; value: T } | { ok: false; message: string };
+
+function failed(message: string): { ok: false; message: string } {
+  return { ok: false, message };
+}
+
+function actionError(error: unknown): string {
+  return error instanceof Error && error.message
+    ? error.message
+    : "Operasi gagal. Muat ulang halaman dan coba lagi.";
+}
+
+function isNextControlError(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "digest" in error &&
+    typeof (error as { digest?: unknown }).digest === "string" &&
+    (error as { digest: string }).digest.startsWith("NEXT_")
+  );
+}
+
+function evaluationErrorUrl(message: string, formData: FormData): string {
+  const params = new URLSearchParams();
+  for (const key of ["eventId", "participantId", "versionId"] as const) {
+    const value = String(formData.get(key) ?? "");
+    if (value) params.set(key, value);
+  }
+  params.set("error", message.slice(0, 300));
+  return `/dashboard/evaluasi?${params.toString()}`;
+}
+
 async function requireModerator(eventId: string) {
   const supabase = await createClient();
   const { data: claims } = await supabase.auth.getClaims();
@@ -542,38 +574,45 @@ type FinalizeInput = {
   rationale: string;
 };
 
-function parseFinalizeFormData(formData: FormData): FinalizeInput {
-  const rubricVersionId = requireRubricVersionId(formData);
+function parseFinalizeFormData(
+  formData: FormData,
+): ActionResult<FinalizeInput> {
+  const rubricVersionId = String(formData.get("rubricVersionId") ?? "");
+  if (!uuidPattern.test(rubricVersionId))
+    return failed("Jenis penilaian belum dipilih.");
   const eventId = String(formData.get("eventId") ?? "");
   const participantId = String(formData.get("participantId") ?? "");
   if (![eventId, participantId].every((id) => uuidPattern.test(id)))
-    throw new Error("Peserta atau kegiatan tidak valid.");
+    return failed("Peserta atau kegiatan tidak valid.");
   return {
-    eventId,
-    participantId,
-    rubricVersionId,
-    evidenceReferences: String(formData.get("evidenceReferencesText") ?? "")
-      .split(/\r?\n/)
-      .map((value) => value.trim())
-      .filter(Boolean)
-      .slice(0, 30),
-    strengths: String(formData.get("strengths") ?? "")
-      .trim()
-      .slice(0, 5000),
-    developmentAreas: String(formData.get("developmentAreas") ?? "")
-      .trim()
-      .slice(0, 5000),
-    discussionNotes: String(formData.get("discussionNotes") ?? "")
-      .trim()
-      .slice(0, 10000),
-    collectiveSummary: String(formData.get("collectiveSummary") ?? "")
-      .trim()
-      .slice(0, 10000),
-    recommendationSummary: String(formData.get("recommendationSummary") ?? "")
-      .trim()
-      .slice(0, 5000),
-    decision: String(formData.get("decision") ?? ""),
-    rationale: String(formData.get("decisionRationale") ?? "").trim(),
+    ok: true,
+    value: {
+      eventId,
+      participantId,
+      rubricVersionId,
+      evidenceReferences: String(formData.get("evidenceReferencesText") ?? "")
+        .split(/\r?\n/)
+        .map((value) => value.trim())
+        .filter(Boolean)
+        .slice(0, 30),
+      strengths: String(formData.get("strengths") ?? "")
+        .trim()
+        .slice(0, 5000),
+      developmentAreas: String(formData.get("developmentAreas") ?? "")
+        .trim()
+        .slice(0, 5000),
+      discussionNotes: String(formData.get("discussionNotes") ?? "")
+        .trim()
+        .slice(0, 10000),
+      collectiveSummary: String(formData.get("collectiveSummary") ?? "")
+        .trim()
+        .slice(0, 10000),
+      recommendationSummary: String(formData.get("recommendationSummary") ?? "")
+        .trim()
+        .slice(0, 5000),
+      decision: String(formData.get("decision") ?? ""),
+      rationale: String(formData.get("decisionRationale") ?? "").trim(),
+    },
   };
 }
 
@@ -581,7 +620,7 @@ async function runFinalize(
   input: FinalizeInput,
   supabase: Awaited<ReturnType<typeof createClient>>,
   userId: string,
-): Promise<string> {
+): Promise<ActionResult<string>> {
   const { eventId, participantId, rubricVersionId } = input;
   const { data: participant } = await supabase
     .from("participants")
@@ -589,7 +628,7 @@ async function runFinalize(
     .eq("id", participantId)
     .maybeSingle();
   if (participant?.event_id !== eventId)
-    throw new Error("Peserta tidak ditemukan pada kegiatan ini.");
+    return failed("Peserta tidak ditemukan pada kegiatan ini.");
   const [
     { data: current },
     { data: summaryRows, error: summaryError },
@@ -613,9 +652,9 @@ async function runFinalize(
       .maybeSingle(),
   ]);
   if (current?.status === "finalized")
-    throw new Error("Evaluasi untuk jenis penilaian ini sudah difinalisasi.");
+    return failed("Evaluasi untuk jenis penilaian ini sudah difinalisasi.");
   if (summaryError || !policy)
-    throw new Error(
+    return failed(
       "Rekap skor belum tersedia. Jalankan seluruh migrasi basis data terlebih dahulu.",
     );
   const summaryRowsTyped = (summaryRows ?? []) as AssessmentSummaryRow[];
@@ -665,7 +704,7 @@ async function runFinalize(
   );
   const overall = calculateOverallScore(aspects);
   if (overall.status !== "ready_for_collective_evaluation")
-    throw new Error(
+    return failed(
       `Coverage belum memadai. Hasil tetap provisional. ${overall.reasons.join("; ") || "Periksa aspek dan indikator yang direncanakan."}`,
     );
   const { data: openModerations } = await supabase
@@ -676,7 +715,7 @@ async function runFinalize(
     .eq("rubric_version_id", rubricVersionId)
     .not("status", "in", "(reviewed,resolved)");
   if (openModerations?.length)
-    throw new Error(
+    return failed(
       "Selesaikan moderasi untuk semua selisih skor sebelum finalisasi.",
     );
   const evidenceReferences = input.evidenceReferences;
@@ -700,15 +739,13 @@ async function runFinalize(
     .select("id,status")
     .single();
   if (saveError || !evaluation || evaluation.status !== "draft")
-    throw new Error(
-      "Draf evaluasi kolektif gagal disimpan atau sudah terkunci.",
-    );
+    return failed("Draf evaluasi kolektif gagal disimpan atau sudah terkunci.");
   const { decision, rationale } = input;
   if (
     !["pass", "not_pass", "further_discussion"].includes(decision) ||
     rationale.length < 10
   )
-    throw new Error(
+    return failed(
       "Pilih keputusan kelulusan dan isi alasan minimal 10 karakter.",
     );
   const versionIds = [rubricVersionId];
@@ -811,7 +848,7 @@ async function runFinalize(
     },
   );
   if (finalizeError)
-    throw new Error(
+    return failed(
       finalizeError.message || "Snapshot hasil final gagal disimpan.",
     );
   const { data: savedSnapshot, error: snapshotError } = await supabase
@@ -822,59 +859,81 @@ async function runFinalize(
     .limit(1)
     .maybeSingle();
   if (snapshotError || !savedSnapshot)
-    throw new Error("Snapshot hasil tidak ditemukan setelah finalisasi.");
-  return savedSnapshot.id as string;
+    return failed("Snapshot hasil tidak ditemukan setelah finalisasi.");
+  return { ok: true, value: savedSnapshot.id as string };
+}
+
+async function finalizeFromForm(
+  formData: FormData,
+  publish: boolean,
+): Promise<ActionResult<string>> {
+  const parsed = parseFinalizeFormData(formData);
+  if (!parsed.ok) return parsed;
+  const input = parsed.value;
+  let supabase: Awaited<ReturnType<typeof createClient>>;
+  let userId: string;
+  try {
+    ({ supabase, userId } = await requireModerator(input.eventId));
+  } catch (error) {
+    if (isNextControlError(error)) throw error;
+    return failed(actionError(error));
+  }
+  if (publish) {
+    const { data: evaluation } = await supabase
+      .from("collective_evaluations")
+      .select("id,status")
+      .eq("event_id", input.eventId)
+      .eq("participant_id", input.participantId)
+      .eq("rubric_version_id", input.rubricVersionId)
+      .maybeSingle();
+    if (evaluation?.status === "draft") {
+      const { data: recommendation } = await supabase
+        .from("development_recommendations")
+        .select("id")
+        .eq("evaluation_id", evaluation.id)
+        .eq("is_active", true)
+        .eq("status", "draft")
+        .maybeSingle();
+      if (recommendation) {
+        const { error } = await supabase
+          .from("development_recommendations")
+          .update({
+            status: "approved",
+            approved_by: userId,
+            approved_at: new Date().toISOString(),
+          })
+          .eq("id", recommendation.id)
+          .eq("status", "draft");
+        if (error) return failed("Rekomendasi gagal disetujui.");
+      }
+    }
+  }
+  const finalized = await runFinalize(input, supabase, userId);
+  if (!finalized.ok) return finalized;
+  if (!publish) return finalized;
+  const { error: publishError } = await supabase.rpc(
+    "publish_assessment_report",
+    { target_snapshot_id: finalized.value },
+  );
+  if (publishError)
+    return failed(publishError.message || "Rapor gagal diterbitkan.");
+  return finalized;
 }
 
 export async function finalizeCollectiveEvaluation(formData: FormData) {
-  const input = parseFinalizeFormData(formData);
-  const { supabase, userId } = await requireModerator(input.eventId);
-  await runFinalize(input, supabase, userId);
+  const outcome = await finalizeFromForm(formData, false);
+  if (!outcome.ok) redirect(evaluationErrorUrl(outcome.message, formData));
   revalidatePath("/dashboard/evaluasi");
 }
 
 export async function approveFinalizePublishReport(formData: FormData) {
-  const input = parseFinalizeFormData(formData);
-  const { supabase, userId } = await requireModerator(input.eventId);
-  const { data: evaluation } = await supabase
-    .from("collective_evaluations")
-    .select("id,status")
-    .eq("event_id", input.eventId)
-    .eq("participant_id", input.participantId)
-    .eq("rubric_version_id", input.rubricVersionId)
-    .maybeSingle();
-  if (evaluation?.status === "draft") {
-    const { data: recommendation } = await supabase
-      .from("development_recommendations")
-      .select("id")
-      .eq("evaluation_id", evaluation.id)
-      .eq("is_active", true)
-      .eq("status", "draft")
-      .maybeSingle();
-    if (recommendation) {
-      const { error } = await supabase
-        .from("development_recommendations")
-        .update({
-          status: "approved",
-          approved_by: userId,
-          approved_at: new Date().toISOString(),
-        })
-        .eq("id", recommendation.id)
-        .eq("status", "draft");
-      if (error) throw new Error("Rekomendasi gagal disetujui.");
-    }
-  }
-  const snapshotId = await runFinalize(input, supabase, userId);
-  const { error: publishError } = await supabase.rpc(
-    "publish_assessment_report",
-    { target_snapshot_id: snapshotId },
-  );
-  if (publishError)
-    throw new Error(publishError.message || "Rapor gagal diterbitkan.");
+  const outcome = await finalizeFromForm(formData, true);
+  if (!outcome.ok) redirect(evaluationErrorUrl(outcome.message, formData));
   revalidatePath("/dashboard/evaluasi");
   revalidatePath("/dashboard/laporan");
+  const eventId = String(formData.get("eventId") ?? "");
   redirect(
-    `/dashboard/laporan?eventId=${input.eventId}&snapshotId=${snapshotId}&published=1`,
+    `/dashboard/laporan?eventId=${eventId}&snapshotId=${outcome.value}&published=1`,
   );
 }
 
@@ -934,7 +993,11 @@ export async function finalizeAllEvaluations(formData: FormData) {
       rationale,
     };
     try {
-      await runFinalize(input, supabase, userId);
+      const outcome = await runFinalize(input, supabase, userId);
+      if (!outcome.ok) {
+        skipped += 1;
+        continue;
+      }
       finalized += 1;
     } catch {
       skipped += 1;

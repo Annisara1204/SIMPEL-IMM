@@ -34,6 +34,7 @@ type Props = {
     batchOk?: string | string[];
     batchSkipped?: string | string[];
     batchMissing?: string | string[];
+    error?: string | string[];
   }>;
 };
 export default async function CollectiveEvaluationPage({
@@ -64,6 +65,9 @@ export default async function CollectiveEvaluationPage({
   )
     redirect("/dashboard");
   const params = await searchParams;
+  const actionError = Array.isArray(params.error)
+    ? params.error[0]
+    : params.error;
   const eventId = Array.isArray(params.eventId)
     ? params.eventId[0]
     : params.eventId;
@@ -329,6 +333,11 @@ export default async function CollectiveEvaluationPage({
           </p>
         </div>
       </div>
+      {actionError && (
+        <p className="users-error" role="alert">
+          {actionError}
+        </p>
+      )}
       {!eventId && (
         <section className="event-manage-card">
           <h2>Pilih kegiatan</h2>
@@ -843,6 +852,7 @@ export default async function CollectiveEvaluationPage({
                       name="decision"
                       defaultValue={evaluation?.graduation_decision ?? ""}
                       disabled={evaluation?.status === "finalized"}
+                      required
                     >
                       <option value="">Belum diputuskan</option>
                       <option value="pass">Lulus</option>
@@ -857,16 +867,20 @@ export default async function CollectiveEvaluationPage({
                     <textarea
                       name="decisionRationale"
                       minLength={10}
+                      required
                       defaultValue={evaluation?.decision_rationale ?? ""}
                       readOnly={evaluation?.status === "finalized"}
                     />
                   </label>
                   {evaluation?.status !== "finalized" && (
                     <>
-                      <button type="submit">Simpan draf evaluasi</button>
+                      <button type="submit" formNoValidate>
+                        Simpan draf evaluasi
+                      </button>
                       <p>
-                        Keputusan dan alasan wajib diisi sebelum finalisasi
-                        (alasan minimal 10 karakter). Tombol finalisasi
+                        Pilih keputusan kelulusan dan isi alasan minimal 10
+                        karakter sebelum finalisasi. Simpan draf tetap bisa
+                        dilakukan tanpa keduanya. Tombol finalisasi juga
                         dinonaktifkan bila coverage belum memenuhi minimal{" "}
                         {policy?.minimum_coverage ?? 80}% pada setiap aspek.
                       </p>

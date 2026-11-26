@@ -18,9 +18,11 @@ import type {
   ParticipantReport,
   PrivateSourcePayload,
   ReportSnapshotData,
+  SnapshotAspect,
 } from "@/lib/supabase-rows";
 import { categorizeScore } from "@/lib/scoring";
 import { decisionLabel } from "@/lib/decision-labels";
+import { summarizeParticipants } from "@/lib/participant-summary";
 
 type ReportRow = {
   participant_id: string;
@@ -73,6 +75,8 @@ type Props = {
 
 const aspects = (data?: ReportSnapshotData | null) =>
   Array.isArray(data?.aspects) ? data.aspects : [];
+const aspectNameOf = (aspect: SnapshotAspect) =>
+  String(aspect.aspectName ?? aspect.aspect_name ?? "Aspek").trim() || "Aspek";
 const indicators = (data?: ReportSnapshotData | null) =>
   Array.isArray(data?.indicators) ? data.indicators : [];
 const decisionOf = (row: ReportRow) =>
@@ -235,62 +239,77 @@ export function Phase7ReportWorkspace(props: Props) {
     [filteredRows],
   );
   const provisionalCount = filteredRows.length - finalized.length;
-  const decisionsCount = useMemo(
-    () => ({
-      pass: finalized.filter((row) => decisionOf(row) === "pass").length,
-      not_pass: finalized.filter((row) => decisionOf(row) === "not_pass")
-        .length,
-      further: finalized.filter(
-        (row) => decisionOf(row) === "further_discussion",
-      ).length,
-    }),
+  const participantSummaries = useMemo(
+    () => summarizeParticipants(finalized),
     [finalized],
   );
+  const decisionsCount = useMemo(
+    () => ({
+      pass: participantSummaries.filter((item) => item.decision === "pass")
+        .length,
+      not_pass: participantSummaries.filter(
+        (item) => item.decision === "not_pass",
+      ).length,
+      further: participantSummaries.filter(
+        (item) => item.decision === "further_discussion",
+      ).length,
+    }),
+    [participantSummaries],
+  );
   const averageOverall = useMemo(() => {
-    const avgScore = finalized
-      .map(scoreOf)
+    const avgScore = participantSummaries
+      .map((item) => item.finalScore)
       .filter((score): score is number => score !== null);
     return avgScore.length
       ? avgScore.reduce((sum, score) => sum + score, 0) / avgScore.length
       : null;
-  }, [finalized]);
+  }, [participantSummaries]);
+  const aspectColumns: { id: string; name: string; weight: number | null }[] =
+    useMemo(() => {
+      const columns = new Map<
+        string,
+        { name: string; weight: number | null }
+      >();
+      for (const row of finalized)
+        for (const aspect of aspects(row.snapshot_data)) {
+          const name = aspectNameOf(aspect);
+          if (!columns.has(name))
+            columns.set(name, {
+              name,
+              weight: typeof aspect.weight === "number" ? aspect.weight : null,
+            });
+        }
+      return [...columns.values()].map((item) => ({
+        id: item.name,
+        name: item.name,
+        weight: item.weight,
+      }));
+    }, [finalized]);
   const aspectSummary = useMemo(() => {
+    const weightByName = new Map(
+      aspectColumns.map((column) => [column.name, column.weight ?? 0]),
+    );
     const aspectStats = new Map<
       string,
       { name: string; weight: number; sum: number; count: number }
     >();
-    for (const row of finalized)
-      for (const aspect of aspects(row.snapshot_data)) {
-        if (typeof aspect.score !== "number") continue;
-        const key = String(
-          aspect.aspectId ?? aspect.aspect_id ?? aspect.aspectName,
-        );
-        const entry = aspectStats.get(key) ?? {
-          name: String(aspect.aspectName ?? aspect.aspect_name ?? "Aspek"),
-          weight: Number(aspect.weight ?? 0),
+    for (const person of participantSummaries)
+      for (const [name, score] of person.aspectScores) {
+        const entry = aspectStats.get(name) ?? {
+          name,
+          weight: weightByName.get(name) ?? 0,
           sum: 0,
           count: 0,
         };
-        entry.sum += Number(aspect.score);
+        entry.sum += score;
         entry.count++;
-        aspectStats.set(key, entry);
+        aspectStats.set(name, entry);
       }
     return [...aspectStats.values()].map((item) => ({
       ...item,
       average: item.sum / item.count,
     }));
-  }, [finalized]);
-  const aspectColumns: { id: string; name: string; weight: number | null }[] =
-    useMemo(
-      () =>
-        aspects(finalized[0]?.snapshot_data).map((aspect) => ({
-          id: String(aspect.aspectId ?? aspect.aspect_id ?? aspect.aspectName),
-          name: String(aspect.aspectName ?? aspect.aspect_name ?? "Aspek"),
-          weight:
-            typeof aspect.weight === "number" ? Number(aspect.weight) : null,
-        })),
-      [finalized],
-    );
+  }, [aspectColumns, participantSummaries]);
   const attentionRows = useMemo(
     () =>
       filteredRows
@@ -622,7 +641,7 @@ export function Phase7ReportWorkspace(props: Props) {
       const recurringRecommendations = [...publishedRecommended]
         .filter(([, count]) => count >= 2)
         .map(([recommendation]) => ({ recommendation }));
-      const reportSummary = `Total peserta ${filteredRows.length}; snapshot final ${finalized.length}; rapor Published ${publishedRows.length}; provisional ${provisionalCount}; keputusan Lulus ${decisionsCount.pass}, Tidak Lulus ${decisionsCount.not_pass}, Perlu Pembahasan ${decisionsCount.further}. Analisis skor dan keputusan mencakup peserta dengan snapshot final saja.`;
+      const reportSummary = `Total peserta ${filteredRows.length}; peserta dengan snapshot final ${participantSummaries.length}; rapor Published ${publishedRows.length}; provisional ${provisionalCount}; keputusan terbaru per peserta: Lulus ${decisionsCount.pass}, Tidak Lulus ${decisionsCount.not_pass}, Perlu Pembahasan ${decisionsCount.further}. Nilai akhir peserta adalah rata-rata sederhana dari seluruh snapshot finalnya. Analisis hanya mencakup peserta dengan snapshot final.`;
       const eventReport: ReportFileData = {
         participant: { display_name: "Ringkasan keseluruhan kegiatan" },
         event,
@@ -639,7 +658,7 @@ export function Phase7ReportWorkspace(props: Props) {
           },
           collective: {
             summary: reportSummary,
-            strengths: `Snapshot final tersedia untuk ${finalized.length} dari ${filteredRows.length} peserta.`,
+            strengths: `Snapshot final tersedia untuk ${participantSummaries.length} dari ${filteredRows.length} peserta.`,
             developmentAreas: provisionalCount
               ? `${provisionalCount} peserta masih provisional dan tidak dimasukkan ke rata-rata resmi.`
               : "Seluruh peserta dalam filter memiliki snapshot final.",
@@ -846,45 +865,34 @@ export function Phase7ReportWorkspace(props: Props) {
                     </tr>
                   </thead>
                   <tbody>
-                    {finalized.map((row) => {
-                      const aspectsById = new Map(
-                        aspects(row.snapshot_data).map((value) => [
-                          String(
-                            value.aspectId ??
-                              value.aspect_id ??
-                              value.aspectName,
-                          ),
-                          value,
-                        ]),
-                      );
-                      return (
-                        <tr key={row.snapshot_id ?? row.participant_id}>
-                          <th scope="row">{row.display_name}</th>
-                          {aspectColumns.map((column) => {
-                            const aspect = aspectsById.get(column.id);
-                            const score =
-                              typeof aspect?.score === "number"
-                                ? Number(aspect.score)
-                                : null;
-                            const heatClass =
-                              score === null
-                                ? "heat-none"
-                                : score < 2
-                                  ? "heat-low"
-                                  : score < 3
-                                    ? "heat-mid"
-                                    : "heat-high";
-                            return (
-                              <td key={column.id} className={heatClass}>
-                                {score === null ? "—" : score.toFixed(1)}
-                              </td>
-                            );
-                          })}
-                          <td>{scoreOf(row)?.toFixed(1) ?? "—"}</td>
-                          <td>{decisionLabel(decisionOf(row))}</td>
-                        </tr>
-                      );
-                    })}
+                    {participantSummaries.map((person) => (
+                      <tr key={person.key}>
+                        <th scope="row">{person.displayName}</th>
+                        {aspectColumns.map((column) => {
+                          const score =
+                            person.aspectScores.get(column.name) ?? null;
+                          const heatClass =
+                            score === null
+                              ? "heat-none"
+                              : score < 2
+                                ? "heat-low"
+                                : score < 3
+                                  ? "heat-mid"
+                                  : "heat-high";
+                          return (
+                            <td key={column.id} className={heatClass}>
+                              {score === null ? "—" : score.toFixed(1)}
+                            </td>
+                          );
+                        })}
+                        <td>
+                          {person.finalScore === null
+                            ? "—"
+                            : person.finalScore.toFixed(1)}
+                        </td>
+                        <td>{decisionLabel(person.decision)}</td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               </div>

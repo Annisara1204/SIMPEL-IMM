@@ -7,6 +7,8 @@ import { createClient } from "@/lib/supabase/server";
 
 const photoBucket = "participant-photos";
 const maxPhotoSize = 5 * 1024 * 1024;
+const canonicalUuidPattern =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 async function validatePhoto(file: FormDataEntryValue | null) {
   if (!(file instanceof File) || file.size < 1)
@@ -74,8 +76,26 @@ async function authorizedActor() {
   return { supabase, userId, role: profile.role };
 }
 
-async function authorizedClient() {
-  return (await authorizedActor()).supabase;
+async function assertEventAssignment(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+  role: string | null,
+  eventId: string,
+  actionLabel: string,
+) {
+  if (!canonicalUuidPattern.test(eventId))
+    throw new Error("Kegiatan tidak valid.");
+  if (role === "admin_system") return;
+  const { data: assignment, error } = await supabase
+    .from("observer_assignments")
+    .select("id")
+    .eq("event_id", eventId)
+    .eq("observer_id", userId)
+    .maybeSingle();
+  if (error || !assignment)
+    throw new Error(
+      `Anda hanya dapat ${actionLabel} pada kegiatan yang ditugaskan.`,
+    );
 }
 
 async function assertEventActive(
@@ -119,18 +139,13 @@ export async function updateEvent(formData: FormData) {
     !["planned", "ongoing", "completed"].includes(status)
   )
     throw new Error("Data kegiatan tidak valid.");
-  if (role === "observer") {
-    const { data: assignment, error: assignmentError } = await supabase
-      .from("observer_assignments")
-      .select("id")
-      .eq("event_id", id)
-      .eq("observer_id", userId)
-      .maybeSingle();
-    if (assignmentError || !assignment)
-      throw new Error(
-        "Anda hanya dapat mengubah detail kegiatan yang ditugaskan kepada Anda.",
-      );
-  }
+  await assertEventAssignment(
+    supabase,
+    userId,
+    role,
+    id,
+    "mengubah detail kegiatan",
+  );
   const updates = {
     commissariat,
     location,
@@ -227,7 +242,7 @@ export async function restoreEvent(formData: FormData) {
 }
 
 export async function addParticipant(formData: FormData) {
-  const supabase = await authorizedClient();
+  const { supabase, userId, role } = await authorizedActor();
   const eventId = String(formData.get("eventId") ?? "");
   const displayName = String(formData.get("displayName") ?? "").trim();
   const commissariatId = String(formData.get("commissariatId") ?? "");
@@ -262,6 +277,13 @@ export async function addParticipant(formData: FormData) {
     .maybeSingle();
   if (commissariatError || !commissariat)
     throw new Error("Pilih Komisariat yang masih aktif.");
+  await assertEventAssignment(
+    supabase,
+    userId,
+    role,
+    eventId,
+    "mengelola peserta",
+  );
   await assertEventActive(supabase, eventId);
   const participantId = crypto.randomUUID();
   const photoPath = await uploadParticipantPhoto(
@@ -294,7 +316,7 @@ export async function addParticipant(formData: FormData) {
 }
 
 export async function editParticipant(formData: FormData) {
-  const supabase = await authorizedClient();
+  const { supabase, userId, role } = await authorizedActor();
   const participantId = String(formData.get("participantId") ?? "");
   const displayName = String(formData.get("displayName") ?? "").trim();
   const commissariatId = String(formData.get("commissariatId") ?? "");
@@ -334,6 +356,13 @@ export async function editParticipant(formData: FormData) {
     .maybeSingle();
   if (currentError || !current)
     throw new Error("Peserta tidak ditemukan atau akses ditolak.");
+  await assertEventAssignment(
+    supabase,
+    userId,
+    role,
+    current.event_id,
+    "mengelola peserta",
+  );
   await assertEventActive(supabase, current.event_id);
   const newPhoto = photo instanceof File && photo.size > 0;
   const newPhotoPath = newPhoto
@@ -370,7 +399,7 @@ export async function editParticipant(formData: FormData) {
 }
 
 export async function removeParticipant(formData: FormData) {
-  const supabase = await authorizedClient();
+  const { supabase, userId, role } = await authorizedActor();
   const participantId = String(formData.get("participantId") ?? "");
   if (!uuidPattern.test(participantId))
     throw new Error("ID peserta tidak valid.");
@@ -380,6 +409,13 @@ export async function removeParticipant(formData: FormData) {
     .eq("id", participantId)
     .maybeSingle();
   if (!current) throw new Error("Peserta tidak ditemukan atau akses ditolak.");
+  await assertEventAssignment(
+    supabase,
+    userId,
+    role,
+    current.event_id,
+    "mengelola peserta",
+  );
   await assertEventActive(supabase, current.event_id);
   const { error } = await supabase
     .from("participants")

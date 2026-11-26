@@ -7,9 +7,8 @@ import { createClient } from "@/lib/supabase/server";
 import {
   calculateAspectAggregates,
   calculateOverallScore,
-  type IndicatorAggregate,
-  type PlannedIndicator,
 } from "@/lib/phase6-scoring";
+import { buildEvaluationPlan } from "@/lib/evaluation-planning";
 import { buildLowScoreRecommendations } from "@/lib/phase6-recommendations";
 import { relatedRows } from "@/lib/relations";
 import type {
@@ -663,43 +662,13 @@ async function runFinalize(
     rubricVersionId,
     participantId,
   );
-  const aggregates = new Map<string, IndicatorAggregate>();
-  const planned: PlannedIndicator[] = rows.map((row) => {
-    const key = `${row.indicator_id}:${row.assessment_scope_key}`;
-    if (!aggregates.has(key))
-      aggregates.set(key, {
-        participantId,
-        indicatorId: row.indicator_id,
-        scope: row.assessment_scope,
-        scopeKey: row.assessment_scope_key,
-        sourceRubricVersionIds: row.source_rubric_version_ids ?? [],
-        average: row.average_score === null ? null : Number(row.average_score),
-        validRatings: Number(row.valid_rating_count),
-        minimum: row.minimum_score === null ? null : Number(row.minimum_score),
-        maximum: row.maximum_score === null ? null : Number(row.maximum_score),
-        range: row.score_range === null ? null : Number(row.score_range),
-        notObserved: Number(row.not_observed_count),
-        pending: Number(row.pending_count),
-        reviewStatus: row.review_status,
-        observerScores: [],
-      });
-    return {
-      participantId,
-      rubricVersionId: `aggregate:${row.assessment_scope_key}`,
-      localIndicatorId: row.indicator_id,
-      competencyIndicatorId: row.indicator_id,
-      assessmentScope: row.assessment_scope,
-      assessmentScopeKey: row.assessment_scope_key,
-      aspectId: row.aspect_id,
-      aspectName: row.aspect_name,
-      aspectWeight: Number(row.aspect_weight),
-      indicatorWeight: Number(row.indicator_weight),
-      expectedObserverIds: [],
-    };
+  const { planned, aggregates } = buildEvaluationPlan(rows, {
+    keyPrefix: "aggregate",
+    participantId,
   });
   const aspects = calculateAspectAggregates(
     planned,
-    [...aggregates.values()],
+    aggregates,
     Number(policy.minimum_coverage),
   );
   const overall = calculateOverallScore(aspects);
@@ -967,6 +936,8 @@ export async function finalizeAllEvaluations(formData: FormData) {
 
   let finalized = 0;
   let skipped = 0;
+  let failed = 0;
+  let firstFailure: string | null = null;
   for (const evaluation of evaluations ?? []) {
     const decision = String(evaluation.graduation_decision ?? "");
     const rationale = String(evaluation.decision_rationale ?? "").trim();
@@ -999,13 +970,17 @@ export async function finalizeAllEvaluations(formData: FormData) {
         continue;
       }
       finalized += 1;
-    } catch {
-      skipped += 1;
+    } catch (error) {
+      failed += 1;
+      if (!firstFailure) firstFailure = actionError(error);
     }
   }
   revalidatePath("/dashboard/evaluasi");
   revalidatePath("/dashboard/laporan");
+  const failureQuery = failed
+    ? `&batchFailed=${failed}&batchError=${encodeURIComponent((firstFailure ?? "").slice(0, 200))}`
+    : "";
   redirect(
-    `/dashboard/evaluasi?eventId=${eventId}&batchOk=${finalized}&batchSkipped=${skipped}&batchMissing=${missingVersions.length}`,
+    `/dashboard/evaluasi?eventId=${eventId}&batchOk=${finalized}&batchSkipped=${skipped}&batchMissing=${missingVersions.length}${failureQuery}`,
   );
 }

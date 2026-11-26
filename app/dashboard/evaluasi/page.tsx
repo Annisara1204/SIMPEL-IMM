@@ -4,9 +4,8 @@ import { createClient } from "@/lib/supabase/server";
 import {
   calculateAspectAggregates,
   calculateOverallScore,
-  type IndicatorAggregate,
-  type PlannedIndicator,
 } from "@/lib/phase6-scoring";
+import { buildEvaluationPlan } from "@/lib/evaluation-planning";
 import { firstRelated, relatedRows } from "@/lib/relations";
 import { stageLabel } from "@/lib/stage-labels";
 import { isEventModerator } from "@/lib/moderation-access";
@@ -36,6 +35,8 @@ type Props = {
     batchOk?: string | string[];
     batchSkipped?: string | string[];
     batchMissing?: string | string[];
+    batchFailed?: string | string[];
+    batchError?: string | string[];
     error?: string | string[];
   }>;
 };
@@ -76,27 +77,20 @@ export default async function CollectiveEvaluationPage({
   const participantId = Array.isArray(params.participantId)
     ? params.participantId[0]
     : params.participantId;
+  const paramValue = (value: string | string[] | undefined) =>
+    Array.isArray(value) ? value[0] : value;
+  const batchFailure = paramValue(params.batchError) ?? null;
   const batchResult =
-    params.batchOk || params.batchSkipped || params.batchMissing
+    params.batchOk ||
+    params.batchSkipped ||
+    params.batchMissing ||
+    params.batchFailed
       ? {
-          ok:
-            Number(
-              Array.isArray(params.batchOk)
-                ? params.batchOk[0]
-                : params.batchOk,
-            ) || 0,
-          skipped:
-            Number(
-              Array.isArray(params.batchSkipped)
-                ? params.batchSkipped[0]
-                : params.batchSkipped,
-            ) || 0,
-          missing:
-            Number(
-              Array.isArray(params.batchMissing)
-                ? params.batchMissing[0]
-                : params.batchMissing,
-            ) || 0,
+          ok: Number(paramValue(params.batchOk)) || 0,
+          skipped: Number(paramValue(params.batchSkipped)) || 0,
+          missing: Number(paramValue(params.batchMissing)) || 0,
+          failed: Number(paramValue(params.batchFailed)) || 0,
+          error: batchFailure,
         }
       : null;
   const { data: events } = await supabase
@@ -280,41 +274,10 @@ export default async function CollectiveEvaluationPage({
             row.source_rubric_version_ids.includes(selectedVersionId)),
       )
     : [];
-  const indicatorMap = new Map<string, IndicatorAggregate>();
-  const planned: PlannedIndicator[] = scopedRows.map((row) => {
-    const key = `${row.indicator_id}:${row.assessment_scope_key}`;
-    if (!indicatorMap.has(key))
-      indicatorMap.set(key, {
-        participantId: row.participant_id,
-        indicatorId: row.indicator_id,
-        scope: row.assessment_scope,
-        scopeKey: row.assessment_scope_key,
-        sourceRubricVersionIds: row.source_rubric_version_ids ?? [],
-        average: row.average_score === null ? null : Number(row.average_score),
-        validRatings: Number(row.valid_rating_count),
-        minimum: row.minimum_score === null ? null : Number(row.minimum_score),
-        maximum: row.maximum_score === null ? null : Number(row.maximum_score),
-        range: row.score_range === null ? null : Number(row.score_range),
-        notObserved: Number(row.not_observed_count),
-        pending: Number(row.pending_count),
-        reviewStatus: row.review_status,
-        observerScores: [],
-      });
-    return {
-      participantId: row.participant_id,
-      rubricVersionId: `summary:${row.assessment_scope_key}`,
-      localIndicatorId: row.indicator_id,
-      competencyIndicatorId: row.indicator_id,
-      assessmentScope: row.assessment_scope,
-      assessmentScopeKey: row.assessment_scope_key,
-      aspectId: row.aspect_id,
-      aspectName: row.aspect_name,
-      aspectWeight: Number(row.aspect_weight),
-      indicatorWeight: Number(row.indicator_weight),
-      expectedObserverIds: [],
-    };
-  });
-  const indicatorAggregates = [...indicatorMap.values()];
+  const { planned, aggregates: indicatorAggregates } = buildEvaluationPlan(
+    scopedRows,
+    { keyPrefix: "summary" },
+  );
   const aspectAggregates = calculateAspectAggregates(
     planned,
     indicatorAggregates,
@@ -347,9 +310,19 @@ export default async function CollectiveEvaluationPage({
   return (
     <main className="users-page">
       {batchResult && (
-        <div className="users-notice" role="status">
+        <div
+          className="users-notice"
+          role={batchResult.failed ? "alert" : "status"}
+        >
           Finalisasi semua: {batchResult.ok} berhasil, {batchResult.skipped}{" "}
-          dilewati, {batchResult.missing} versi rubrik belum punya evaluasi.
+          dilewati, {batchResult.failed} gagal, {batchResult.missing} versi
+          rubrik belum punya evaluasi.
+          {batchResult.error && (
+            <span className="users-error">
+              {" "}
+              Kesalahan: {batchResult.error}.
+            </span>
+          )}
         </div>
       )}
       <div className="users-heading">

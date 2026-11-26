@@ -10,7 +10,7 @@ import {
 } from "@/lib/phase6-scoring";
 import { buildEvaluationPlan } from "@/lib/evaluation-planning";
 import { buildLowScoreRecommendations } from "@/lib/phase6-recommendations";
-import { relatedRows } from "@/lib/relations";
+import { asRows, relatedRows } from "@/lib/relations";
 import type {
   AssessmentSummaryRow,
   RubricVersionJoined,
@@ -160,7 +160,10 @@ export async function saveAssessmentModeration(formData: FormData) {
     versions?.length !== sourceVersionIds.length
   )
     throw new Error("Peserta atau versi rubrik tidak sesuai kegiatan.");
-  const typedVersions = (versions ?? []) as unknown as RubricVersionJoined[];
+  const typedVersions = asRows<RubricVersionJoined>(
+    versions,
+    (row) => typeof row.id === "string" && "rubric_aspects" in row,
+  );
   const localIndicators = typedVersions.flatMap((version) =>
     relatedRows(version.rubric_aspects).flatMap((aspect) =>
       relatedRows(aspect.rubric_indicator_aspects).flatMap((mapping) =>
@@ -455,7 +458,10 @@ export async function generateAutomaticRecommendations(formData: FormData) {
     throw new Error("Draf evaluasi belum tersedia atau sudah difinalisasi.");
 
   const nameById = new Map<string, string>();
-  const nameVersions = (versions ?? []) as unknown as RubricVersionJoined[];
+  const nameVersions = asRows<RubricVersionJoined>(
+    versions,
+    (row) => typeof row.id === "string" && typeof row.version === "number",
+  );
   for (const version of nameVersions)
     for (const aspect of relatedRows(version.rubric_aspects))
       for (const mapping of relatedRows(aspect.rubric_indicator_aspects))

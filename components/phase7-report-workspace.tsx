@@ -364,24 +364,31 @@ export function Phase7ReportWorkspace(props: Props) {
       .filter((item): item is ReportFileData => !!item);
   }
 
+  const performIndividualExport = useCallback(
+    async (report: ReportFileData) => {
+      let finalReport = report;
+      if (report.snapshotId && role !== "peserta") {
+        await loadSnapshots([report.snapshotId]);
+        const full = fullSnapshots.current[report.snapshotId];
+        if (full) finalReport = { ...report, snapshotData: full };
+      }
+      const reportEventId =
+        event?.id ?? String(participantReport?.event?.id ?? "");
+      await auditReportExport({
+        eventId: reportEventId,
+        exportType: "individual_pdf",
+      });
+      downloadIndividualReport(finalReport);
+    },
+    [event, participantReport, role, loadSnapshots],
+  );
+
   const exportIndividual = useCallback(
     async (report: ReportFileData) => {
       setBusy(true);
       setMessage("");
       try {
-        let finalReport = report;
-        if (report.snapshotId && role !== "peserta") {
-          await loadSnapshots([report.snapshotId]);
-          const full = fullSnapshots.current[report.snapshotId];
-          if (full) finalReport = { ...report, snapshotData: full };
-        }
-        const reportEventId =
-          event?.id ?? String(participantReport?.event?.id ?? "");
-        await auditReportExport({
-          eventId: reportEventId,
-          exportType: "individual_pdf",
-        });
-        downloadIndividualReport(finalReport);
+        await performIndividualExport(report);
       } catch (error) {
         setMessage(
           error instanceof Error ? error.message : "PDF gagal dibuat.",
@@ -390,7 +397,7 @@ export function Phase7ReportWorkspace(props: Props) {
         setBusy(false);
       }
     },
-    [event, participantReport, role, loadSnapshots],
+    [performIndividualExport],
   );
   const autoDownloadedRef = useRef<string | null>(null);
   useEffect(() => {
@@ -406,14 +413,16 @@ export function Phase7ReportWorkspace(props: Props) {
     );
     if (!report) return;
     autoDownloadedRef.current = snapshotId;
-    window.setTimeout(() => void exportIndividual(report), 0);
+    void performIndividualExport(report).catch((error: unknown) => {
+      console.error("Unduhan rapor otomatis gagal", error);
+    });
   }, [
     autoDownloadSnapshotId,
     publishedRows,
     event,
     indicatorNames,
     versionInfoBySnapshot,
-    exportIndividual,
+    performIndividualExport,
   ]);
   async function exportBulk() {
     const reportFiles = await buildReportFiles();

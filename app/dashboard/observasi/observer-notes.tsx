@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { saveObserverNote } from "../penilaian/assessment-actions";
+import { asRow } from "@/lib/relations";
 
 type NoteType = "observation" | "strength" | "development" | "special";
 type NoteRevision = {
@@ -85,7 +86,7 @@ function NoteEditor({
   const [status, setStatus] = useState("Belum ada perubahan");
   const [pending, startTransition] = useTransition();
 
-  // Sync prop changes into local state during render (not in an effect).
+  // Terima revisi dari perangkat lain tanpa menimpa draf lokal yang belum tersimpan.
   const [prevRecord, setPrevRecord] = useState(record);
   if (record !== prevRecord) {
     setPrevRecord(record);
@@ -268,7 +269,16 @@ export function ObserverNotes(props: Props) {
       )
         return;
       setNotes((current) => {
-        const next = row as unknown as NoteRecord;
+        const next = asRow<NoteRecord>(
+          row,
+          (item) =>
+            typeof item.id === "string" &&
+            typeof item.author_id === "string" &&
+            typeof item.content === "string" &&
+            typeof item.revision === "number" &&
+            typeof item.note_type === "string",
+        );
+        if (!next) return current;
         const index = current.findIndex(
           (item) =>
             item.id === next.id ||

@@ -6,7 +6,7 @@ import {
   calculateOverallScore,
 } from "@/lib/phase6-scoring";
 import { buildEvaluationPlan } from "@/lib/evaluation-planning";
-import { firstRelated, relatedRows } from "@/lib/relations";
+import { asRows, firstRelated, relatedRows } from "@/lib/relations";
 import { stageLabel } from "@/lib/stage-labels";
 import { isEventModerator } from "@/lib/moderation-access";
 import type {
@@ -169,10 +169,18 @@ export default async function CollectiveEvaluationPage({
         minimumCoverage: Number(policy?.minimum_coverage ?? 80),
       })
     : null;
-  const versionListAll = (versions ?? []) as unknown as (RubricVersionJoined & {
-    assessment_type_id?: string | null;
-    rubric_assessment_types?: { name: string } | { name: string }[] | null;
-  })[];
+  const versionListAll = asRows<
+    RubricVersionJoined & {
+      assessment_type_id?: string | null;
+      rubric_assessment_types?: { name: string } | { name: string }[] | null;
+    }
+  >(
+    versions,
+    (row) =>
+      typeof row.id === "string" &&
+      typeof row.stage === "string" &&
+      typeof row.version === "number",
+  );
   const stageOrder: Record<string, number> = {
     screening: 0,
     training: 1,
@@ -284,7 +292,10 @@ export default async function CollectiveEvaluationPage({
     Number(policy?.minimum_coverage ?? 80),
   );
   const overall = calculateOverallScore(aspectAggregates);
-  const versionList = (versions ?? []) as unknown as RubricVersionJoined[];
+  const versionList = asRows<RubricVersionJoined>(
+    versions,
+    (row) => typeof row.id === "string" && "stage" in row,
+  );
   const indicatorNames = new Map<string, string>();
   for (const version of versionList)
     for (const aspect of relatedRows(version.rubric_aspects))

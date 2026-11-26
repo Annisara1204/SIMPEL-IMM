@@ -5,7 +5,7 @@
  */
 
 import type { createClient } from "./supabase/server";
-import { firstRelated, type Relation } from "./relations";
+import { asRows, firstRelated, type Relation } from "./relations";
 import { stageLabel } from "./stage-labels";
 import type { ParticipantReport, StaffEventSummaryRow } from "./supabase-rows";
 
@@ -146,7 +146,13 @@ export async function loadPersonalProgressPhase7Home(
     )
     .eq("observer_id", userId)
     .order("updated_at", { ascending: false });
-  const items = (submissions ?? []) as unknown as SubmissionJoinRow[];
+  const items = asRows<SubmissionJoinRow>(
+    submissions,
+    (row) =>
+      typeof row.id === "string" &&
+      typeof row.participant_id === "string" &&
+      "status" in row,
+  );
   const sessions = items.map((item) => {
     const version = firstRelated(item.rubric_versions);
     const event = firstRelated(version?.events);

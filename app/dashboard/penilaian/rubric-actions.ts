@@ -3,7 +3,12 @@ import { uuidPattern } from "@/lib/validation";
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { firstRelated, type Relation } from "@/lib/relations";
+import {
+  asRows,
+  firstRelated,
+  relatedRows,
+  type Relation,
+} from "@/lib/relations";
 import type {
   CompetencyMaterialAspectLink,
   CompetencyMaterialIndicatorLink,
@@ -127,8 +132,13 @@ async function createRubricVersionImpl(formData: FormData) {
     throw new Error(
       "Selesaikan atau hapus draf yang sedang berjalan terlebih dahulu.",
     );
-  let sourceAspects = (versions?.[0]?.rubric_aspects ??
-    []) as unknown as DraftAspect[];
+  let sourceAspects = asRows<DraftAspect>(
+    versions?.[0]?.rubric_aspects,
+    (row) =>
+      typeof row.id === "string" &&
+      typeof row.weight === "number" &&
+      "name" in row,
+  );
   let frameworkVersionId: string | null =
     versions?.[0]?.competency_framework_version_id ?? null;
   if (!versions?.[0] && stage === "training") {
@@ -191,10 +201,17 @@ async function createRubricVersionImpl(formData: FormData) {
         throw new Error(
           "Mapping materi belum lengkap sehingga rubrik draf tidak dapat dibuat.",
         );
-      const typedAspectLinks = (aspectLinks ??
-        []) as unknown as CompetencyMaterialAspectLink[];
-      const typedIndicatorLinks = (indicatorLinks ??
-        []) as unknown as CompetencyMaterialIndicatorLink[];
+      const typedAspectLinks = asRows<CompetencyMaterialAspectLink>(
+        aspectLinks,
+        (row) =>
+          typeof row.aspect_id === "string" && typeof row.position === "number",
+      );
+      const typedIndicatorLinks = asRows<CompetencyMaterialIndicatorLink>(
+        indicatorLinks,
+        (row) =>
+          typeof row.indicator_id === "string" &&
+          typeof row.aspect_id === "string",
+      );
       const firstMasterAspect = firstRelated(
         typedAspectLinks[0].competency_aspects,
       );
@@ -221,11 +238,11 @@ async function createRubricVersionImpl(formData: FormData) {
         anchorVersions.map((item) => [
           item.id,
           Object.fromEntries(
-            (
-              (item.rubric_behavioral_anchors ?? []) as unknown as {
-                score: number;
-                description: string;
-              }[]
+            asRows<{ score: number; description: string }>(
+              item.rubric_behavioral_anchors,
+              (row) =>
+                typeof row.score === "number" &&
+                typeof row.description === "string",
             ).map((anchor) => [String(anchor.score), anchor.description]),
           ),
         ]),
@@ -744,11 +761,11 @@ async function applyFrameworkRubricSelectionImpl(formData: FormData) {
     anchorVersions.map((item) => [
       item.id,
       Object.fromEntries(
-        (
-          (item.rubric_behavioral_anchors ?? []) as unknown as {
-            score: number;
-            description: string;
-          }[]
+        asRows<{ score: number; description: string }>(
+          item.rubric_behavioral_anchors,
+          (row) =>
+            typeof row.score === "number" &&
+            typeof row.description === "string",
         ).map((anchor) => [String(anchor.score), anchor.description]),
       ),
     ]),

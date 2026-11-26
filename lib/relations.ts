@@ -18,3 +18,27 @@ export function firstRelated<T>(
 ): T | null {
   return Array.isArray(relation) ? (relation[0] ?? null) : (relation ?? null);
 }
+
+type RowGuard = (row: Record<string, unknown>) => boolean;
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+/**
+ * Satu batas validasi untuk data hasil Supabase/CustomEvent.
+ * Baris yang bentuknya tidak sesuai dibuang, bukan dipaksa menjadi tipe domain.
+ */
+export function asRows<T>(value: unknown, isValid: RowGuard): T[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter(
+    (item): item is T => isRecord(item) && isValid(item),
+  ) as T[];
+}
+
+export function asRow<T>(value: unknown, isValid: RowGuard): T | null {
+  if (!isRecord(value) || !isValid(value)) return null;
+  // Satu-satunya tempat data tanpa tipe diizinkan menjadi tipe domain,
+  // setelah bentuk dan field wajibnya diperiksa.
+  return value as unknown as T;
+}

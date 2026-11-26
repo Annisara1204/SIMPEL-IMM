@@ -4,6 +4,7 @@ import { uuidPattern } from "@/lib/validation";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { asRow } from "@/lib/relations";
 import type { ReportSnapshotData } from "@/lib/supabase-rows";
 
 async function currentUser() {
@@ -157,12 +158,15 @@ export async function loadReportSnapshots(
   );
   const result: Record<string, ReportSnapshotData> = {};
   for (const row of data ?? []) {
-    if (
-      !archivedIds.has(row.event_id) &&
-      row.snapshot_data &&
-      typeof row.snapshot_data === "object"
-    ) {
-      result[row.id] = row.snapshot_data as unknown as ReportSnapshotData;
+    if (!archivedIds.has(row.event_id)) {
+      const snapshot = asRow<ReportSnapshotData>(
+        row.snapshot_data,
+        (value) =>
+          "schemaVersion" in value ||
+          "aspects" in value ||
+          "indicators" in value,
+      );
+      if (snapshot) result[row.id] = snapshot;
     }
   }
   return result;

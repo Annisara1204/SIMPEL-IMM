@@ -44,8 +44,7 @@ export function AssessmentRatingCell(props: Props) {
     updated_at: null,
   };
   const storageKey = `dad-assessment:${props.rubricVersionId}:${props.participantId}:${props.indicatorId}`;
-  // Restore any unsynced local draft on mount via a lazy initializer instead of
-  // an effect, so the first paint already reflects the local draft when present.
+  // Pulihkan draf lokal sebelum tampilan pertama agar nilai yang belum terkirim tidak hilang.
   const [initialDraft] = useState(() => {
     const fallback = {
       value: initial,

@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { Phase7ReportWorkspace } from "@/components/phase7-report-workspace";
 import { assignParticipantAccount, publishReport } from "./actions";
-import { firstRelated, relatedRows } from "@/lib/relations";
+import { asRow, asRows, firstRelated, relatedRows } from "@/lib/relations";
 import { stageLabel } from "@/lib/stage-labels";
 import { isEventModerator } from "@/lib/moderation-access";
 import type {
@@ -59,10 +59,15 @@ export default async function ReportingPage({ searchParams }: Props) {
     const { data, error } = await supabase.rpc(
       "get_my_published_assessment_report",
     );
-    const report =
-      data && typeof data === "object"
-        ? (data as unknown as ParticipantReport)
-        : null;
+    const report = asRow<ParticipantReport>(
+      data,
+      (row) =>
+        typeof row.snapshot_id === "string" &&
+        typeof row.event === "object" &&
+        row.event !== null &&
+        typeof row.participant === "object" &&
+        row.participant !== null,
+    );
     return (
       <Phase7ReportWorkspace
         role={role}
@@ -164,7 +169,10 @@ export default async function ReportingPage({ searchParams }: Props) {
       : { data: [] },
   ]);
   const { data: versions } = versionsRes as { data: unknown };
-  const versionList = (versions ?? []) as unknown as RubricVersionJoined[];
+  const versionList = asRows<RubricVersionJoined>(
+    versions,
+    (row) => typeof row.id === "string" && "stage" in row,
+  );
   const indicatorNames: Record<string, string> = {};
   for (const version of versionList)
     for (const aspect of relatedRows(version.rubric_aspects))
@@ -174,8 +182,10 @@ export default async function ReportingPage({ searchParams }: Props) {
             indicator.name;
   const frameworkVersionsRaw = (frameworkVersionsRawRes as { data: unknown })
     .data;
-  const frameworkVersions = (frameworkVersionsRaw ??
-    []) as unknown as CompetencyFrameworkVersionJoined[];
+  const frameworkVersions = asRows<CompetencyFrameworkVersionJoined>(
+    frameworkVersionsRaw,
+    (row) => typeof row.id === "string" && typeof row.version === "number",
+  );
   const versionInfoBySnapshot = new Map<string, string[]>();
   for (const row of reportRows) {
     if (!row.snapshot_id) continue;

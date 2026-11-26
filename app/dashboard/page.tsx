@@ -6,6 +6,7 @@ import { Phase7DashboardHome } from "@/components/phase7-dashboard-home";
 import { DashboardContent } from "@/components/simulated-panels";
 import { DashboardAssessmentResults } from "@/components/dashboard-assessment-results";
 import { createClient } from "@/lib/supabase/server";
+import { asRows } from "@/lib/relations";
 import { loadDashboardAssessmentData } from "@/lib/dashboard-results";
 import {
   isModeratorPosition,
@@ -93,8 +94,10 @@ export default async function DashboardPage() {
       .select("id, event_id, position, created_at, events(name)")
       .eq("instructor_id", userId)
       .order("created_at");
-    instructorAssignmentRows =
-      (allAssignments as unknown as InstructorAssignmentRow[] | null) ?? [];
+    instructorAssignmentRows = asRows<InstructorAssignmentRow>(
+      allAssignments,
+      (row) => typeof row.id === "string" && typeof row.event_id === "string",
+    );
     if (!instructorAssignmentRows.length)
       return (
         <main className="setup-message">

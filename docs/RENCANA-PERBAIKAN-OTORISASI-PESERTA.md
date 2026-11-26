@@ -1,8 +1,8 @@
 # Rencana Perbaikan Otorisasi Peserta dan Foto
 
 **Tanggal:** 27 November 2026
-**Status:** rencana saja. Belum ada kode, migrasi, atau data yang diubah.
-**Disetujui pemilik:** 27 November 2026 untuk disusun. Eksekusi menunggu review rencana ini dan keputusan deploy terpisah.
+**Status:** selesai. Rencana melewati empat iterasi review dan dinyatakan bersih, lalu dieksekusi di DEV dan di-deploy ke produksi pada 27 November 2026 sebagai commit `6ce7fc7`.
+**Disetujui pemilik:** 27 November 2026 untuk disusun dan, setelah review, dieksekusi serta dinaikkan ke produksi.
 
 ## 1. Tujuan
 

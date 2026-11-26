@@ -19,7 +19,8 @@ const UUID_PATTERN =
 
 // Kegiatan yang agregatnya boleh ditampilkan publik. Bukan rahasia; diisi
 // lewat env server. Tanpa nilai yang valid, halaman menampilkan "data belum
-// tersedia" dan tidak memanggil RPC.
+// tersedia" dan tidak memanggil RPC. Nilai ini juga harus tercantum di tabel
+// public.public_aggregate_settings, tempat RPC memeriksa daftar putihnya.
 const publicEventId = process.env.NEXT_PUBLIC_PUBLIC_AGGREGATE_EVENT_ID;
 
 async function loadPublicAggregate(): Promise<PublicAggregate | null> {

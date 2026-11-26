@@ -1,6 +1,6 @@
 # Rancangan — Arsip Materi Pelatihan
 
-**Status:** disetujui pemilik 26 November 2026. Implementasi selesai di DEV; deploy PROD menyusul. Rancangan ditulis 26 November 2026.
+**Status:** disetujui pemilik, diimplementasikan, dan di-deploy ke produksi 26 November 2026. Rancangan ditulis 26 November 2026.
 **Latar:** materi di `/dashboard/penilaian` tidak punya tombol hapus. Penghapusan lewat database berisiko merusak riwayat karena versi rubrik, submission, evaluasi, dan snapshot saling terhubung. Rancangan ini menyembunyikan materi tanpa menghapus data, mengikuti pola arsip kegiatan di `BLUEPRINT.md:23` dan `app/dashboard/kegiatan/`.
 
 ## Tujuan

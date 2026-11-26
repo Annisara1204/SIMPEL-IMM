@@ -10,17 +10,7 @@ import type {
 } from "@/lib/supabase-rows";
 import { staffClient } from "./internal";
 
-function penilaianErrorUrl(message: string, formData?: FormData): string {
-  const params = new URLSearchParams();
-  if (formData) {
-    for (const key of ["eventId", "stage", "materialId"] as const) {
-      const value = String(formData.get(key) ?? "");
-      if (value) params.set(key, value);
-    }
-  }
-  params.set("error", message.slice(0, 300));
-  return `/dashboard/penilaian?${params.toString()}`;
-}
+import { penilaianErrorUrl, runPenilaianAction } from "./form-error";
 
 function readScoreDescriptors(formData: FormData) {
   const entries = [1, 2, 3, 4, 5].map(
@@ -74,7 +64,7 @@ function roundWeight(value: number) {
   return Math.round(value * 100) / 100;
 }
 
-export async function createRubricVersion(formData: FormData) {
+async function createRubricVersionImpl(formData: FormData) {
   const { supabase, userId } = await staffClient(["admin_system"]);
   const eventId = String(formData.get("eventId") ?? "");
   const stage = String(formData.get("stage") ?? "");
@@ -386,7 +376,7 @@ export async function createRubricVersion(formData: FormData) {
   revalidatePath("/dashboard/penilaian");
 }
 
-export async function createTrainingMaterial(formData: FormData) {
+async function createTrainingMaterialImpl(formData: FormData) {
   const { supabase } = await staffClient(["admin_system"]);
   const eventId = String(formData.get("eventId") ?? "");
   const name = String(formData.get("name") ?? "").trim();
@@ -466,15 +456,15 @@ async function setMaterialArchived(formData: FormData, archived: boolean) {
   revalidatePath("/dashboard/laporan");
 }
 
-export async function archiveMaterial(formData: FormData) {
+async function archiveMaterialImpl(formData: FormData) {
   await setMaterialArchived(formData, true);
 }
 
-export async function restoreMaterial(formData: FormData) {
+async function restoreMaterialImpl(formData: FormData) {
   await setMaterialArchived(formData, false);
 }
 
-export async function archiveRubricVersion(formData: FormData) {
+async function archiveRubricVersionImpl(formData: FormData) {
   const { supabase } = await staffClient(["admin_system"]);
   const versionId = String(formData.get("versionId") ?? "");
   if (!uuidPattern.test(versionId))
@@ -503,7 +493,7 @@ export async function archiveRubricVersion(formData: FormData) {
   revalidatePath("/dashboard/laporan");
 }
 
-export async function setTrainingMaterialFramework(formData: FormData) {
+async function setTrainingMaterialFrameworkImpl(formData: FormData) {
   const { supabase } = await staffClient(["admin_system"]);
   const materialId = String(formData.get("materialId") ?? "");
   const competencyMaterialId = String(
@@ -553,7 +543,7 @@ export async function setTrainingMaterialFramework(formData: FormData) {
   revalidatePath("/dashboard/observasi");
 }
 
-export async function applyFrameworkRubricSelection(formData: FormData) {
+async function applyFrameworkRubricSelectionImpl(formData: FormData) {
   const { supabase } = await staffClient(["admin_system"]);
   const versionId = String(formData.get("versionId") ?? "");
   const selectedAspectIds = [
@@ -976,7 +966,7 @@ export async function applyFrameworkRubricSelection(formData: FormData) {
   revalidatePath("/dashboard/penilaian");
 }
 
-export async function createAssessmentType(formData: FormData) {
+async function createAssessmentTypeImpl(formData: FormData) {
   const { supabase } = await staffClient(["admin_system"]);
   const eventId = String(formData.get("eventId") ?? "");
   const stage = String(formData.get("stage") ?? "");
@@ -1008,7 +998,7 @@ export async function createAssessmentType(formData: FormData) {
   revalidatePath("/dashboard/penilaian");
 }
 
-export async function addAspect(formData: FormData) {
+async function addAspectImpl(formData: FormData) {
   const { supabase } = await staffClient(["admin_system"]);
   const versionId = String(formData.get("versionId") ?? "");
   const name = String(formData.get("name") ?? "").trim();
@@ -1041,7 +1031,7 @@ export async function addAspect(formData: FormData) {
   revalidatePath("/dashboard/penilaian");
 }
 
-export async function editAspect(formData: FormData) {
+async function editAspectImpl(formData: FormData) {
   const { supabase } = await staffClient(["admin_system"]);
   const id = String(formData.get("aspectId") ?? "");
   const name = String(formData.get("name") ?? "").trim();
@@ -1066,7 +1056,7 @@ export async function editAspect(formData: FormData) {
   revalidatePath("/dashboard/penilaian");
 }
 
-export async function addIndicator(formData: FormData) {
+async function addIndicatorImpl(formData: FormData) {
   const { supabase } = await staffClient(["admin_system"]);
   const aspectId = String(formData.get("aspectId") ?? "");
   const name = String(formData.get("name") ?? "").trim();
@@ -1118,7 +1108,7 @@ export async function addIndicator(formData: FormData) {
   revalidatePath("/dashboard/penilaian");
 }
 
-export async function editIndicator(formData: FormData) {
+async function editIndicatorImpl(formData: FormData) {
   const { supabase } = await staffClient(["admin_system"]);
   const id = String(formData.get("indicatorId") ?? "");
   const mappingId = String(formData.get("mappingId") ?? "");
@@ -1160,7 +1150,7 @@ export async function editIndicator(formData: FormData) {
   revalidatePath("/dashboard/penilaian");
 }
 
-export async function linkIndicatorToAspect(formData: FormData) {
+async function linkIndicatorToAspectImpl(formData: FormData) {
   const { supabase } = await staffClient(["admin_system"]);
   const indicatorId = String(formData.get("indicatorId") ?? "");
   const aspectId = String(formData.get("aspectId") ?? "");
@@ -1183,7 +1173,7 @@ export async function linkIndicatorToAspect(formData: FormData) {
   revalidatePath("/dashboard/penilaian");
 }
 
-export async function unlinkIndicatorFromAspect(formData: FormData) {
+async function unlinkIndicatorFromAspectImpl(formData: FormData) {
   const { supabase } = await staffClient(["admin_system"]);
   const mappingId = String(formData.get("mappingId") ?? "");
   const indicatorId = String(formData.get("indicatorId") ?? "");
@@ -1214,7 +1204,7 @@ export async function unlinkIndicatorFromAspect(formData: FormData) {
   revalidatePath("/dashboard/penilaian");
 }
 
-export async function removeDraftIndicatorMapping(formData: FormData) {
+async function removeDraftIndicatorMappingImpl(formData: FormData) {
   const { supabase } = await staffClient(["admin_system"]);
   const mappingId = String(formData.get("mappingId") ?? "");
   const indicatorId = String(formData.get("indicatorId") ?? "");
@@ -1271,7 +1261,7 @@ export async function removeDraftIndicatorMapping(formData: FormData) {
   revalidatePath("/dashboard/penilaian");
 }
 
-export async function removeDraftAspect(formData: FormData) {
+async function removeDraftAspectImpl(formData: FormData) {
   const { supabase } = await staffClient(["admin_system"]);
   const aspectId = String(formData.get("aspectId") ?? "");
   if (!uuidPattern.test(aspectId)) throw new Error("Aspek tidak valid.");
@@ -1331,7 +1321,7 @@ export async function removeDraftAspect(formData: FormData) {
   revalidatePath("/dashboard/penilaian");
 }
 
-export async function activateRubric(formData: FormData) {
+async function activateRubricImpl(formData: FormData) {
   const { supabase } = await staffClient(["admin_system"]);
   const versionId = String(formData.get("versionId") ?? "");
   const { data: aspects, error } = await supabase
@@ -1404,4 +1394,56 @@ export async function activateRubric(formData: FormData) {
     .eq("id", versionId);
   if (activateError) throw new Error("Rubrik gagal diaktifkan.");
   revalidatePath("/dashboard/penilaian");
+}
+
+export async function createRubricVersion(formData: FormData) {
+  await runPenilaianAction(formData, createRubricVersionImpl);
+}
+export async function createTrainingMaterial(formData: FormData) {
+  await runPenilaianAction(formData, createTrainingMaterialImpl);
+}
+export async function archiveMaterial(formData: FormData) {
+  await runPenilaianAction(formData, archiveMaterialImpl);
+}
+export async function restoreMaterial(formData: FormData) {
+  await runPenilaianAction(formData, restoreMaterialImpl);
+}
+export async function archiveRubricVersion(formData: FormData) {
+  await runPenilaianAction(formData, archiveRubricVersionImpl);
+}
+export async function setTrainingMaterialFramework(formData: FormData) {
+  await runPenilaianAction(formData, setTrainingMaterialFrameworkImpl);
+}
+export async function applyFrameworkRubricSelection(formData: FormData) {
+  await runPenilaianAction(formData, applyFrameworkRubricSelectionImpl);
+}
+export async function createAssessmentType(formData: FormData) {
+  await runPenilaianAction(formData, createAssessmentTypeImpl);
+}
+export async function addAspect(formData: FormData) {
+  await runPenilaianAction(formData, addAspectImpl);
+}
+export async function editAspect(formData: FormData) {
+  await runPenilaianAction(formData, editAspectImpl);
+}
+export async function addIndicator(formData: FormData) {
+  await runPenilaianAction(formData, addIndicatorImpl);
+}
+export async function editIndicator(formData: FormData) {
+  await runPenilaianAction(formData, editIndicatorImpl);
+}
+export async function linkIndicatorToAspect(formData: FormData) {
+  await runPenilaianAction(formData, linkIndicatorToAspectImpl);
+}
+export async function unlinkIndicatorFromAspect(formData: FormData) {
+  await runPenilaianAction(formData, unlinkIndicatorFromAspectImpl);
+}
+export async function removeDraftIndicatorMapping(formData: FormData) {
+  await runPenilaianAction(formData, removeDraftIndicatorMappingImpl);
+}
+export async function removeDraftAspect(formData: FormData) {
+  await runPenilaianAction(formData, removeDraftAspectImpl);
+}
+export async function activateRubric(formData: FormData) {
+  await runPenilaianAction(formData, activateRubricImpl);
 }

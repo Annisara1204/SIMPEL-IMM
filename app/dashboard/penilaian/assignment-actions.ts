@@ -9,8 +9,9 @@ import {
   type InstructorPosition,
 } from "@/lib/instructor-roles";
 import { staffClient } from "./internal";
+import { runPenilaianAction } from "./form-error";
 
-export async function assignObserver(formData: FormData) {
+async function assignObserverImpl(formData: FormData) {
   const { supabase, userId } = await staffClient([
     "admin_system",
     "bidang_kader",
@@ -60,7 +61,7 @@ export async function assignObserver(formData: FormData) {
   );
 }
 
-export async function removeObserverAssignment(formData: FormData) {
+async function removeObserverAssignmentImpl(formData: FormData) {
   const { supabase } = await staffClient(["admin_system", "bidang_kader"]);
   const assignmentId = String(formData.get("assignmentId") ?? "");
   if (!uuidPattern.test(assignmentId))
@@ -74,7 +75,7 @@ export async function removeObserverAssignment(formData: FormData) {
   revalidatePath("/dashboard/observasi");
 }
 
-export async function assignInstructorEvent(formData: FormData) {
+async function assignInstructorEventImpl(formData: FormData) {
   const { supabase, userId } = await staffClient(["admin_system"]);
   const eventId = String(formData.get("eventId") ?? "");
   const instructorId = String(formData.get("instructorId") ?? "");
@@ -129,7 +130,7 @@ export async function assignInstructorEvent(formData: FormData) {
   revalidatePath("/dashboard");
 }
 
-export async function removeInstructorEventAssignment(formData: FormData) {
+async function removeInstructorEventAssignmentImpl(formData: FormData) {
   const { supabase } = await staffClient(["admin_system"]);
   const assignmentId = String(formData.get("assignmentId") ?? "");
   if (!uuidPattern.test(assignmentId))
@@ -168,4 +169,17 @@ export async function updateInstructorDutyItem(formData: FormData) {
       "Status tugas gagal diperbarui. Pastikan migrasi subrole Instruktur sudah dijalankan.",
     );
   revalidatePath("/dashboard");
+}
+
+export async function assignObserver(formData: FormData) {
+  await runPenilaianAction(formData, assignObserverImpl);
+}
+export async function removeObserverAssignment(formData: FormData) {
+  await runPenilaianAction(formData, removeObserverAssignmentImpl);
+}
+export async function assignInstructorEvent(formData: FormData) {
+  await runPenilaianAction(formData, assignInstructorEventImpl);
+}
+export async function removeInstructorEventAssignment(formData: FormData) {
+  await runPenilaianAction(formData, removeInstructorEventAssignmentImpl);
 }

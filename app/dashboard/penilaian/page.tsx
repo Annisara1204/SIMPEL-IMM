@@ -7,6 +7,7 @@ import {
   addAspect,
   addIndicator,
   archiveMaterial,
+  archiveRubricVersion,
   createAssessmentType,
   createRubricVersion,
   createTrainingMaterial,
@@ -1028,6 +1029,40 @@ export default async function AssessmentSettingsPage({
                                     : "Draf"}
                               </span>
                             </div>
+                            {version.status === "active" && canManageRubric && (
+                              <form
+                                action={archiveRubricVersion}
+                                className="event-archive-form"
+                              >
+                                <input
+                                  type="hidden"
+                                  name="versionId"
+                                  value={version.id}
+                                />
+                                <input
+                                  type="hidden"
+                                  name="eventId"
+                                  value={event.id}
+                                />
+                                <input
+                                  type="hidden"
+                                  name="stage"
+                                  value={selectedStage}
+                                />
+                                {selectedStage === "training" && (
+                                  <input
+                                    type="hidden"
+                                    name="materialId"
+                                    value={selectedMaterialId ?? ""}
+                                  />
+                                )}
+                                <button type="submit">Arsipkan versi</button>
+                                <small>
+                                  Versi aktif ditutup tanpa menggantinya. Nilai
+                                  dan riwayat tetap tersimpan.
+                                </small>
+                              </form>
+                            )}
                             {version.status === "draft" &&
                               canManageRubric &&
                               selectedStage === "training" &&

@@ -474,6 +474,35 @@ export async function restoreMaterial(formData: FormData) {
   await setMaterialArchived(formData, false);
 }
 
+export async function archiveRubricVersion(formData: FormData) {
+  const { supabase } = await staffClient(["admin_system"]);
+  const versionId = String(formData.get("versionId") ?? "");
+  if (!uuidPattern.test(versionId))
+    redirect(penilaianErrorUrl("Versi rubrik tidak valid.", formData));
+  const { data: version, error: readError } = await supabase
+    .from("rubric_versions")
+    .select("id,status")
+    .eq("id", versionId)
+    .maybeSingle();
+  if (readError)
+    redirect(penilaianErrorUrl("Versi rubrik belum dapat dibaca.", formData));
+  if (!version || version.status !== "active")
+    redirect(
+      penilaianErrorUrl("Hanya versi aktif yang dapat diarsipkan.", formData),
+    );
+  const { error } = await supabase
+    .from("rubric_versions")
+    .update({ status: "archived" })
+    .eq("id", versionId)
+    .eq("status", "active");
+  if (error)
+    redirect(penilaianErrorUrl("Versi aktif gagal diarsipkan.", formData));
+  revalidatePath("/dashboard/penilaian");
+  revalidatePath("/dashboard/observasi");
+  revalidatePath("/dashboard/evaluasi");
+  revalidatePath("/dashboard/laporan");
+}
+
 export async function setTrainingMaterialFramework(formData: FormData) {
   const { supabase } = await staffClient(["admin_system"]);
   const materialId = String(formData.get("materialId") ?? "");

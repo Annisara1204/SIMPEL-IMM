@@ -66,6 +66,7 @@ Alternatif mengarsipkan materi kapan saja tanpa menyentuh status rubrik tidak di
 Di `app/dashboard/penilaian/rubric-actions.ts`:
 
 - `archiveMaterial(formData)` dan `restoreMaterial(formData)`, keduanya memanggil `setMaterialArchived(formData, archived)`.
+- `archiveRubricVersion(formData)` menutup versi aktif menjadi `archived` tanpa menggantinya. Tombolnya muncul pada versi aktif di halaman Penilaian. Ini diperlukan karena tombol "Aktifkan versi" lama selalu mengaktifkan versi baru, sehingga materi tetap memiliki versi aktif dan tidak bisa diarsipkan.
 - Memakai `staffClient(["admin_system"])`, memvalidasi UUID, lalu:
   - arsip: `update({ archived_at: new Date().toISOString() }).eq("id", id).is("archived_at", null)`;
   - pulihkan: `update({ archived_at: null }).eq("id", id).not("archived_at", "is", null)`.

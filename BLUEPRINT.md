@@ -276,6 +276,7 @@ Jangan mengarang keputusan di bawah. Tanyakan satu per satu saat diperlukan:
 - Rubrik/indikator final dan contoh data simulasi untuk rubrik.
 - **Sudah diputuskan (24 Nov 2026), bukan lagi terbuka:** pembulatan dan rumus tampilan nilai agregat. Skor 0–100 memakai `(skor aspek / 5) × bobot`, tampilan satu angka desimal, snapshot dua angka desimal. Lihat `docs/STATUS-PRODUKSI-SATU-VERSI.md` §3.
 - Kapan setiap Observer dianggap selesai dan bagaimana tugas tidak lengkap ditangani.
+- **Arsip materi Pelatihan:** rancangan di `docs/RANCANGAN-ARSIP-MATERI.md` belum diputuskan. Termasuk aturan apakah materi boleh diarsipkan bila masih memiliki rubrik aktif, dan apakah master Kerangka DAD ikut diarsipkan.
 - **Sudah diputuskan (24 Nov 2026), bukan lagi terbuka:** cakupan akses Komisariat dan ambang agregat publik. Lihat `docs/STATUS-PRODUKSI-SATU-VERSI.md` §3.
 - Format ekspor Google Sheets, impor ulang/duplikat, dan format rapor.
 - Retensi/penghapusan data dan backup untuk penggunaan resmi.

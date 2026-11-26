@@ -6,6 +6,7 @@ import {
   activateRubric,
   addAspect,
   addIndicator,
+  archiveMaterial,
   createAssessmentType,
   createRubricVersion,
   createTrainingMaterial,
@@ -14,6 +15,7 @@ import {
   linkIndicatorToAspect,
   removeDraftAspect,
   removeDraftIndicatorMapping,
+  restoreMaterial,
   setTrainingMaterialFramework,
   unlinkIndicatorFromAspect,
 } from "./rubric-actions";
@@ -38,6 +40,8 @@ type AssessmentSettingsPageProps = {
     materialId?: string | string[];
     typeId?: string | string[];
     assignment?: string | string[];
+    showArchived?: string | string[];
+    error?: string | string[];
   }>;
 };
 
@@ -87,6 +91,16 @@ export default async function AssessmentSettingsPage({
   const selectedTypeId = Array.isArray(params.typeId)
     ? params.typeId[0]
     : params.typeId;
+  const showArchived = (
+    Array.isArray(params.showArchived)
+      ? params.showArchived[0]
+      : params.showArchived
+  )
+    ? true
+    : false;
+  const actionError = Array.isArray(params.error)
+    ? params.error[0]
+    : params.error;
   const [
     { data: events, error: eventsError },
     { data: versions, error: versionsError },
@@ -115,7 +129,9 @@ export default async function AssessmentSettingsPage({
       .order("position"),
     supabase
       .from("rubric_materials")
-      .select("id, event_id, name, position, competency_material_id")
+      .select(
+        "id, event_id, name, position, competency_material_id, archived_at",
+      )
       .order("position"),
     supabase
       .from("profiles")
@@ -209,6 +225,11 @@ export default async function AssessmentSettingsPage({
         typesError ||
         materialsError ||
         instructorAssignmentsError) && <DataUnavailable />}
+      {actionError && (
+        <p className="users-error" role="alert">
+          {actionError}
+        </p>
+      )}
       {!requestedEventId && (
         <section className="event-manage-card">
           <div className="event-manage-title">
@@ -325,7 +346,11 @@ export default async function AssessmentSettingsPage({
                 type.event_id === event.id && type.stage === selectedStage,
             );
             const eventMaterials = (materials ?? []).filter(
-              (material) => material.event_id === event.id,
+              (material) =>
+                material.event_id === event.id &&
+                (showArchived ||
+                  material.archived_at === null ||
+                  material.id === selectedMaterialId),
             );
             const selectedMaterial =
               eventMaterials.find(
@@ -621,6 +646,18 @@ export default async function AssessmentSettingsPage({
                               indikator sesuai kerangka DAD untuk materi
                               tersebut.
                             </p>
+                            {canManageRubric && (
+                              <p className="users-notice">
+                                <Link
+                                  prefetch={false}
+                                  href={`/dashboard/penilaian?eventId=${event.id}&stage=training${showArchived ? "" : "&showArchived=1"}`}
+                                >
+                                  {showArchived
+                                    ? "Kembali ke materi aktif"
+                                    : "Lihat materi yang diarsipkan"}
+                                </Link>
+                              </p>
+                            )}
                             {!selectedMaterialId && (
                               <>
                                 {eventMaterials.map((material) => {
@@ -642,6 +679,11 @@ export default async function AssessmentSettingsPage({
                                         href={`/dashboard/penilaian?eventId=${event.id}&stage=training&materialId=${material.id}`}
                                       >
                                         <strong>{material.name}</strong>
+                                        {material.archived_at && (
+                                          <span className="agenda-status">
+                                            Arsip
+                                          </span>
+                                        )}
                                         <span>
                                           {frameworkMaterials?.find(
                                             (item) =>
@@ -691,6 +733,37 @@ export default async function AssessmentSettingsPage({
                                           </label>
                                           <button type="submit">
                                             Simpan konteks
+                                          </button>
+                                        </form>
+                                      )}
+                                      {canManageRubric && (
+                                        <form
+                                          action={
+                                            material.archived_at
+                                              ? restoreMaterial
+                                              : archiveMaterial
+                                          }
+                                          className="event-archive-form"
+                                        >
+                                          <input
+                                            type="hidden"
+                                            name="materialId"
+                                            value={material.id}
+                                          />
+                                          <input
+                                            type="hidden"
+                                            name="eventId"
+                                            value={event.id}
+                                          />
+                                          <input
+                                            type="hidden"
+                                            name="stage"
+                                            value={selectedStage}
+                                          />
+                                          <button type="submit">
+                                            {material.archived_at
+                                              ? "Pulihkan materi"
+                                              : "Arsipkan materi"}
                                           </button>
                                         </form>
                                       )}
@@ -766,6 +839,13 @@ export default async function AssessmentSettingsPage({
                                       ← Pilih materi lain
                                     </Link>
                                     <h4>Materi: {selectedMaterial.name}</h4>
+                                    {selectedMaterial.archived_at && (
+                                      <p className="users-notice">
+                                        <strong>Materi ini diarsipkan.</strong>{" "}
+                                        Data lama tetap tersimpan. Pulihkan
+                                        materi untuk mengubahnya.
+                                      </p>
+                                    )}
                                   </>
                                 )}
                               <p>
@@ -784,34 +864,35 @@ export default async function AssessmentSettingsPage({
                                   </span>
                                 </Link>
                               ))}
-                              {canManageRubric && (
-                                <form
-                                  action={createAssessmentType}
-                                  className="rubric-add-form"
-                                >
-                                  <input
-                                    type="hidden"
-                                    name="eventId"
-                                    value={event.id}
-                                  />
-                                  <input
-                                    type="hidden"
-                                    name="stage"
-                                    value={selectedStage}
-                                  />
-                                  <label>
-                                    Tambah jenis penilaian
+                              {canManageRubric &&
+                                !selectedMaterial?.archived_at && (
+                                  <form
+                                    action={createAssessmentType}
+                                    className="rubric-add-form"
+                                  >
                                     <input
-                                      required
-                                      minLength={2}
-                                      maxLength={80}
-                                      name="name"
-                                      placeholder="Contoh: Observasi"
+                                      type="hidden"
+                                      name="eventId"
+                                      value={event.id}
                                     />
-                                  </label>
-                                  <button type="submit">Tambah jenis</button>
-                                </form>
-                              )}
+                                    <input
+                                      type="hidden"
+                                      name="stage"
+                                      value={selectedStage}
+                                    />
+                                    <label>
+                                      Tambah jenis penilaian
+                                      <input
+                                        required
+                                        minLength={2}
+                                        maxLength={80}
+                                        name="name"
+                                        placeholder="Contoh: Observasi"
+                                      />
+                                    </label>
+                                    <button type="submit">Tambah jenis</button>
+                                  </form>
+                                )}
                             </div>
                           </>
                         )}
@@ -840,7 +921,8 @@ export default async function AssessmentSettingsPage({
                       {!eventVersions.some(
                         (version) => version.status === "draft",
                       ) &&
-                        canManageRubric && (
+                        canManageRubric &&
+                        !selectedMaterial?.archived_at && (
                           <form
                             action={createRubricVersion}
                             className="participant-add-form"

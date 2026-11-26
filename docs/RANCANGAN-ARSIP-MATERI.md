@@ -1,6 +1,6 @@
 # Rancangan — Arsip Materi Pelatihan
 
-**Status:** rancangan, belum disetujui dan belum diterapkan. Ditulis 26 November 2026.
+**Status:** disetujui pemilik 26 November 2026. Implementasi selesai di DEV; deploy PROD menyusul. Rancangan ditulis 26 November 2026.
 **Latar:** materi di `/dashboard/penilaian` tidak punya tombol hapus. Penghapusan lewat database berisiko merusak riwayat karena versi rubrik, submission, evaluasi, dan snapshot saling terhubung. Rancangan ini menyembunyikan materi tanpa menghapus data, mengikuti pola arsip kegiatan di `BLUEPRINT.md:23` dan `app/dashboard/kegiatan/`.
 
 ## Tujuan
@@ -29,6 +29,8 @@ create index if not exists rubric_materials_active_idx
 
 RLS yang sudah ada cukup untuk membatasi perubahan hanya ke Admin Sistem: kebijakan `rubric_materials_manage_admin` memakai `can_manage_rubrics()`, yang hanya bernilai benar untuk `role = 'admin_system'`.
 
+Saat materi diarsipkan, semua versi rubrik berstatus `draf` untuk materi itu otomatis menjadi `arsip`. Kebijakan RLS yang sudah ada hanya mengizinkan sunting aspek/indikator pada versi draf, sehingga tidak ada jalur tulis ke rubrik materi tersembunyi.
+
 Tambah trigger pengaman di database agar aturan tetap berlaku walau ada akses SQL langsung:
 
 ```sql
@@ -53,11 +55,11 @@ for each row execute function public.prevent_material_archive_with_active_rubric
 
 Migrasi baru: `supabase/migrations/20261126HHMMSS_material_archive_v1.sql`. Penguji: `supabase/tests/material_archive.sql`.
 
-## Aturan utama (perlu keputusan pemilik)
+## Aturan utama (disetujui pemilik 26 November 2026)
 
-**Rekomendasi:** materi hanya boleh diarsipkan bila tidak ada rubrik versi `active` untuk materi itu. Admin mengarsipkan versi rubrik lebih dulu lewat tombol yang sudah ada, lalu mengarsipkan materinya. Ini mencegah Observer kehilangan akses saat masih mengisi penilaian. Konsekuensinya, tab jenis penilaian materi itu ikut hilang dari Evaluasi Kolektif sampai materi dipulihkan. Riwayat final tetap bisa dibaca lewat Laporan & Rapor karena snapshot tidak ikut disaring.
+Materi hanya boleh diarsipkan bila tidak ada rubrik versi `active` untuk materi itu. Admin mengarsipkan versi rubrik lebih dulu lewat tombol yang sudah ada, lalu mengarsipkan materinya. Ini mencegah Observer kehilangan akses saat masih mengisi penilaian. Konsekuensinya, tab jenis penilaian materi itu ikut hilang dari Evaluasi Kolektif sampai materi dipulihkan. Riwayat final tetap bisa dibaca lewat Laporan & Rapor karena snapshot tidak ikut disaring.
 
-Alternatif bila pemilik memilih aturan lain: mengarsipkan materi kapan saja tanpa menyentuh status rubrik. Lebih fleksibel, tetapi Observer yang sedang mengisi bisa kehilangan materi dari pemilih. Pilihan ini belum diambil.
+Alternatif mengarsipkan materi kapan saja tanpa menyentuh status rubrik tidak dipilih.
 
 ## Server Action
 
@@ -71,7 +73,7 @@ Di `app/dashboard/penilaian/rubric-actions.ts`:
 - Kegagalan yang diharapkan dikembalikan lewat `redirect("/dashboard/penilaian?...&error=...")`, mengikuti perbaikan Evaluasi 26 November, agar tidak memicu "Halaman gagal dimuat".
 - `revalidatePath` untuk `/dashboard/penilaian`, `/dashboard/observasi`, `/dashboard/evaluasi`, dan `/dashboard/laporan`.
 
-Tambah pembantu `assertMaterialActive` dan pakai pada semua aksi tulis yang menyentuh materi: `createRubricVersion`, `setTrainingMaterialFramework`, `applyFrameworkRubricSelection`, serta aksi tambah/sunting/hapus aspek dan indikator pada draf. Bila materi terarsipkan, aksi ditolak dengan pesan "Materi sudah diarsipkan. Pulihkan terlebih dahulu."
+Guard aplikasi dipasang pada `createRubricVersion` dan `setTrainingMaterialFramework`: bila materi terarsipkan, aksi ditolak dengan pesan "Materi sudah diarsipkan. Pulihkan terlebih dahulu." Aksi aspek/indikator tidak perlu guard terpisah karena versi draf materi otomatis berubah menjadi arsip dan RLS yang ada hanya membuka penulisan pada versi draf.
 
 ## Tampilan
 
@@ -113,9 +115,9 @@ Tambah pembantu `assertMaterialActive` dan pakai pada semua aksi tulis yang meny
 - Menonaktifkan fitur: kembalikan kode ke commit sebelum fitur dan restart aplikasi. Kolom `archived_at` boleh dibiarkan kosong.
 - Membatalkan arsip pada satu materi: tombol "Pulihkan materi" atau `update ... set archived_at = null`. Tidak ada data yang perlu dikembalikan dari backup.
 
-## Pertanyaan yang perlu diputuskan
+## Keputusan yang dicatat
 
-1. Setuju dengan aturan utama: arsip hanya bila tidak ada rubrik aktif? (rekomendasi: ya)
-2. Materi terarsipkan tetap bisa dibuka lewat URL langsung sebagai tampilan baca-saja? (rekomendasi: ya)
-3. Master Kerangka DAD ikut diberi status arsip? (rekomendasi: tidak, cukup materi per kegiatan)
-4. Nama materi terarsipkan tidak boleh dipakai materi baru? (rekomendasi: ya, kunci unik tetap)
+1. Arsip hanya bila tidak ada rubrik aktif. **Disetujui.**
+2. Materi terarsipkan tetap bisa dibuka lewat URL langsung sebagai tampilan baca-saja. **Disetujui.**
+3. Master Kerangka DAD tidak ikut diberi status arsip; cukup materi per kegiatan. **Disetujui.**
+4. Nama materi terarsipkan tidak boleh dipakai materi baru; kunci unik tetap berlaku. **Disetujui.**

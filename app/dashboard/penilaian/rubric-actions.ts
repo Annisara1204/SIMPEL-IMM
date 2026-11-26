@@ -2,12 +2,25 @@
 import { uuidPattern } from "@/lib/validation";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { firstRelated, type Relation } from "@/lib/relations";
 import type {
   CompetencyMaterialAspectLink,
   CompetencyMaterialIndicatorLink,
 } from "@/lib/supabase-rows";
 import { staffClient } from "./internal";
+
+function penilaianErrorUrl(message: string, formData?: FormData): string {
+  const params = new URLSearchParams();
+  if (formData) {
+    for (const key of ["eventId", "stage", "materialId"] as const) {
+      const value = String(formData.get(key) ?? "");
+      if (value) params.set(key, value);
+    }
+  }
+  params.set("error", message.slice(0, 300));
+  return `/dashboard/penilaian?${params.toString()}`;
+}
 
 function readScoreDescriptors(formData: FormData) {
   const entries = [1, 2, 3, 4, 5].map(
@@ -88,11 +101,18 @@ export async function createRubricVersion(formData: FormData) {
   if (stage === "training") {
     const { data: material } = await supabase
       .from("rubric_materials")
-      .select("id")
+      .select("id, archived_at")
       .eq("id", materialId)
       .eq("event_id", eventId)
       .maybeSingle();
     if (!material) throw new Error("Materi tidak ditemukan pada kegiatan ini.");
+    if (material.archived_at)
+      redirect(
+        penilaianErrorUrl(
+          "Materi sudah diarsipkan. Pulihkan terlebih dahulu.",
+          formData,
+        ),
+      );
   }
   let versionQuery = supabase
     .from("rubric_versions")
@@ -406,6 +426,54 @@ export async function createTrainingMaterial(formData: FormData) {
   revalidatePath("/dashboard/observasi");
 }
 
+async function setMaterialArchived(formData: FormData, archived: boolean) {
+  const { supabase, role } = await staffClient(["admin_system"]);
+  if (role !== "admin_system")
+    throw new Error("Hanya Admin Sistem yang dapat mengarsipkan materi.");
+  const materialId = String(formData.get("materialId") ?? "");
+  const eventId = String(formData.get("eventId") ?? "");
+  if (!uuidPattern.test(materialId) || !uuidPattern.test(eventId))
+    redirect(penilaianErrorUrl("Materi atau kegiatan tidak valid.", formData));
+  const query = supabase
+    .from("rubric_materials")
+    .update({ archived_at: archived ? new Date().toISOString() : null })
+    .eq("id", materialId)
+    .eq("event_id", eventId);
+  const { data, error } = await (
+    archived
+      ? query.is("archived_at", null)
+      : query.not("archived_at", "is", null)
+  ).select("id");
+  if (error)
+    redirect(
+      penilaianErrorUrl(
+        error.message || "Perubahan arsip materi gagal.",
+        formData,
+      ),
+    );
+  if (!data?.length)
+    redirect(
+      penilaianErrorUrl(
+        archived
+          ? "Materi sudah diarsipkan atau tidak ditemukan."
+          : "Materi belum diarsipkan atau tidak ditemukan.",
+        formData,
+      ),
+    );
+  revalidatePath("/dashboard/penilaian");
+  revalidatePath("/dashboard/observasi");
+  revalidatePath("/dashboard/evaluasi");
+  revalidatePath("/dashboard/laporan");
+}
+
+export async function archiveMaterial(formData: FormData) {
+  await setMaterialArchived(formData, true);
+}
+
+export async function restoreMaterial(formData: FormData) {
+  await setMaterialArchived(formData, false);
+}
+
 export async function setTrainingMaterialFramework(formData: FormData) {
   const { supabase } = await staffClient(["admin_system"]);
   const materialId = String(formData.get("materialId") ?? "");
@@ -421,11 +489,18 @@ export async function setTrainingMaterialFramework(formData: FormData) {
     .maybeSingle();
   const { data: material } = await supabase
     .from("rubric_materials")
-    .select("id,event_id")
+    .select("id,event_id,archived_at")
     .eq("id", materialId)
     .maybeSingle();
   if (!source || !material)
     throw new Error("Materi kegiatan atau konteks DAD tidak ditemukan.");
+  if (material.archived_at)
+    redirect(
+      penilaianErrorUrl(
+        "Materi sudah diarsipkan. Pulihkan terlebih dahulu.",
+        formData,
+      ),
+    );
   const { data: usedVersions, error: usedError } = await supabase
     .from("rubric_versions")
     .select("id")

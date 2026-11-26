@@ -123,7 +123,9 @@ export default async function ObservationsPage({
       .order("position"),
     supabase
       .from("rubric_materials")
-      .select("id, event_id, name, position, competency_material_id")
+      .select(
+        "id, event_id, name, position, competency_material_id, archived_at",
+      )
       .order("position"),
   ]);
   const selectedEvent =
@@ -132,7 +134,9 @@ export default async function ObservationsPage({
     (stage) => stage.id === selectedStage,
   );
   const eventMaterials = (materials ?? []).filter(
-    (material) => material.event_id === selectedEvent?.id,
+    (material) =>
+      material.event_id === selectedEvent?.id &&
+      (material.archived_at === null || material.id === selectedMaterialId),
   );
   const selectedMaterial =
     eventMaterials.find((material) => material.id === selectedMaterialId) ??
@@ -263,6 +267,12 @@ export default async function ObservationsPage({
         submissionError ||
         notesError ||
         mappingError) && <DataUnavailable />}
+      {selectedMaterial?.archived_at && (
+        <p className="users-notice" role="status">
+          <strong>Materi ini diarsipkan.</strong> Data penilaian lama tetap
+          tersimpan dan tidak dapat diubah sampai Admin Sistem memulihkannya.
+        </p>
+      )}
 
       {!requestedEventId && (
         <section className="event-manage-card">

@@ -2960,3 +2960,111 @@
   flex: 1;
   margin: 0;
 }
+
+/* Bagian 2 dan 3 Evaluasi Kolektif: catatan, keputusan, tindak lanjut. */
+.evaluation-notes-form {
+  display: grid;
+  gap: 18px;
+  margin: 16px 0;
+}
+
+.evaluation-notes-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.evaluation-notes-grid label,
+.evaluation-decision-grid label,
+.evaluation-recommendation-form label {
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  min-width: 0;
+  color: var(--color-label);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.evaluation-notes-grid textarea,
+.evaluation-decision-grid textarea,
+.evaluation-recommendation-form textarea {
+  width: 100%;
+  min-height: 92px;
+  border: 1px solid var(--color-border-input);
+  border-radius: var(--radius-md);
+  padding: 9px 10px;
+  background: var(--color-surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+  resize: vertical;
+}
+
+.evaluation-decision-grid {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) minmax(0, 2fr);
+  gap: 14px;
+  align-items: start;
+  padding-top: 14px;
+  border-top: 1px solid var(--color-border-soft);
+}
+
+.evaluation-decision-grid select {
+  width: 100%;
+  height: 40px;
+  border: 1px solid var(--color-border-input);
+  border-radius: var(--radius-md);
+  padding: 0 10px;
+  background: var(--color-surface);
+  color: var(--ink);
+}
+
+.evaluation-actions {
+  display: grid;
+  gap: 10px;
+}
+
+.evaluation-actions-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.evaluation-actions-row .btn {
+  margin: 0;
+}
+
+.evaluation-hint {
+  margin: 0;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+.evaluation-action-form,
+.evaluation-recommendation-form {
+  display: grid;
+  justify-items: start;
+  gap: 10px;
+  margin: 12px 0;
+}
+
+.evaluation-action-form p,
+.evaluation-recommendation {
+  width: 100%;
+  margin: 0;
+}
+
+.evaluation-recommendation {
+  display: grid;
+  gap: 10px;
+  padding: 14px 0;
+  border-top: 1px solid var(--color-border-soft);
+}
+
+.evaluation-recommendation p {
+  margin: 0;
+  line-height: 1.6;
+}

@@ -846,7 +846,7 @@ export default async function CollectiveEvaluationPage({
                       ? undefined
                       : saveCollectiveEvaluation
                   }
-                  className="rubric-add-form"
+                  className="evaluation-notes-form"
                 >
                   <input type="hidden" name="eventId" value={eventId} />
                   <input
@@ -859,127 +859,137 @@ export default async function CollectiveEvaluationPage({
                     name="rubricVersionId"
                     value={selectedVersionId ?? ""}
                   />
-                  <label>
-                    Kekuatan
-                    <textarea
-                      name="strengths"
-                      defaultValue={evaluation?.strengths ?? ""}
-                      readOnly={evaluation?.status === "finalized"}
-                    />
-                  </label>
-                  <label>
-                    Area pengembangan
-                    <textarea
-                      name="developmentAreas"
-                      defaultValue={evaluation?.development_areas ?? ""}
-                      readOnly={evaluation?.status === "finalized"}
-                    />
-                  </label>
-                  <label>
-                    Bukti pendukung (satu referensi per baris)
-                    <textarea
-                      name="evidenceReferencesText"
-                      defaultValue={evidenceText}
-                      readOnly={evaluation?.status === "finalized"}
-                    />
-                  </label>
-                  <label>
-                    Catatan pembahasan instruktur
-                    <textarea
-                      name="discussionNotes"
-                      defaultValue={evaluation?.discussion_notes ?? ""}
-                      readOnly={evaluation?.status === "finalized"}
-                    />
-                  </label>
-                  <label>
-                    Kesimpulan kolektif
-                    <textarea
-                      name="collectiveSummary"
-                      defaultValue={evaluation?.collective_summary ?? ""}
-                      readOnly={evaluation?.status === "finalized"}
-                    />
-                  </label>
-                  <label>
-                    Rekomendasi ringkas
-                    <textarea
-                      name="recommendationSummary"
-                      defaultValue={evaluation?.recommendation_summary ?? ""}
-                      readOnly={evaluation?.status === "finalized"}
-                    />
-                  </label>
-                  <label>
-                    Keputusan kelulusan
-                    <select
-                      key={evaluation?.graduation_decision ?? "kosong"}
-                      name="decision"
-                      defaultValue={evaluation?.graduation_decision ?? ""}
-                      disabled={evaluation?.status === "finalized"}
-                      required
-                    >
-                      <option value="">Belum diputuskan</option>
-                      <option value="pass">Lulus</option>
-                      <option value="not_pass">Tidak Lulus</option>
-                      <option value="further_discussion">
-                        Perlu Pembahasan Lanjutan
-                      </option>
-                    </select>
-                  </label>
-                  <label>
-                    Alasan keputusan
-                    <textarea
-                      name="decisionRationale"
-                      minLength={10}
-                      required
-                      defaultValue={evaluation?.decision_rationale ?? ""}
-                      readOnly={evaluation?.status === "finalized"}
-                    />
-                  </label>
+                  <div className="evaluation-notes-grid">
+                    <label>
+                      Kekuatan
+                      <textarea
+                        name="strengths"
+                        defaultValue={evaluation?.strengths ?? ""}
+                        readOnly={evaluation?.status === "finalized"}
+                      />
+                    </label>
+                    <label>
+                      Area pengembangan
+                      <textarea
+                        name="developmentAreas"
+                        defaultValue={evaluation?.development_areas ?? ""}
+                        readOnly={evaluation?.status === "finalized"}
+                      />
+                    </label>
+                    <label>
+                      Bukti pendukung (satu referensi per baris)
+                      <textarea
+                        name="evidenceReferencesText"
+                        defaultValue={evidenceText}
+                        readOnly={evaluation?.status === "finalized"}
+                      />
+                    </label>
+                    <label>
+                      Catatan pembahasan instruktur
+                      <textarea
+                        name="discussionNotes"
+                        defaultValue={evaluation?.discussion_notes ?? ""}
+                        readOnly={evaluation?.status === "finalized"}
+                      />
+                    </label>
+                    <label>
+                      Kesimpulan kolektif
+                      <textarea
+                        name="collectiveSummary"
+                        defaultValue={evaluation?.collective_summary ?? ""}
+                        readOnly={evaluation?.status === "finalized"}
+                      />
+                    </label>
+                    <label>
+                      Rekomendasi ringkas
+                      <textarea
+                        name="recommendationSummary"
+                        defaultValue={evaluation?.recommendation_summary ?? ""}
+                        readOnly={evaluation?.status === "finalized"}
+                      />
+                    </label>
+                  </div>
+                  <div className="evaluation-decision-grid">
+                    <label>
+                      Keputusan kelulusan
+                      <select
+                        key={evaluation?.graduation_decision ?? "kosong"}
+                        name="decision"
+                        defaultValue={evaluation?.graduation_decision ?? ""}
+                        disabled={evaluation?.status === "finalized"}
+                        required
+                      >
+                        <option value="">Belum diputuskan</option>
+                        <option value="pass">Lulus</option>
+                        <option value="not_pass">Tidak Lulus</option>
+                        <option value="further_discussion">
+                          Perlu Pembahasan Lanjutan
+                        </option>
+                      </select>
+                    </label>
+                    <label>
+                      Alasan keputusan
+                      <textarea
+                        name="decisionRationale"
+                        minLength={10}
+                        required
+                        defaultValue={evaluation?.decision_rationale ?? ""}
+                        readOnly={evaluation?.status === "finalized"}
+                      />
+                    </label>
+                  </div>
                   {evaluation?.status !== "finalized" && (
-                    <>
-                      <button type="submit" formNoValidate>
-                        Simpan draf evaluasi
-                      </button>
-                      <p>
+                    <div className="evaluation-actions">
+                      <div className="evaluation-actions-row">
+                        <button
+                          type="submit"
+                          formNoValidate
+                          className="btn btn--primary"
+                        >
+                          Simpan draf evaluasi
+                        </button>
+                        <button
+                          className="btn btn--primary"
+                          type="submit"
+                          formAction={finalizeCollectiveEvaluation}
+                          disabled={
+                            overall.status !== "ready_for_collective_evaluation"
+                          }
+                        >
+                          Finalisasi dan simpan snapshot
+                        </button>
+                        <button
+                          className="btn btn--primary"
+                          type="submit"
+                          formAction={approveFinalizePublishReport}
+                          disabled={
+                            overall.status !== "ready_for_collective_evaluation"
+                          }
+                        >
+                          Setujui, finalisasi, terbitkan, dan unduh rapor
+                        </button>
+                      </div>
+                      <p className="evaluation-hint">
                         Pilih keputusan kelulusan dan isi alasan minimal 10
                         karakter sebelum finalisasi. Simpan draf tetap bisa
                         dilakukan tanpa keduanya. Tombol finalisasi juga
                         dinonaktifkan bila coverage belum memenuhi minimal{" "}
                         {policy?.minimum_coverage ?? 80}% pada setiap aspek.
                       </p>
-                      <button
-                        className="btn btn--primary btn--lg"
-                        type="submit"
-                        formAction={finalizeCollectiveEvaluation}
-                        disabled={
-                          overall.status !== "ready_for_collective_evaluation"
-                        }
-                      >
-                        Finalisasi dan simpan snapshot
-                      </button>
-                      <button
-                        className="btn btn--primary btn--lg"
-                        type="submit"
-                        formAction={approveFinalizePublishReport}
-                        disabled={
-                          overall.status !== "ready_for_collective_evaluation"
-                        }
-                      >
-                        Setujui, finalisasi, terbitkan, dan unduh rapor
-                      </button>
                       {overall.status !== "ready_for_collective_evaluation" && (
-                        <small>
+                        <small className="evaluation-hint">
                           Belum dapat difinalisasi: penuhi coverage setiap aspek
                           minimal {policy?.minimum_coverage ?? 80}%.
                         </small>
                       )}
-                    </>
+                    </div>
                   )}
                 </form>
                 {evaluation?.status !== "finalized" && (
                   <>
                     <form
                       action={generateAutomaticRecommendations}
-                      className="rubric-add-form"
+                      className="evaluation-action-form"
                     >
                       <input type="hidden" name="eventId" value={eventId} />
                       <input
@@ -992,24 +1002,27 @@ export default async function CollectiveEvaluationPage({
                         name="rubricVersionId"
                         value={selectedVersionId ?? ""}
                       />
-                      <p>
+                      <p className="data-caption">
                         Sistem membuat satu draf rekomendasi dari indikator
                         dengan rata-rata di bawah 3/5. Angka skor tidak ditulis.
                         Koordinator dapat menyunting draf sebelum menyetujuinya.
                       </p>
-                      <button type="submit">
+                      <button type="submit" className="btn btn--outline">
                         Buat atau perbarui draf rekomendasi
                       </button>
                     </form>
                   </>
                 )}
                 {(recommendations ?? []).map((recommendation) => (
-                  <div className="assignment-row" key={recommendation.id}>
+                  <div
+                    className="evaluation-recommendation"
+                    key={recommendation.id}
+                  >
                     {recommendation.status === "draft" &&
                     evaluation?.status !== "finalized" ? (
                       <form
                         action={updateDevelopmentRecommendation}
-                        className="rubric-add-form"
+                        className="evaluation-recommendation-form"
                       >
                         <input
                           type="hidden"
@@ -1027,19 +1040,28 @@ export default async function CollectiveEvaluationPage({
                             defaultValue={recommendation.recommendation}
                           />
                         </label>
-                        <button type="submit">Simpan suntingan</button>
+                        <button type="submit" className="btn btn--outline">
+                          Simpan suntingan
+                        </button>
                       </form>
                     ) : (
-                      <span>{recommendation.recommendation} · Disetujui</span>
+                      <p className="data-caption">
+                        {recommendation.recommendation} · Disetujui
+                      </p>
                     )}
                     {recommendation.status === "draft" && (
-                      <form action={approveDevelopmentRecommendation}>
+                      <form
+                        action={approveDevelopmentRecommendation}
+                        className="evaluation-recommendation-form"
+                      >
                         <input
                           type="hidden"
                           name="recommendationId"
                           value={recommendation.id}
                         />
-                        <button type="submit">Setujui</button>
+                        <button type="submit" className="btn btn--primary">
+                          Setujui rekomendasi
+                        </button>
                       </form>
                     )}
                   </div>
@@ -1047,16 +1069,16 @@ export default async function CollectiveEvaluationPage({
                 <h3>3 · Tindak lanjut</h3>
                 <form
                   action={finalizeAllEvaluations}
-                  className="rubric-add-form"
+                  className="evaluation-action-form"
                 >
                   <input type="hidden" name="eventId" value={eventId} />
-                  <p>
+                  <p className="data-caption">
                     Finalisasi semua evaluasi draf pada kegiatan ini yang sudah
                     memiliki keputusan dan alasan. Setiap jenis tetap
                     menghasilkan snapshot tersendiri; evaluasi yang belum siap
                     dilewati.
                   </p>
-                  <button type="submit">
+                  <button type="submit" className="btn btn--outline">
                     Finalisasi semua materi yang siap
                   </button>
                 </form>

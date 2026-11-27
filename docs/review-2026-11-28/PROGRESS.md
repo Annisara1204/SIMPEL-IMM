@@ -9,7 +9,8 @@ Dokumen ini mencatat bukti per paket kerja saat eksekusi. Status rencana: `RENCA
 | 2 | Selesai | `observer_assignment_scope.sql` lolos; unit `request-base-url.test.ts` lolos; QA browser: Kader tidak melihat 2 kotak penugasan, Admin melihat keduanya; curl host asing redirect ke host default; `npm run check` dan `npm run build` exit 0 | |
 | 3 | Selesai | `tests/autosave-policy.test.ts` lolos; QA browser DEV Observer: Ubah skor → "Tersimpan · 06.32.27", tidak ada tombol "Coba lagi"; nilai dikembalikan ke "Belum dinilai"; `npm run check` dan `npm run build` exit 0 | |
 | 4 | Selesai | `tests/action-error.test.ts` lolos; QA browser DEV: duplikat nama Komisariat menghasilkan `?error=...` dan banner inline, bukan error boundary; `npm run check` dan `npm run build` exit 0 | |
-| 5-15 | Belum | | |
+| 5 | Selesai | `tests/finalize-validation.test.ts` dan `finalize_approval_order.sql` lolos; QA browser DEV: halaman Evaluasi dengan tombol satu klik merender tanpa error boundary; `npm run check` dan `npm run build` exit 0 | |
+| 6-15 | Belum | | |
 
 ## Catatan Paket 1
 
@@ -45,3 +46,12 @@ Dokumen ini mencatat bukti per paket kerja saat eksekusi. Status rencana: `RENCA
 - Aksi FormData di delapan modul dibungkus: evaluasi (6 aksi), kegiatan (7), pengajuan (7), seleksi komisariat (3), laporan (2), pengguna (3), komisariat (3), impor tes (1). Aksi evaluasi yang sudah memakai `{ok:false}` tidak dibungkus ulang.
 - Banner `?error=` kini tampil global di layout dashboard lewat `components/action-error-banner.tsx`, sehingga halaman tidak perlu masing-masing menyimpan pesan. Banner lama di Penilaian dan Evaluasi dihapus agar tidak dobel.
 - QA browser DEV: menambah Komisariat dengan nama yang sudah ada menghasilkan URL `?error=Nama+Komisariat+tersebut+sudah+terdaftar.` dan pesan tampil di dalam halaman. Tidak ada "Halaman gagal dimuat".
+
+## Catatan Paket 5
+
+- Validasi keputusan dan alasan dipindah sebelum upsert narasi dan sebelum persetujuan rekomendasi. Helper murni ada di `lib/finalize-validation.ts`.
+- Persetujuan rekomendasi dipindah ke dalam `runFinalize` setelah gate coverage/moderasi/keputusan, sebelum snapshot dibuat, sehingga snapshot memuat rekomendasi yang benar-benar disetujui. Kegagalan gate tidak mengunci rekomendasi.
+- `finalizeAllEvaluations` memanggil `runFinalize` dengan `approveRecommendation=false`.
+- ID snapshot diambil langsung dari `supabase.rpc`, bukan query terpisah setelah RPC.
+- Gate approve tidak ditambahkan ke `publish_assessment_report` agar tujuh snapshot lama tanpa rekomendasi tetap bisa diterbitkan. Kontrak ini dijaga oleh `supabase/tests/finalize_approval_order.sql`.
+- QA browser DEV memastikan halaman Evaluasi dengan tombol "Setujui, finalisasi, terbitkan, dan unduh rapor" merender normal untuk evaluasi draft. Klik finalisasi penuh tidak dijalankan agar tidak mengubah data uji.

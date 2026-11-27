@@ -13,6 +13,7 @@ import { buildEvaluationPlan } from "@/lib/evaluation-planning";
 import { buildLowScoreRecommendations } from "@/lib/phase6-recommendations";
 import { asRows, relatedRows } from "@/lib/relations";
 import { requireModerator } from "@/lib/authorization";
+import { validateDecisionRationale } from "@/lib/finalize-validation";
 import type {
   AssessmentSummaryRow,
   RubricVersionJoined,
@@ -602,8 +603,14 @@ async function runFinalize(
   input: FinalizeInput,
   supabase: Awaited<ReturnType<typeof createClient>>,
   userId: string,
+  approveRecommendation: boolean,
 ): Promise<ActionResult<string>> {
   const { eventId, participantId, rubricVersionId } = input;
+  const invalidDecision = validateDecisionRationale(
+    input.decision,
+    input.rationale,
+  );
+  if (invalidDecision) return failed(invalidDecision);
   const { data: participant } = await supabase
     .from("participants")
     .select("id,event_id")
@@ -692,14 +699,31 @@ async function runFinalize(
     .single();
   if (saveError || !evaluation || evaluation.status !== "draft")
     return failed("Draf evaluasi kolektif gagal disimpan atau sudah terkunci.");
+  // Persetujuan terjadi setelah semua gate lolos, sebelum snapshot dibuat,
+  // sehingga snapshot memuat rekomendasi yang benar-benar disetujui.
+  if (approveRecommendation) {
+    const { data: recommendation } = await supabase
+      .from("development_recommendations")
+      .select("id")
+      .eq("evaluation_id", evaluation.id)
+      .eq("is_active", true)
+      .eq("status", "draft")
+      .maybeSingle();
+    if (recommendation) {
+      const { error: approveError } = await supabase
+        .from("development_recommendations")
+        .update({
+          status: "approved",
+          approved_by: userId,
+          approved_at: new Date().toISOString(),
+        })
+        .eq("id", recommendation.id)
+        .eq("status", "draft");
+      if (approveError)
+        return failed("Rekomendasi gagal disetujui sebelum finalisasi.");
+    }
+  }
   const { decision, rationale } = input;
-  if (
-    !["pass", "not_pass", "further_discussion"].includes(decision) ||
-    rationale.length < 10
-  )
-    return failed(
-      "Pilih keputusan kelulusan dan isi alasan minimal 10 karakter.",
-    );
   const versionIds = [rubricVersionId];
   const { data: versions } = await supabase
     .from("rubric_versions")
@@ -778,7 +802,7 @@ async function runFinalize(
       discussionNotes: fields.discussion_notes,
     },
   };
-  const { error: finalizeError } = await supabase.rpc(
+  const { data: snapshotId, error: finalizeError } = await supabase.rpc(
     "finalize_collective_evaluation",
     {
       target_evaluation_id: evaluation.id,
@@ -803,16 +827,9 @@ async function runFinalize(
     return failed(
       finalizeError.message || "Snapshot hasil final gagal disimpan.",
     );
-  const { data: savedSnapshot, error: snapshotError } = await supabase
-    .from("assessment_snapshots")
-    .select("id")
-    .eq("collective_evaluation_id", evaluation.id)
-    .order("revision", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  if (snapshotError || !savedSnapshot)
-    return failed("Snapshot hasil tidak ditemukan setelah finalisasi.");
-  return { ok: true, value: savedSnapshot.id as string };
+  if (!snapshotId)
+    return failed("Finalisasi berhasil tetapi ID snapshot tidak dikembalikan.");
+  return { ok: true, value: snapshotId as string };
 }
 
 async function finalizeFromForm(
@@ -830,37 +847,7 @@ async function finalizeFromForm(
     if (isNextControlError(error)) throw error;
     return failed(actionError(error));
   }
-  if (publish) {
-    const { data: evaluation } = await supabase
-      .from("collective_evaluations")
-      .select("id,status")
-      .eq("event_id", input.eventId)
-      .eq("participant_id", input.participantId)
-      .eq("rubric_version_id", input.rubricVersionId)
-      .maybeSingle();
-    if (evaluation?.status === "draft") {
-      const { data: recommendation } = await supabase
-        .from("development_recommendations")
-        .select("id")
-        .eq("evaluation_id", evaluation.id)
-        .eq("is_active", true)
-        .eq("status", "draft")
-        .maybeSingle();
-      if (recommendation) {
-        const { error } = await supabase
-          .from("development_recommendations")
-          .update({
-            status: "approved",
-            approved_by: userId,
-            approved_at: new Date().toISOString(),
-          })
-          .eq("id", recommendation.id)
-          .eq("status", "draft");
-        if (error) return failed("Rekomendasi gagal disetujui.");
-      }
-    }
-  }
-  const finalized = await runFinalize(input, supabase, userId);
+  const finalized = await runFinalize(input, supabase, userId, publish);
   if (!finalized.ok) return finalized;
   if (!publish) return finalized;
   const { error: publishError } = await supabase.rpc(
@@ -947,7 +934,7 @@ async function finalizeAllEvaluationsImpl(formData: FormData) {
       rationale,
     };
     try {
-      const outcome = await runFinalize(input, supabase, userId);
+      const outcome = await runFinalize(input, supabase, userId, false);
       if (!outcome.ok) {
         skipped += 1;
         continue;

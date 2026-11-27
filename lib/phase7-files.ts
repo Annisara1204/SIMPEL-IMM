@@ -132,9 +132,13 @@ type DrawRow =
   | { kind: "tableHead"; cols: Cell[]; keepWithNext?: boolean }
   | { kind: "tableRow"; cols: Cell[] }
   | {
-      kind: "aspectChart";
+      kind: "materialTrend";
       items: { label: string; value: number | null }[];
       keepWithNext?: boolean;
+    }
+  | {
+      kind: "aspectRadar";
+      items: { label: string; value: number | null }[];
     }
   | { kind: "stats"; cells: { label: string; value: string }[] }
   | { kind: "space"; height: number };
@@ -156,8 +160,10 @@ function rowHeight(row: DrawRow): number {
       return 20;
     case "tableRow":
       return Math.max(...row.cols.map((col) => col.lines.length)) * 12 + 10;
-    case "aspectChart":
-      return 150;
+    case "materialTrend":
+      return 160;
+    case "aspectRadar":
+      return 190;
     case "stats":
       return 38;
     case "space":
@@ -183,6 +189,17 @@ function reportRows(report: ReportFileData): DrawRow[] {
     rows.push({ kind: "text", text: value, size });
   const kv = (label: string, value: string) =>
     rows.push({ kind: "kv", label, value });
+  const score100Of = (aspect: {
+    score?: unknown;
+    scoreOutOf100?: unknown;
+    score_out_of_100?: unknown;
+  }): number | null => {
+    const raw = aspect.score;
+    const score = raw == null ? null : Number(raw);
+    const out = aspect.scoreOutOf100 ?? aspect.score_out_of_100;
+    if (out == null && score === null) return null;
+    return Number(out ?? (score ?? 0) * 20);
+  };
 
   rows.push({
     kind: "title",
@@ -275,17 +292,7 @@ function reportRows(report: ReportFileData): DrawRow[] {
     keepWithNext: true,
   });
   for (const aspect of aspects) {
-    const score = aspect.score == null ? null : Number(aspect.score);
-    const score100 =
-      aspect.scoreOutOf100 == null &&
-      aspect.score_out_of_100 == null &&
-      score === null
-        ? null
-        : Number(
-            aspect.scoreOutOf100 ??
-              aspect.score_out_of_100 ??
-              (score === null ? 0 : score * 20),
-          );
+    const score100 = score100Of(aspect);
     rows.push({
       kind: "tableRow",
       cols: [
@@ -301,18 +308,77 @@ function reportRows(report: ReportFileData): DrawRow[] {
   }
   rows.push({ kind: "space", height: 6 });
 
+  if (!report.eventSummary && aspects.length) {
+    heading("PETA KOMPETENSI ASPEK");
+    rows.push({
+      kind: "aspectRadar",
+      items: aspects.slice(0, 5).map((aspect) => ({
+        label: aspect.aspectName ?? aspect.aspect_name ?? "Aspek",
+        value: score100Of(aspect),
+      })),
+    });
+    text("Gambaran bentuk profil; angka pasti ada pada tabel di atas.", 8);
+    rows.push({ kind: "space", height: 6 });
+  }
+
   const materialChart = (report.materialHistory ?? []).filter(
     (item) => item.score !== null,
   );
   if (materialChart.length >= 2) {
     heading("GRAFIK RATA-RATA NILAI PER MATERI");
     rows.push({
-      kind: "aspectChart",
+      kind: "materialTrend",
       items: materialChart.map((item) => ({
         label: item.label,
         value: item.score,
       })),
       keepWithNext: true,
+    });
+    text(
+      materialChart
+        .map((item, index) => `M${index + 1} = ${item.label}`)
+        .join("; "),
+      8,
+    );
+    rows.push({ kind: "space", height: 6 });
+    heading("RINGKASAN PER MATERI");
+    rows.push({
+      kind: "tableHead",
+      cols: [
+        { x: 40, lines: ["MATERI"] },
+        { x: 390, lines: ["NILAI"] },
+        { x: 470, lines: ["PERUBAHAN"] },
+      ],
+      keepWithNext: true,
+    });
+    materialChart.forEach((item, index) => {
+      const previous = materialChart[index - 1];
+      const delta =
+        index === 0 || item.score === null || previous?.score == null
+          ? null
+          : Number(item.score) - Number(previous.score);
+      rows.push({
+        kind: "tableRow",
+        cols: [
+          cell(`M${index + 1} - ${item.label}`, 50),
+          {
+            x: 390,
+            lines: [
+              item.score === null
+                ? "Belum tersedia"
+                : `${Number(item.score).toFixed(0)}/100`,
+            ],
+          },
+          {
+            x: 470,
+            lines: [
+              delta === null
+                ? "—"
+                : `${delta >= 0 ? "+" : ""}${delta.toFixed(0)}`,
+            ],
+          },
+        ],
+      });
     });
     rows.push({ kind: "space", height: 6 });
   } else if ((report.materialHistory ?? []).length === 1) {
@@ -369,6 +435,42 @@ function reportRows(report: ReportFileData): DrawRow[] {
   wrap(
     collective.developmentAreas || "Belum ada area pengembangan yang disahkan.",
   ).forEach((line) => text(line));
+  if (!report.eventSummary) {
+    heading("FOKUS PENGEMBANGAN");
+    const focus = indicators
+      .filter((item) => item.average != null)
+      .sort((first, second) => Number(first.average) - Number(second.average))
+      .slice(0, 3);
+    if (focus.length) {
+      rows.push({
+        kind: "tableHead",
+        cols: [
+          { x: 40, lines: ["INDIKATOR"] },
+          { x: 430, lines: ["RATA-RATA"] },
+        ],
+        keepWithNext: true,
+      });
+      for (const item of focus)
+        rows.push({
+          kind: "tableRow",
+          cols: [
+            cell(
+              report.indicatorNames?.[item.indicatorId ?? ""] ??
+                item.indicatorId ??
+                "Indikator",
+              62,
+            ),
+            {
+              x: 430,
+              lines: [`${Number(item.average).toFixed(1)}/5`],
+            },
+          ],
+        });
+    } else {
+      text("Belum ada indikator yang dinilai.");
+    }
+    rows.push({ kind: "space", height: 6 });
+  }
   heading("REKOMENDASI TINGKAT LANJUT");
   const recommendations = Array.isArray(data.approvedRecommendations)
     ? [
@@ -493,7 +595,7 @@ function drawRow(stream: string[], row: DrawRow, y: number) {
     });
     return;
   }
-  if (row.kind === "aspectChart") {
+  if (row.kind === "materialTrend") {
     const axisX = 90;
     const axisRight = 520;
     const baseline = y - 110;
@@ -511,24 +613,54 @@ function drawRow(stream: string[], row: DrawRow, y: number) {
       );
       drawText(stream, String(tick), 50, tickY - 3, 7, MUTED, false);
     }
-    const slot = (axisRight - axisX) / row.items.length;
-    const barWidth = Math.min(48, slot * 0.5);
-    row.items.forEach((item, index) => {
-      const center = axisX + slot * (index + 0.5);
-      const barX = center - barWidth / 2;
-      const value =
-        item.value === null ? 0 : Math.max(0, Math.min(100, item.value));
+    const values = row.items.map((item) =>
+      item.value === null ? null : Math.max(0, Math.min(100, item.value)),
+    );
+    const valid = values.filter((value): value is number => value !== null);
+    const average = valid.length
+      ? valid.reduce((sum, value) => sum + value, 0) / valid.length
+      : null;
+    if (average !== null) {
+      const averageY = baseline + (average / 100) * plotHeight;
       stream.push(
-        `${TRACK} rg ${barX.toFixed(1)} ${baseline} ${barWidth.toFixed(1)} ${plotHeight} re f`,
+        `${MUTED} RG 0.4 w [3 3] 0 d ${axisX} ${averageY.toFixed(1)} m ${axisRight} ${averageY.toFixed(1)} l S [] 0 d`,
       );
-      if (item.value !== null)
+      drawText(
+        stream,
+        `Rata-rata ${average.toFixed(0)}`,
+        axisRight - 75,
+        averageY + 5,
+        7,
+        MUTED,
+        false,
+      );
+    }
+    const slot = (axisRight - axisX) / row.items.length;
+    const points = row.items.map((item, index) => ({
+      x: axisX + slot * (index + 0.5),
+      y: baseline + ((values[index] ?? 0) / 100) * plotHeight,
+      value: values[index],
+    }));
+    const plotted = points.filter((point) => point.value !== null);
+    if (plotted.length >= 2) {
+      stream.push(
+        `${MAROON} RG 1.2 w ${plotted
+          .map(
+            (point, index) =>
+              `${point.x.toFixed(1)} ${point.y.toFixed(1)} ${index === 0 ? "m" : "l"}`,
+          )
+          .join(" ")} S`,
+      );
+    }
+    points.forEach((point, index) => {
+      if (point.value !== null)
         stream.push(
-          `${MAROON} rg ${barX.toFixed(1)} ${baseline} ${barWidth.toFixed(1)} ${((value / 100) * plotHeight).toFixed(1)} re f`,
+          `${MAROON} rg ${point.x.toFixed(1)} ${point.y.toFixed(1)} 3 3 re f`,
         );
       drawText(
         stream,
         `Materi ${index + 1}`,
-        center - 18,
+        point.x - 18,
         baseline - 16,
         8,
         INK,
@@ -536,13 +668,60 @@ function drawRow(stream: string[], row: DrawRow, y: number) {
       );
       drawText(
         stream,
-        item.value === null ? "Belum tersedia" : `${value.toFixed(0)}/100`,
-        center - 16,
-        baseline + (value / 100) * plotHeight + 5,
+        point.value === null
+          ? "Belum tersedia"
+          : `${point.value.toFixed(0)}/100`,
+        point.x - 16,
+        point.y + 6,
         8,
         INK,
         false,
       );
+    });
+    return;
+  }
+  if (row.kind === "aspectRadar") {
+    const centerX = 297.5;
+    const centerY = y - 95;
+    const radius = 72;
+    const count = row.items.length;
+    const pointAt = (index: number, ratio: number) => {
+      const angle = -Math.PI / 2 + (index * 2 * Math.PI) / count;
+      return {
+        x: centerX + Math.cos(angle) * radius * ratio,
+        y: centerY + Math.sin(angle) * radius * ratio,
+      };
+    };
+    const closedPath = (points: { x: number; y: number }[]) =>
+      `${points
+        .map(
+          (point, index) =>
+            `${point.x.toFixed(1)} ${point.y.toFixed(1)} ${index === 0 ? "m" : "l"}`,
+        )
+        .join(" ")} ${points[0].x.toFixed(1)} ${points[0].y.toFixed(1)} l`;
+    for (const ratio of [0.25, 0.5, 0.75, 1]) {
+      stream.push(
+        `${TRACK} RG 0.4 w ${closedPath(row.items.map((_, index) => pointAt(index, ratio)))} S`,
+      );
+    }
+    row.items.forEach((_, index) => {
+      const point = pointAt(index, 1);
+      stream.push(
+        `${TRACK} RG 0.4 w ${centerX.toFixed(1)} ${centerY.toFixed(1)} m ${point.x.toFixed(1)} ${point.y.toFixed(1)} l S`,
+      );
+    });
+    if (count >= 3) {
+      const shape = row.items.map((item, index) =>
+        pointAt(index, Math.max(0, Math.min(1, (item.value ?? 0) / 100))),
+      );
+      stream.push(`${LIGHT} rg ${closedPath(shape)} f`);
+      stream.push(`${MAROON} RG 1.2 w ${closedPath(shape)} S`);
+    }
+    row.items.forEach((item, index) => {
+      const point = pointAt(index, 1.16);
+      const label = ascii(item.label).slice(0, 16);
+      const x = point.x < centerX ? point.x - label.length * 3.4 : point.x + 2;
+      drawText(stream, label, x, point.y + 3, 7, INK, false);
     });
     return;
   }

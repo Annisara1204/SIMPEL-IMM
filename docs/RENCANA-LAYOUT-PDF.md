@@ -32,7 +32,7 @@ Rapor individual:
 1. Pita header + judul `RAPOR HASIL KOMPETENSI DAD`, nama kegiatan, tema, penyelenggara, lokasi, periode.
 2. `IDENTITAS PESERTA`: nama, NIM, kelompok, komisariat.
 3. `RINGKASAN NILAI`: nilai akhir `/100`, kategori, status `Diterbitkan`, keputusan, tanggal terbit, versi rubrik.
-4. `ASPEK KOMPETENSI`: tabel aspek, bobot, skor `/5`, batang skor. **Usang (27 Nov 2026):** format berlaku memuat hanya `ASPEK` dan `HASIL SKOR (0-100)`; grafik memakai batang vertikal per materi. Lihat `BLUEPRINT.md` bagian Phase 7.
+4. `ASPEK KOMPETENSI`: tabel aspek, bobot, skor `/5`, batang skor. **Usang (27 Nov 2026):** format berlaku memuat hanya `ASPEK` dan `HASIL SKOR (0-100)`; grafik materi memakai garis tren dan radar aspek. Lihat `BLUEPRINT.md` bagian Phase 7.
 5. `INDIKATOR YANG DINILAI`: tabel indikator, cakupan, rata-rata, jumlah penilai.
 6. `KEKUATAN` dan `AREA PENGEMBANGAN`.
 7. `REKOMENDASI DAN TINDAK LANJUT` hanya dari `approvedRecommendations`.

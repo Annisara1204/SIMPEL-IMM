@@ -151,9 +151,54 @@ test("PDF menampilkan grafik rata-rata nilai per materi", async () => {
     "Materi 2",
     "70/100",
     "82/100",
+    "Rata-rata 76",
+    "M1 = AIK",
+    "M2 = Character Building",
+    "RINGKASAN PER MATERI",
+    "PERUBAHAN",
+    "+12",
   ])
     assert.ok(content.includes(section), `Bagian tidak ditemukan: ${section}`);
-  assert.ok(content.includes("90 re f"), "Batang vertikal tidak digambar");
+  assert.ok(content.includes("[3 3] 0 d"), "Garis rata-rata tidak digambar");
+});
+
+test("PDF menampilkan radar aspek dan fokus indikator terendah", async () => {
+  const withRadar = {
+    ...sample,
+    snapshotData: {
+      ...sample.snapshotData,
+      aspects: [
+        { aspectName: "Religiusitas", scoreOutOf100: 80 },
+        { aspectName: "Intelektualitas", scoreOutOf100: 70 },
+        { aspectName: "Sosial", scoreOutOf100: 60 },
+        { aspectName: "Emosional", scoreOutOf100: 50 },
+        { aspectName: "Kognitif", scoreOutOf100: 40 },
+      ],
+      indicators: [
+        { indicatorId: "i1", average: 2 },
+        { indicatorId: "i2", average: 4.5 },
+        { indicatorId: "i3", average: 3.2 },
+        { indicatorId: "i4", average: 1.5 },
+      ],
+    },
+    indicatorNames: {
+      i1: "Indikator satu",
+      i2: "Indikator dua",
+      i3: "Indikator tiga",
+      i4: "Indikator empat",
+    },
+  };
+  const content = new TextDecoder().decode(
+    new Uint8Array(await createReportPdf(withRadar).arrayBuffer()),
+  );
+  assert.ok(content.includes("PETA KOMPETENSI ASPEK"));
+  assert.ok(content.includes("Gambaran bentuk profil"));
+  assert.ok(content.includes("Religiusitas"));
+  assert.ok(content.includes("Kognitif"));
+  assert.ok(content.includes("FOKUS PENGEMBANGAN"));
+  const focus = content.slice(content.indexOf("FOKUS PENGEMBANGAN"));
+  assert.ok(focus.indexOf("Indikator empat") < focus.indexOf("Indikator satu"));
+  assert.ok(!focus.includes("Indikator dua"));
 });
 
 test("PDF meringkas rekomendasi otomatis dan menghapus duplikatnya", async () => {

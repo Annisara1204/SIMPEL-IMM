@@ -58,11 +58,11 @@ export function InstructorDutyDashboard({
             terlihat pada akun dan kegiatan yang ditugaskan.
           </p>
         </div>
-        <span className="sample-tag">TUGAS KEGIATAN</span>
+        <span className="tag">TUGAS KEGIATAN</span>
       </div>
       {!assignments.length ? (
         <div className="panel">
-          <p className="users-empty">
+          <p className="notice notice--empty">
             Belum ada penugasan subrole. Minta Super Admin menugaskan Anda
             melalui Pengaturan Penilaian.
           </p>
@@ -111,7 +111,7 @@ export function InstructorDutyDashboard({
                 ))}
               </div>
               {!assignment.duties.length && (
-                <p className="users-empty">
+                <p className="notice notice--empty">
                   Belum ada tugas untuk subrole ini.
                 </p>
               )}
@@ -131,7 +131,7 @@ export function InstructorDutyDashboard({
         </div>
         {!participantEvents.length ? (
           <div className="panel">
-            <p className="users-empty">
+            <p className="notice notice--empty">
               Belum ada peserta pada kegiatan yang ditugaskan.
             </p>
           </div>
@@ -146,7 +146,7 @@ export function InstructorDutyDashboard({
                   </div>
                   <Link
                     prefetch={false}
-                    className="text-button"
+                    className="btn btn--quiet"
                     href={`/dashboard/profil-peserta?eventId=${event.id}`}
                   >
                     Buka profil →
@@ -166,7 +166,7 @@ export function InstructorDutyDashboard({
                   </p>
                 )}
                 {!event.participants.length && (
-                  <p className="users-empty">Belum ada peserta.</p>
+                  <p className="notice notice--empty">Belum ada peserta.</p>
                 )}
               </section>
             ))}

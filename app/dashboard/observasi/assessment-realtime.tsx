@@ -99,7 +99,7 @@ export function AssessmentRealtime({ versionId }: { versionId: string }) {
     };
   }, [versionId, router]);
   return (
-    <span className="agenda-status live" aria-live="polite">
+    <span className="badge live" aria-live="polite">
       {status}
     </span>
   );

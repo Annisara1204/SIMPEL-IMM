@@ -149,7 +149,7 @@ export function FrameworkRubricPicker({
           ))}
         </div>
         <button
-          className="rubric-activate framework-rubric-apply"
+          className="btn btn--primary btn--lg framework-rubric-apply"
           type="submit"
         >
           Terapkan pilihan Kerangka DAD

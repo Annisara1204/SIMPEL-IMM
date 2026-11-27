@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export default function NotFound() {
   return (
-    <main className="setup-message">
+    <main className="state-page">
       <h1>Halaman tidak ditemukan</h1>
       <p>Alamat yang Anda buka tidak tersedia atau sudah dipindahkan.</p>
       <Link prefetch={false} className="users-back" href="/">

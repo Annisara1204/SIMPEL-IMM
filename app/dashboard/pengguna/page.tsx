@@ -28,7 +28,7 @@ export default async function UsersPage({
     !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   )
     return (
-      <div className="setup-message">
+      <div className="state-page">
         <h1>Supabase belum dikonfigurasi</h1>
         <p>Aplikasi belum siap digunakan. Hubungi Admin sistem.</p>
         <Link prefetch={false} href="/login">
@@ -72,9 +72,9 @@ export default async function UsersPage({
             kegiatan.
           </p>
         </div>
-        <span className="sample-tag">ADMIN</span>
+        <span className="tag">ADMIN</span>
       </div>
-      <div className="users-notice">
+      <div className="notice">
         <strong>Akun permanen dan sementara</strong>
         <p>
           Instruktur tetap mendaftar sendiri. Instruktur perbantuan dibuat dari
@@ -83,18 +83,18 @@ export default async function UsersPage({
         </p>
       </div>
       {query.akun === "setup" && (
-        <p className="users-error">
+        <p className="notice notice--danger">
           Pembuatan akun sementara perlu SUPABASE_SERVICE_ROLE_KEY di
           konfigurasi server.
         </p>
       )}
       {query.akun === "failed" && (
-        <p className="users-error">
+        <p className="notice notice--danger">
           Akun gagal dibuat. Periksa username, kata sandi, dan koneksi Supabase.
         </p>
       )}
       {query.akun === "invalid" && (
-        <p className="users-error">
+        <p className="notice notice--danger">
           Periksa nama, username (3–32 karakter), dan kata sandi minimal 10
           karakter.
         </p>
@@ -138,10 +138,10 @@ export default async function UsersPage({
       {error ? (
         <DataUnavailable />
       ) : !users?.length ? (
-        <p className="users-empty">Belum ada profil pengguna.</p>
+        <p className="notice notice--empty">Belum ada profil pengguna.</p>
       ) : (
-        <div className="users-table-wrap">
-          <table className="users-table">
+        <div className="table-wrap">
+          <table className="table">
             <thead>
               <tr>
                 <th scope="col">Jenis akun</th>

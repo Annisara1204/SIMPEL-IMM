@@ -54,7 +54,7 @@ export function SubmissionControls({
       </p>
       {status === "draft" && (
         <button
-          className="rubric-activate"
+          className="btn btn--primary btn--lg"
           type="button"
           disabled={pending}
           onClick={() => run("submitted")}

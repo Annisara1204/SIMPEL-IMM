@@ -38,7 +38,7 @@ const agenda = [
 ];
 
 function SampleTag() {
-  return <span className="sample-tag">CONTOH SIMULASI</span>;
+  return <span className="tag">CONTOH SIMULASI</span>;
 }
 
 export function DashboardContent({
@@ -65,7 +65,7 @@ export function DashboardContent({
               : "Menunggu penugasan per kegiatan dari Superadmin"}
           </p>
         </div>
-        <span className="sample-tag">SUBROLE PER KEGIATAN</span>
+        <span className="tag">SUBROLE PER KEGIATAN</span>
       </div>
     );
   if (role === "observer")
@@ -85,14 +85,14 @@ export function DashboardContent({
                 <ClipboardList size={20} aria-hidden="true" />
               </div>
               <div className="assigned-copy">
-                <span className="agenda-status live">Sedang berlangsung</span>
+                <span className="badge live">Sedang berlangsung</span>
                 <h3>DAD Simulasi 2026</h3>
                 <p>Komisariat FEB · 3 hari · 8 materi</p>
                 <small>Peran Anda: Observer · 12 peserta</small>
               </div>
               <Link
                 prefetch={false}
-                className="text-button"
+                className="btn btn--quiet"
                 href="/dashboard/observasi"
               >
                 Buka penilaian →
@@ -120,9 +120,7 @@ export function DashboardContent({
                   <small>{item.time}</small>
                   <strong>{item.title}</strong>
                 </div>
-                <span className={`agenda-status ${item.color}`}>
-                  {item.status}
-                </span>
+                <span className={`badge ${item.color}`}>{item.status}</span>
               </div>
             ))}
           </section>
@@ -151,10 +149,10 @@ export function DashboardContent({
                 <h3>Darul Arqam Dasar</h3>
                 <p>8 materi · 6 Observer</p>
               </div>
-              <span className="agenda-status live">Berlangsung</span>
+              <span className="badge live">Berlangsung</span>
               <Link
                 prefetch={false}
-                className="text-button"
+                className="btn btn--quiet"
                 href="/dashboard/kegiatan"
               >
                 Detail →
@@ -176,7 +174,7 @@ export function DashboardContent({
               </div>
               <Link
                 prefetch={false}
-                className="text-button"
+                className="btn btn--quiet"
                 href="/dashboard/peserta"
               >
                 Lihat peserta →
@@ -225,7 +223,7 @@ export function DashboardContent({
                 <h3>Darul Arqam Dasar</h3>
                 <p>Komisariat FEB · 8 materi</p>
               </div>
-              <span className="agenda-status live">Berlangsung</span>
+              <span className="badge live">Berlangsung</span>
             </div>
             <div className="data-caption">
               Hanya kegiatan yang terhubung dengan komisariat Anda.
@@ -246,7 +244,7 @@ export function DashboardContent({
                 <strong>Rekap kegiatan DAD</strong>
                 <small>Ringkasan umum · belum diterbitkan</small>
               </div>
-              <span className="agenda-status next">Belum tersedia</span>
+              <span className="badge next">Belum tersedia</span>
             </div>
             <div className="privacy-note">
               Nilai individu dan catatan observasi pribadi tidak ditampilkan di
@@ -321,7 +319,7 @@ export function DashboardContent({
               </div>
               <Link
                 prefetch={false}
-                className="text-button"
+                className="btn btn--quiet"
                 href="/dashboard/pengguna"
               >
                 Kelola pengguna →
@@ -355,15 +353,15 @@ export function DashboardContent({
             </div>
             <div className="config-row">
               <span>Konfigurasi penilaian</span>
-              <span className="agenda-status next">Belum terhubung</span>
+              <span className="badge next">Belum terhubung</span>
             </div>
             <div className="config-row">
               <span>Penyimpanan data</span>
-              <span className="agenda-status next">Belum terhubung</span>
+              <span className="badge next">Belum terhubung</span>
             </div>
             <div className="config-row">
               <span>Login dan role</span>
-              <span className="agenda-status next">Belum terhubung</span>
+              <span className="badge next">Belum terhubung</span>
             </div>
             <div className="data-caption">
               Status akan terisi setelah fitur backend dibuat.
@@ -391,17 +389,17 @@ export function DashboardContent({
             </div>
           </div>
           <div className="public-event">
-            <span className="agenda-status done">Telah diselenggarakan</span>
+            <span className="badge done">Telah diselenggarakan</span>
             <strong>DAD Simulasi 2026 · Komisariat FEB</strong>
             <small>24–26 Oktober 2026 · 8 materi</small>
           </div>
           <div className="public-event">
-            <span className="agenda-status live">Sedang berlangsung</span>
+            <span className="badge live">Sedang berlangsung</span>
             <strong>Informasi kegiatan berjalan</strong>
             <small>Detail jadwal akan ditampilkan setelah diumumkan.</small>
           </div>
           <div className="public-event">
-            <span className="agenda-status next">Akan diselenggarakan</span>
+            <span className="badge next">Akan diselenggarakan</span>
             <strong>Jadwal mendatang</strong>
             <small>Belum ada kegiatan yang diumumkan.</small>
           </div>

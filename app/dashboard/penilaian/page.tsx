@@ -55,7 +55,7 @@ export default async function AssessmentSettingsPage({
     !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   )
     return (
-      <div className="setup-message">
+      <div className="state-page">
         <h1>Supabase belum dikonfigurasi</h1>
         <p>Aplikasi belum siap digunakan. Hubungi Admin sistem.</p>
         <Link prefetch={false} href="/login">
@@ -213,10 +213,10 @@ export default async function AssessmentSettingsPage({
             aktif tetap utuh; buat versi draf baru untuk mengubah pilihan.
           </p>
         </div>
-        <span className="sample-tag">MASTER DAD · RUBRIK PER MATERI</span>
+        <span className="tag">MASTER DAD · RUBRIK PER MATERI</span>
       </div>
       {!canManageRubric && (
-        <p className="users-notice">
+        <p className="notice">
           <strong>Pengelolaan rubrik oleh Super Admin.</strong> Anda dapat
           melihat rubrik dan mengatur penugasan Observer, tetapi pembuatan,
           perubahan, dan aktivasi rubrik hanya dapat dilakukan Admin Sistem.
@@ -228,7 +228,7 @@ export default async function AssessmentSettingsPage({
         materialsError ||
         instructorAssignmentsError) && <DataUnavailable />}
       {actionError && (
-        <p className="users-error" role="alert">
+        <p className="notice notice--danger" role="alert">
           {actionError}
         </p>
       )}
@@ -272,7 +272,7 @@ export default async function AssessmentSettingsPage({
                     </span>
                     <span className="assessment-event-meta">
                       <span
-                        className={`agenda-status ${event.status === "ongoing" ? "live" : event.status === "completed" ? "done" : "next"}`}
+                        className={`badge ${event.status === "ongoing" ? "live" : event.status === "completed" ? "done" : "next"}`}
                       >
                         {event.status === "ongoing"
                           ? "Berlangsung"
@@ -291,7 +291,7 @@ export default async function AssessmentSettingsPage({
             </div>
           ) : (
             !eventsError && (
-              <p className="users-empty">
+              <p className="notice notice--empty">
                 Belum ada kegiatan DAD. Buat kegiatan dahulu melalui menu
                 Kegiatan DAD.
               </p>
@@ -300,7 +300,7 @@ export default async function AssessmentSettingsPage({
         </section>
       )}
       {requestedEventId && !selectedEvent && (
-        <div className="users-notice">
+        <div className="notice">
           <strong>Kegiatan tidak ditemukan</strong>
           <p>
             Pilih kegiatan dari daftar agar pengaturan dan penugasan Observer
@@ -308,7 +308,7 @@ export default async function AssessmentSettingsPage({
           </p>
           <Link
             prefetch={false}
-            className="text-button"
+            className="btn btn--quiet"
             href="/dashboard/penilaian"
           >
             Kembali ke daftar kegiatan
@@ -325,19 +325,19 @@ export default async function AssessmentSettingsPage({
             ← Kembali ke daftar kegiatan DAD
           </Link>
           {assignmentStatus === "success" && (
-            <p className="users-notice">
+            <p className="notice">
               <strong>Observer berhasil ditugaskan.</strong> Akun tersebut
               sekarang dapat membuka kegiatan ini dari menu Observasi.
             </p>
           )}
           {assignmentStatus === "already" && (
-            <p className="users-notice">
+            <p className="notice">
               <strong>Observer sudah ditugaskan.</strong> Akun itu sudah
               memiliki akses untuk kegiatan ini.
             </p>
           )}
           {assignmentStatus === "error" && (
-            <p className="users-error">
+            <p className="notice notice--danger">
               Penugasan belum berhasil disimpan. Muat ulang halaman dan coba
               lagi.
             </p>
@@ -450,7 +450,7 @@ export default async function AssessmentSettingsPage({
                     </p>
                   </div>
                   <span
-                    className={`agenda-status ${event.status === "ongoing" ? "live" : event.status === "completed" ? "done" : "next"}`}
+                    className={`badge ${event.status === "ongoing" ? "live" : event.status === "completed" ? "done" : "next"}`}
                   >
                     {event.status === "ongoing"
                       ? "Berlangsung"
@@ -633,7 +633,7 @@ export default async function AssessmentSettingsPage({
                   !["screening", "training", "follow_up"].includes(
                     selectedStage,
                   ) && (
-                    <p className="users-error">
+                    <p className="notice notice--danger">
                       Tahap tidak dikenali. Pilih Screening, Pelatihan, atau
                       Rencana Tindak Lanjut.
                     </p>
@@ -667,7 +667,7 @@ export default async function AssessmentSettingsPage({
                               tersebut.
                             </p>
                             {canManageRubric && (
-                              <p className="users-notice">
+                              <p className="notice">
                                 <Link
                                   prefetch={false}
                                   href={`/dashboard/penilaian?eventId=${event.id}&stage=training${showArchived ? "" : "&showArchived=1"}`}
@@ -700,9 +700,7 @@ export default async function AssessmentSettingsPage({
                                       >
                                         <strong>{material.name}</strong>
                                         {material.archived_at && (
-                                          <span className="agenda-status">
-                                            Arsip
-                                          </span>
+                                          <span className="badge">Arsip</span>
                                         )}
                                         <span>
                                           {frameworkMaterials?.find(
@@ -841,7 +839,7 @@ export default async function AssessmentSettingsPage({
                         {selectedStage === "training" &&
                           selectedMaterialId &&
                           !selectedMaterial && (
-                            <p className="users-error">
+                            <p className="notice notice--danger">
                               Materi tidak ditemukan pada kegiatan ini.
                             </p>
                           )}
@@ -860,7 +858,7 @@ export default async function AssessmentSettingsPage({
                                     </Link>
                                     <h4>Materi: {selectedMaterial.name}</h4>
                                     {selectedMaterial.archived_at && (
-                                      <p className="users-notice">
+                                      <p className="notice">
                                         <strong>Materi ini diarsipkan.</strong>{" "}
                                         Data lama tetap tersimpan. Pulihkan
                                         materi untuk mengubahnya.
@@ -922,7 +920,7 @@ export default async function AssessmentSettingsPage({
                 {selectedStage &&
                   selectedTypeId &&
                   !eventTypes.some((type) => type.id === selectedTypeId) && (
-                    <p className="users-error">
+                    <p className="notice notice--danger">
                       Jenis penilaian tidak ditemukan pada tahap ini.
                     </p>
                   )}
@@ -1143,7 +1141,7 @@ export default async function AssessmentSettingsPage({
                                 </p>
                               </div>
                               <span
-                                className={`agenda-status ${version.status === "active" ? "done" : "next"}`}
+                                className={`badge ${version.status === "active" ? "done" : "next"}`}
                               >
                                 {version.status === "active"
                                   ? "Aktif"
@@ -1652,7 +1650,7 @@ export default async function AssessmentSettingsPage({
                                     value={version.id}
                                   />
                                   <button
-                                    className="rubric-activate"
+                                    className="btn btn--primary btn--lg"
                                     type="submit"
                                     disabled={!valid}
                                   >
@@ -1673,7 +1671,7 @@ export default async function AssessmentSettingsPage({
           })}
         </>
       )}
-      <div className="users-notice">
+      <div className="notice">
         <strong>Skala indikator</strong>
         <p>
           1 = Sangat Kurang · 2 = Kurang · 3 = Cukup · 4 = Baik · 5 = Sangat

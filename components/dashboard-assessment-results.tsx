@@ -36,10 +36,10 @@ export function DashboardAssessmentResults({
           <h2>Hasil penilaian</h2>
           <p>Ringkasan nilai per tahap, jenis penilaian, dan materi.</p>
         </div>
-        <span className="sample-tag">DATA KEGIATAN</span>
+        <span className="tag">DATA KEGIATAN</span>
       </div>
       {data.error && (
-        <p className="users-error">
+        <p className="notice notice--danger">
           Data belum dapat dibaca. Hubungi Admin sistem bila masalah berulang.
         </p>
       )}
@@ -61,7 +61,7 @@ export function DashboardAssessmentResults({
                 </div>
               </div>
               {!groups.length ? (
-                <p className="users-empty">
+                <p className="notice notice--empty">
                   {data.mode === "summary"
                     ? "Belum ada rekap. Minta Super Admin menugaskan akun Instruktur ke kegiatan yang sudah memiliki hasil."
                     : "Belum ada rubrik aktif atau nilai untuk tahap ini."}
@@ -83,7 +83,7 @@ export function DashboardAssessmentResults({
                         </small>
                       </div>
                       <span
-                        className={`agenda-status ${result.isOfficial ? "done" : "next"}`}
+                        className={`badge ${result.isOfficial ? "done" : "next"}`}
                       >
                         {result.isOfficial ? "Nilai resmi" : "Nilai sementara"}
                       </span>

@@ -30,7 +30,7 @@ export default async function CommissariatApplicationsPage() {
     !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   )
     return (
-      <div className="setup-message">
+      <div className="state-page">
         <h1>Supabase belum dikonfigurasi</h1>
         <p>Aplikasi belum siap digunakan. Hubungi Admin sistem.</p>
         <Link prefetch={false} href="/login">
@@ -51,7 +51,7 @@ export default async function CommissariatApplicationsPage() {
   if (!profile.commissariat_id)
     return (
       <div className="users-page">
-        <div className="users-notice">
+        <div className="notice">
           <strong>Akun Komisariat belum ditautkan</strong>
           <p>
             Minta Admin Sistem mengaitkan akun Anda ke Komisariat yang benar
@@ -129,9 +129,9 @@ export default async function CommissariatApplicationsPage() {
           <h1>Pengajuan peserta</h1>
           <p>Kirim profil peserta dan berkas untuk seleksi kegiatan.</p>
         </div>
-        <span className="sample-tag">{commissariat?.name ?? "Komisariat"}</span>
+        <span className="tag">{commissariat?.name ?? "Komisariat"}</span>
       </div>
-      <div className="users-notice">
+      <div className="notice">
         <strong>Sebelum mengajukan</strong>
         <p>
           Siapkan satu Surat Mandat PDF untuk seluruh pengajuan. Foto peserta
@@ -142,7 +142,7 @@ export default async function CommissariatApplicationsPage() {
       </div>
       {(eventError || submissionError) && <DataUnavailable />}
       {!commissariat?.is_active && (
-        <p className="users-error">
+        <p className="notice notice--danger">
           Komisariat Anda sedang nonaktif. Hubungi Admin Sistem.
         </p>
       )}
@@ -201,7 +201,7 @@ export default async function CommissariatApplicationsPage() {
                 </p>
               </div>
               <span
-                className={`agenda-status ${submission.status === "under_review" ? "live" : "next"}`}
+                className={`badge ${submission.status === "under_review" ? "live" : "next"}`}
               >
                 {statusLabels[submission.status] ?? submission.status}
               </span>
@@ -242,7 +242,7 @@ export default async function CommissariatApplicationsPage() {
                   </form>
                   {submission.mandateUrl && (
                     <a
-                      className="text-button"
+                      className="btn btn--quiet"
                       href={submission.mandateUrl}
                       target="_blank"
                       rel="noreferrer"
@@ -311,8 +311,8 @@ export default async function CommissariatApplicationsPage() {
               </>
             )}
             {submission.participants.length > 0 ? (
-              <div className="users-table-wrap">
-                <table className="users-table participant-table">
+              <div className="table-wrap">
+                <table className="table participant-table">
                   <thead>
                     <tr>
                       <th scope="col">Foto</th>
@@ -428,7 +428,7 @@ export default async function CommissariatApplicationsPage() {
                 </table>
               </div>
             ) : (
-              <p className="users-empty">
+              <p className="notice notice--empty">
                 Tambahkan satu atau beberapa peserta ke pengajuan ini.
               </p>
             )}
@@ -441,7 +441,7 @@ export default async function CommissariatApplicationsPage() {
                     value={submission.id}
                   />
                   <button
-                    className="rubric-activate"
+                    className="btn btn--primary btn--lg"
                     type="submit"
                     disabled={
                       !submission.mandate_path ||
@@ -524,7 +524,9 @@ export default async function CommissariatApplicationsPage() {
         !availableEvents.length &&
         !eventError &&
         !submissionError && (
-          <p className="users-empty">Belum ada kegiatan yang dapat diajukan.</p>
+          <p className="notice notice--empty">
+            Belum ada kegiatan yang dapat diajukan.
+          </p>
         )}
       <p className="privacy-note">
         Akun lain yang ditautkan ke Komisariat yang sama dapat melihat dan

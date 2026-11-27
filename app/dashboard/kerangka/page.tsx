@@ -230,12 +230,12 @@ export default async function CompetencyFrameworkPage() {
           <h1>{framework.name}</h1>
           <p>{framework.description}</p>
         </div>
-        <span className="agenda-status next">
+        <span className="badge next">
           v{frameworkVersion.version} · {frameworkVersion.status} ·{" "}
           {framework.is_trial ? "PERCOBAAN" : "RESMI"}
         </span>
       </header>
-      <div className="users-notice">
+      <div className="notice">
         <strong>
           {framework.is_trial
             ? "Kerangka uji, bukan standar resmi"

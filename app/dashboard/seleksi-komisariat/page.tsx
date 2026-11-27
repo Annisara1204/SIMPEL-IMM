@@ -24,7 +24,7 @@ export default async function CommissariatReviewPage() {
     !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   )
     return (
-      <div className="setup-message">
+      <div className="state-page">
         <h1>Supabase belum dikonfigurasi</h1>
         <p>Aplikasi belum siap digunakan. Hubungi Admin sistem.</p>
         <Link prefetch={false} href="/login">
@@ -104,7 +104,7 @@ export default async function CommissariatReviewPage() {
       </div>
       {error && <DataUnavailable />}
       {!rows.length && !error && (
-        <p className="users-empty">
+        <p className="notice notice--empty">
           Belum ada pengajuan yang menunggu atau memiliki hasil.
         </p>
       )}
@@ -133,14 +133,14 @@ export default async function CommissariatReviewPage() {
                     : ""}
                 </p>
               </div>
-              <span className={`agenda-status ${editable ? "live" : "next"}`}>
+              <span className={`badge ${editable ? "live" : "next"}`}>
                 {labels[submission.status] ?? submission.status}
               </span>
             </div>
             {submission.mandateUrl && (
               <p>
                 <a
-                  className="text-button"
+                  className="btn btn--quiet"
                   href={submission.mandateUrl}
                   target="_blank"
                   rel="noreferrer"
@@ -156,7 +156,7 @@ export default async function CommissariatReviewPage() {
                   name="submissionId"
                   value={submission.id}
                 />
-                <button className="rubric-activate" type="submit">
+                <button className="btn btn--primary btn--lg" type="submit">
                   Mulai tinjauan dan kunci pengajuan
                 </button>
                 <span>
@@ -245,7 +245,9 @@ export default async function CommissariatReviewPage() {
                         )}
                       </div>
                     ) : (
-                      <p className="users-empty">Belum ada keputusan.</p>
+                      <p className="notice notice--empty">
+                        Belum ada keputusan.
+                      </p>
                     )}
                   </div>
                 </article>
@@ -262,7 +264,7 @@ export default async function CommissariatReviewPage() {
                   value={submission.id}
                 />
                 <button
-                  className="rubric-activate"
+                  className="btn btn--primary btn--lg"
                   type="submit"
                   disabled={!complete}
                 >

@@ -92,7 +92,7 @@ export function CompetencyMaterialMapping({
                           <strong>{mapping.name}</strong>
                         </div>
                         <span
-                          className={`agenda-status ${mapping.rubricAvailable ? "done" : "next"}`}
+                          className={`badge ${mapping.rubricAvailable ? "done" : "next"}`}
                         >
                           {mapping.rubricAvailable
                             ? "Rubrik tersedia"
@@ -139,7 +139,9 @@ export function CompetencyMaterialMapping({
                   ))}
                 </div>
               ) : (
-                <p className="users-empty">Belum ada indikator terpetakan.</p>
+                <p className="notice notice--empty">
+                  Belum ada indikator terpetakan.
+                </p>
               )}
             </details>
           ))}

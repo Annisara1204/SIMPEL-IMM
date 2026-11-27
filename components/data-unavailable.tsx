@@ -5,7 +5,7 @@
  */
 export function DataUnavailable() {
   return (
-    <p className="users-error" role="alert">
+    <p className="notice notice--danger" role="alert">
       Data belum dapat dibaca. Sesi atau layanan mungkin bermasalah —{" "}
       <a href="">muat ulang halaman</a>; bila masih gagal, keluar lalu login
       ulang. Hubungi Admin sistem bila masalah berulang.

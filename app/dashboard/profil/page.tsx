@@ -16,7 +16,7 @@ export default async function ProfilePage({
     !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   )
     return (
-      <div className="setup-message">
+      <div className="state-page">
         <h1>Supabase belum dikonfigurasi</h1>
         <Link prefetch={false} href="/login">
           Kembali ke login
@@ -43,7 +43,7 @@ export default async function ProfilePage({
   ]);
   if (!profile)
     return (
-      <div className="setup-message">
+      <div className="state-page">
         <h1>Profil belum tersedia</h1>
         <DataUnavailable />
       </div>

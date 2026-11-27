@@ -750,7 +750,7 @@ export function Phase7ReportWorkspace(props: Props) {
       return (
         <div className="users-page">
           <h1>Rapor Saya</h1>
-          <p className="users-notice">
+          <p className="notice">
             {reportError ??
               "Rapor belum diterbitkan. Setelah diterbitkan, rapor akan tampil di sini."}
           </p>
@@ -786,7 +786,7 @@ export function Phase7ReportWorkspace(props: Props) {
         </div>
         <ReportPreview report={report} />
         {message && (
-          <p className="users-error" role="alert">
+          <p className="notice notice--danger" role="alert">
             {message}
           </p>
         )}
@@ -826,7 +826,9 @@ export function Phase7ReportWorkspace(props: Props) {
         </section>
       )}
       {reportError && (
-        <p className="users-error">Laporan belum dapat dibaca: {reportError}</p>
+        <p className="notice notice--danger">
+          Laporan belum dapat dibaca: {reportError}
+        </p>
       )}
       {event && (
         <>
@@ -1075,7 +1077,7 @@ export function Phase7ReportWorkspace(props: Props) {
               </button>
             </div>
             {progress && (
-              <p className="users-notice">
+              <p className="notice">
                 Membuat PDF {progress.done} dari {progress.total}…{" "}
                 <progress value={progress.done} max={progress.total} />
               </p>
@@ -1182,9 +1184,7 @@ export function Phase7ReportWorkspace(props: Props) {
                         </td>
                         <td>{decisionLabel(decisionOf(row))}</td>
                         <td>
-                          <span
-                            className={`agenda-status ${status.toLowerCase()}`}
-                          >
+                          <span className={`badge ${status.toLowerCase()}`}>
                             {STATUS_LABELS[status] ?? status}
                           </span>
                         </td>
@@ -1400,7 +1400,7 @@ export function Phase7ReportWorkspace(props: Props) {
                   )}
                 </>
               ) : (
-                <p className="users-notice">
+                <p className="notice">
                   PROVISIONAL — asesmen belum memiliki snapshot final. Preview
                   dan ekspor resmi dinonaktifkan.
                 </p>
@@ -1409,7 +1409,7 @@ export function Phase7ReportWorkspace(props: Props) {
           )}
           {message && (
             <p
-              className="users-notice"
+              className="notice"
               role={/gagal|error/i.test(message) ? "alert" : "status"}
             >
               {message}

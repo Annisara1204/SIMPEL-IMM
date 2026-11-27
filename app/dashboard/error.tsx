@@ -15,7 +15,7 @@ export default function DashboardError({
   }, [error]);
 
   return (
-    <div className="setup-message">
+    <div className="state-page">
       <h1>Halaman gagal dimuat</h1>
       <p>
         Maaf, terjadi kesalahan saat memuat halaman ini. Coba muat ulang; bila

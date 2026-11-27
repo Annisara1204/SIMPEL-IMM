@@ -50,12 +50,12 @@ export default async function InstructorProfilesPage() {
           <h1>Daftar Instruktur</h1>
           <p>Nama lengkap dan foto instruktur yang sudah mengisi profil.</p>
         </div>
-        <span className="sample-tag">UNTUK PENGGUNA MASUK</span>
+        <span className="tag">UNTUK PENGGUNA MASUK</span>
       </div>
       {error ? (
         <DataUnavailable />
       ) : !instructors.length ? (
-        <p className="users-empty">
+        <p className="notice notice--empty">
           Belum ada Instruktur yang melengkapi profil.
         </p>
       ) : (

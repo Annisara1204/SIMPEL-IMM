@@ -15,7 +15,7 @@ export default function GlobalError({
   }, [error]);
 
   return (
-    <main className="setup-message">
+    <main className="state-page">
       <h1>Terjadi kesalahan</h1>
       <p>
         Maaf, terjadi kesalahan saat memuat halaman ini. Coba muat ulang; bila

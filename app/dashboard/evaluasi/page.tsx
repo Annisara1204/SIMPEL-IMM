@@ -48,7 +48,7 @@ export default async function CollectiveEvaluationPage({
     !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   )
     return (
-      <div className="setup-message">
+      <div className="state-page">
         <h1>Evaluasi belum dikonfigurasi</h1>
         <DataUnavailable />
       </div>
@@ -321,15 +321,12 @@ export default async function CollectiveEvaluationPage({
   return (
     <div className="users-page">
       {batchResult && (
-        <div
-          className="users-notice"
-          role={batchResult.failed ? "alert" : "status"}
-        >
+        <div className="notice" role={batchResult.failed ? "alert" : "status"}>
           Finalisasi semua: {batchResult.ok} berhasil, {batchResult.skipped}{" "}
           dilewati, {batchResult.failed} gagal, {batchResult.missing} versi
           rubrik belum punya evaluasi.
           {batchResult.error && (
-            <span className="users-error">
+            <span className="notice notice--danger">
               {" "}
               Kesalahan: {batchResult.error}.
             </span>
@@ -347,7 +344,7 @@ export default async function CollectiveEvaluationPage({
         </div>
       </div>
       {actionError && (
-        <p className="users-error" role="alert">
+        <p className="notice notice--danger" role="alert">
           {actionError}
         </p>
       )}
@@ -369,7 +366,7 @@ export default async function CollectiveEvaluationPage({
         </section>
       )}
       {eventId && !selectedEvent && (
-        <p className="users-error">
+        <p className="notice notice--danger">
           Kegiatan tidak ditemukan atau akun Anda tidak memiliki akses.
         </p>
       )}
@@ -503,7 +500,7 @@ export default async function CollectiveEvaluationPage({
               })}
             </nav>
             {summaryError && <DataUnavailable />}
-            <div className="users-notice">
+            <div className="notice">
               <strong>
                 {overall.status === "provisional"
                   ? "Hasil sementara (Provisional)"
@@ -831,7 +828,7 @@ export default async function CollectiveEvaluationPage({
                   . Penilaian lain difinalisasi terpisah.
                 </p>
                 {evaluation?.status === "finalized" && (
-                  <p className="users-notice">
+                  <p className="notice">
                     <strong>
                       Keputusan final: {evaluation.graduation_decision}
                     </strong>{" "}
@@ -950,7 +947,7 @@ export default async function CollectiveEvaluationPage({
                         {policy?.minimum_coverage ?? 80}% pada setiap aspek.
                       </p>
                       <button
-                        className="rubric-activate"
+                        className="btn btn--primary btn--lg"
                         type="submit"
                         formAction={finalizeCollectiveEvaluation}
                         disabled={
@@ -960,7 +957,7 @@ export default async function CollectiveEvaluationPage({
                         Finalisasi dan simpan snapshot
                       </button>
                       <button
-                        className="rubric-activate"
+                        className="btn btn--primary btn--lg"
                         type="submit"
                         formAction={approveFinalizePublishReport}
                         disabled={

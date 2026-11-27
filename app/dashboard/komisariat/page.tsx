@@ -25,7 +25,7 @@ export default async function CommissariatsPage({
     !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   )
     return (
-      <div className="setup-message">
+      <div className="state-page">
         <h1>Supabase belum dikonfigurasi</h1>
         <p>Aplikasi belum siap digunakan. Hubungi Admin sistem.</p>
         <Link prefetch={false} href="/login">
@@ -83,12 +83,12 @@ export default async function CommissariatsPage({
       {error ? (
         <DataUnavailable />
       ) : !commissariats?.length ? (
-        <p className="users-empty">
+        <p className="notice notice--empty">
           Belum ada Komisariat. Tambahkan nama simulasi di atas.
         </p>
       ) : (
-        <div className="users-table-wrap">
-          <table className="users-table">
+        <div className="table-wrap">
+          <table className="table">
             <thead>
               <tr>
                 <th scope="col">Nama Komisariat</th>
@@ -103,7 +103,7 @@ export default async function CommissariatsPage({
                   <td>{item.name}</td>
                   <td>
                     <span
-                      className={`agenda-status ${item.is_active ? "done" : "next"}`}
+                      className={`badge ${item.is_active ? "done" : "next"}`}
                     >
                       {item.is_active ? "Aktif" : "Nonaktif"}
                     </span>

@@ -1,0 +1,345 @@
+/* Semua aturan responsif dikumpulkan di satu tempat, urutan breakpoint dari lebar ke sempit. */
+
+@media (max-width: 1100px) {
+  .content {
+    padding-left: 26px;
+    padding-right: 26px;
+  }
+  .topbar {
+    padding: 0 26px;
+  }
+}
+
+@media (max-width: 760px) {
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.22s ease;
+    box-shadow: 12px 0 35px var(--shadow-lg);
+  }
+  .sidebar-open {
+    transform: translateX(0);
+  }
+  .mobile-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+    margin-left: auto;
+    border: 0;
+    background: none;
+    font-size: 23px;
+    color: var(--muted);
+  }
+  .scrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: var(--scrim);
+    border: 0;
+    z-index: 4;
+  }
+  .main-area {
+    margin-left: 0;
+  }
+  .topbar {
+    height: 58px;
+    padding: 0 16px;
+  }
+  .mobile-menu {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+    border: 0;
+    background: transparent;
+    color: var(--ink-soft);
+    font-size: 19px;
+    padding: 0;
+  }
+  .topbar-left {
+    gap: 8px;
+  }
+  .topbar-right {
+    gap: 12px;
+  }
+  .profile-text,
+  .safe-pill {
+    display: none;
+  }
+  .content {
+    padding: 25px 16px 18px;
+  }
+  .welcome-row {
+    align-items: flex-start;
+    gap: 12px;
+    flex-direction: column;
+  }
+  .welcome-row h1 {
+    font-size: 23px;
+  }
+  .section-heading h2 {
+    font-size: 13px;
+  }
+  .panel {
+    padding: 15px;
+  }
+  .page-footer {
+    gap: 10px;
+    line-height: 1.5;
+  }
+  .page-footer span:last-child {
+    text-align: right;
+  }
+}
+
+@media (max-width: 390px) {
+  .breadcrumb {
+    font-size: 10px;
+  }
+  .content {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+  .page-footer {
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 900px) {
+  .role-grid,
+  .public-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .role-grid {
+    gap: 10px;
+  }
+  .assigned-card,
+  .activity-row {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+  .assigned-copy,
+  .activity-copy {
+    min-width: calc(100% - 55px);
+  }
+  .assigned-card > .btn--quiet,
+  .activity-row > .btn--quiet {
+    margin-left: auto;
+  }
+  .metric-row {
+    gap: 4px;
+  }
+  .metric-row span {
+    font-size: 8px;
+  }
+  .schedule-row strong {
+    font-size: 9px;
+  }
+  .participant-score .tag {
+    right: 10px;
+    bottom: 10px;
+  }
+  .role-heading {
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .tag {
+    font-size: 8px;
+  }
+}
+
+@media (max-width: 760px) {
+  .event-manage-card {
+    padding: 15px;
+  }
+  .event-edit-form,
+  .participant-add-form {
+    grid-template-columns: 1fr;
+  }
+  .event-edit-form button,
+  .participant-add-form button {
+    min-height: 42px;
+  }
+  .event-manage-title {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 760px) {
+  .commission-add-form {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .commission-add-form button {
+    height: 42px;
+  }
+  .commission-edit-form {
+    min-width: 200px;
+  }
+}
+
+@media (max-width: 760px) {
+  .participant-add-form.participant-profile-form,
+  .participant-edit-form {
+    grid-template-columns: 1fr;
+  }
+  .participant-edit-form {
+    min-width: 280px;
+  }
+}
+
+@media (max-width: 760px) {
+  .observation-indicator {
+    grid-template-columns: 1fr;
+  }
+  .observation-cell {
+    grid-template-columns: 1fr;
+  }
+  .assignment-box .commission-add-form {
+    padding: 10px;
+  }
+  .assignment-row {
+    gap: 10px;
+  }
+}
+
+@media (max-width: 760px) {
+  .import-setup-form,
+  .import-columns-grid {
+    grid-template-columns: 1fr;
+  }
+  .import-review .table td select {
+    min-width: 170px;
+  }
+}
+
+@media (max-width: 760px) {
+  .application-event-row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .application-event-row button {
+    width: 100%;
+    height: 42px;
+  }
+  .application-upload-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .application-file-form {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .application-file-form button {
+    height: 42px;
+  }
+  .application-cancel-form {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 760px) {
+  .observer-decision-form {
+    grid-template-columns: 1fr;
+  }
+  .observer-decision-form label:nth-of-type(3) {
+    grid-column: auto;
+  }
+  .observer-application-person {
+    gap: 10px;
+  }
+  .observer-application-person > a {
+    flex-basis: 48px;
+  }
+  .observer-application-person > a .participant-photo-thumb {
+    height: 64px;
+    width: 48px;
+  }
+}
+
+@media (max-width: 600px) {
+  .assessment-event-option {
+    grid-template-columns: minmax(0, 1fr) 22px;
+    gap: 8px;
+  }
+  .assessment-event-meta {
+    grid-column: 1;
+    grid-row: 2;
+    justify-items: start;
+  }
+  .assessment-event-arrow {
+    grid-column: 2;
+    grid-row: 1/3;
+  }
+}
+
+@media (max-width: 980px) {
+  .dashboard-stage-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .instructor-duty-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .personal-profile-form {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .observer-notes-grid {
+    grid-template-columns: 1fr;
+  }
+  .observation-conflict button {
+    flex: 1;
+  }
+}
+
+@media (max-width: 640px) {
+  .competency-rubric-card > header {
+    flex-direction: column;
+  }
+  .competency-rubric-card dl,
+  .competency-anchor {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .report-export-controls {
+    align-items: stretch;
+  }
+  .export-filter,
+  .export-button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 680px) {
+  .users-metrics-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .report-aspect-row {
+    grid-template-columns: 1fr auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}

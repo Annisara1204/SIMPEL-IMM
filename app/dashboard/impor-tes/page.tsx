@@ -10,7 +10,7 @@ export default async function TestImportPage() {
     !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   )
     return (
-      <div className="setup-message">
+      <div className="state-page">
         <h1>Supabase belum dikonfigurasi</h1>
         <p>Aplikasi belum siap digunakan. Hubungi Admin sistem.</p>
         <Link prefetch={false} href="/login">
@@ -55,13 +55,13 @@ export default async function TestImportPage() {
             Unggah ekspor Google Sheets, tinjau kecocokan peserta, lalu simpan.
           </p>
         </div>
-        <span className="sample-tag">PRETEST · POSTTEST</span>
+        <span className="tag">PRETEST · POSTTEST</span>
       </div>
       {(eventError || importError) && <DataUnavailable />}
       {events?.length ? (
         <ImportWizard events={events} />
       ) : (
-        <p className="users-empty">Belum ada kegiatan.</p>
+        <p className="notice notice--empty">Belum ada kegiatan.</p>
       )}
       <section className="event-manage-card">
         <div className="event-manage-title">
@@ -74,8 +74,8 @@ export default async function TestImportPage() {
           </div>
         </div>
         {imports?.length ? (
-          <div className="users-table-wrap">
-            <table className="users-table">
+          <div className="table-wrap">
+            <table className="table">
               <thead>
                 <tr>
                   <th scope="col">Waktu</th>
@@ -113,10 +113,10 @@ export default async function TestImportPage() {
             </table>
           </div>
         ) : (
-          <p className="users-empty">Belum ada riwayat impor.</p>
+          <p className="notice notice--empty">Belum ada riwayat impor.</p>
         )}
       </section>
-      <div className="users-notice">
+      <div className="notice">
         <strong>Privasi dan pemeriksaan</strong>
         <p>
           Berkas dibaca oleh aplikasi lalu tidak disimpan sebagai salinan. Hanya

@@ -22,7 +22,7 @@ export function RubricPreview({ items }: { items: RubricPreviewItem[] }) {
               <h2>{item.name}</h2>
             </div>
             <span
-              className={`agenda-status ${item.rubricStatus === "published" ? "done" : "next"}`}
+              className={`badge ${item.rubricStatus === "published" ? "done" : "next"}`}
             >
               {item.rubricStatus === "published"
                 ? item.rubricVersion !== null

@@ -151,8 +151,8 @@ export default async function AnalitikPage() {
         {recaps.length === 0 ? (
           <p className="empty-state">Belum ada kegiatan.</p>
         ) : (
-          <div className="users-table-wrap">
-            <table className="users-table">
+          <div className="table-wrap">
+            <table className="table">
               <caption className="data-caption">
                 Rekap jumlah peserta, peserta final, rapor diterbitkan, dan
                 distribusi keputusan per kegiatan

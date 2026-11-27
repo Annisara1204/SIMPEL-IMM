@@ -34,7 +34,7 @@ export default async function ReportingPage({ searchParams }: Props) {
     !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   )
     return (
-      <div className="setup-message">
+      <div className="state-page">
         <h1>Laporan belum dikonfigurasi</h1>
         <DataUnavailable />
       </div>

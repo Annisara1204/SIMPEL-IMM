@@ -1,0 +1,73 @@
+/* Sumber tunggal untuk warna, bentuk, bayangan, dan jarak.
+   Semua nilai di berkas CSS lain harus memakai token ini. */
+
+:root {
+  /* Brand merah maroon IMM */
+  --color-primary: #8b1e3f;
+  --color-primary-dark: #64142d;
+  --color-primary-soft: #f8eef1;
+  --color-primary-wash: #fbf6f8;
+  --color-primary-line: #bc8799;
+  --color-primary-border: #f0e3e8;
+  --color-primary-ink: #7b2038;
+  --color-primary-mark: #f1c5d1;
+  --color-primary-focus: #8b1e3f44;
+  --color-primary-glow: #8b1e3f12;
+
+  /* Permukaan dan garis */
+  --color-surface: #fff;
+  --color-surface-soft: #faf8f9;
+  --color-surface-raised: #fffdfd;
+  --color-surface-tint: #f8f4f5;
+  --canvas: #f8f7f8;
+  --color-border: #eee8eb;
+  --color-border-soft: #f0ecee;
+  --color-border-input: #ded7da;
+  --color-border-strong: #d9c3cb;
+  --color-border-danger: #e3a4b4;
+  --line: var(--color-border);
+  --color-disabled: #d6cbd0;
+
+  /* Teks */
+  --ink: #302a2d;
+  --ink-strong: #301c24;
+  --ink-soft: #51454a;
+  --color-label: #62595d;
+  --muted: #6f5a64;
+  --muted-warm: var(--muted);
+  --color-subtle: #746b70;
+
+  /* Status: hijau dipakai untuk makna sukses/selesai */
+  --color-success: #3e7c57;
+  --color-success-deep: #25734a;
+  --color-success-soft: #edf7f0;
+  --color-success-border: #d6eadc;
+  --color-warning: #8a5a1d;
+  --color-warning-ink: #785514;
+  --color-warning-soft: #fff5e8;
+  --color-danger: #9b1c35;
+  --color-danger-ink: #6c1731;
+  --color-danger-soft: #fff1f2;
+  --color-info: #315476;
+  --color-info-soft: #eaf0f7;
+
+  /* Peta kompetensi: skala panas nilai aspek 1-5 */
+  --color-heat-none: #f5f3f4;
+  --color-heat-low: #fce7e7;
+  --color-heat-mid: #fff3d8;
+  --color-heat-high: #e7f4ec;
+
+  /* Bentuk */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 12px;
+  --radius-2xl: 14px;
+  --radius-pill: 999px;
+
+  /* Bayangan dan penutup layar */
+  --scrim: #14271c55;
+  --shadow-sm: 0 2px 8px #4c17251f;
+  --shadow-md: 0 18px 48px #3c162010;
+  --shadow-lg: 12px 0 35px #152b2014;
+}

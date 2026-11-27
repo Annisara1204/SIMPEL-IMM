@@ -37,7 +37,7 @@ export default async function DashboardPage() {
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !key)
     return (
-      <div className="setup-message">
+      <div className="state-page">
         <h1>Login belum dikonfigurasi</h1>
         <p>Aplikasi belum siap digunakan. Hubungi Admin sistem.</p>
         <Link prefetch={false} href="/login">
@@ -56,7 +56,7 @@ export default async function DashboardPage() {
     .maybeSingle();
   if (error)
     return (
-      <div className="setup-message">
+      <div className="state-page">
         <h1>Profil belum tersedia</h1>
         <DataUnavailable />
         <form action="/auth/signout" method="post">
@@ -66,7 +66,7 @@ export default async function DashboardPage() {
     );
   if (!profile?.role || !allowedRoles.includes(profile.role as AppRole))
     return (
-      <div className="setup-message">
+      <div className="state-page">
         <h1>Akun sedang menunggu penetapan akses</h1>
         <p>
           Dashboard belum menampilkan fitur. Superadmin akan menetapkan role
@@ -100,7 +100,7 @@ export default async function DashboardPage() {
     );
     if (!instructorAssignmentRows.length)
       return (
-        <div className="setup-message">
+        <div className="state-page">
           <h1>Akun menunggu penugasan Superadmin</h1>
           <p>
             Role Instruktur sudah ditetapkan, tetapi dashboard baru terbuka

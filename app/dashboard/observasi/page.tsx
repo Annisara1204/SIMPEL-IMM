@@ -31,7 +31,7 @@ export default async function ObservationsPage({
     !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   )
     return (
-      <div className="setup-message">
+      <div className="state-page">
         <h1>Supabase belum dikonfigurasi</h1>
         <p>Aplikasi belum siap digunakan. Hubungi Admin sistem.</p>
         <Link prefetch={false} href="/login">
@@ -268,7 +268,7 @@ export default async function ObservationsPage({
         notesError ||
         mappingError) && <DataUnavailable />}
       {selectedMaterial?.archived_at && (
-        <p className="users-notice" role="status">
+        <p className="notice" role="status">
           <strong>Materi ini diarsipkan.</strong> Data penilaian lama tetap
           tersimpan dan tidak dapat diubah sampai Admin Sistem memulihkannya.
         </p>
@@ -302,7 +302,7 @@ export default async function ObservationsPage({
               ))}
             </div>
           ) : (
-            <p className="users-empty">
+            <p className="notice notice--empty">
               {profile.role === "observer" || profile.role === "instruktur"
                 ? "Belum ada kegiatan yang ditugaskan kepada Anda."
                 : "Belum ada kegiatan."}
@@ -312,7 +312,7 @@ export default async function ObservationsPage({
       )}
 
       {requestedEventId && !selectedEvent && (
-        <p className="users-error">
+        <p className="notice notice--danger">
           Kegiatan tidak ditemukan atau Anda tidak ditugaskan padanya.
         </p>
       )}
@@ -350,7 +350,7 @@ export default async function ObservationsPage({
             </section>
           )}
           {selectedStage && !selectedPhaseIsValid && (
-            <p className="users-error">
+            <p className="notice notice--danger">
               Tahap tidak dikenali. Kembali dan pilih Screening, Pelatihan, atau
               Rencana Tindak Lanjut.
             </p>
@@ -384,7 +384,7 @@ export default async function ObservationsPage({
                     ))}
                   </div>
                 ) : (
-                  <p className="users-empty">
+                  <p className="notice notice--empty">
                     Belum ada materi. Minta Super Admin menambah materi dan
                     mengaktifkan rubriknya.
                   </p>
@@ -395,7 +395,7 @@ export default async function ObservationsPage({
             selectedStage === "training" &&
             selectedMaterialId &&
             !selectedMaterial && (
-              <p className="users-error">
+              <p className="notice notice--danger">
                 Materi tidak ditemukan pada kegiatan ini.
               </p>
             )}
@@ -451,7 +451,7 @@ export default async function ObservationsPage({
                     ))}
                   </div>
                 ) : (
-                  <p className="users-empty">
+                  <p className="notice notice--empty">
                     Belum ada jenis penilaian untuk pilihan ini. Minta Super
                     Admin menambah jenis dan mengaktifkan rubriknya.
                   </p>
@@ -463,7 +463,7 @@ export default async function ObservationsPage({
             selectedPhaseIsValid &&
             selectedTypeId &&
             !selectedType && (
-              <p className="users-error">
+              <p className="notice notice--danger">
                 Jenis penilaian tidak ditemukan untuk tahap ini.
               </p>
             )}
@@ -514,7 +514,7 @@ export default async function ObservationsPage({
                           .join(", ") || "belum ada"}
                       </p>
                     </div>
-                    <span className="agenda-status next">
+                    <span className="badge next">
                       Penilaian individu · belum difinalisasi
                     </span>
                     {activeVersion && (
@@ -522,7 +522,7 @@ export default async function ObservationsPage({
                     )}
                   </div>
                   {!activeVersion ? (
-                    <p className="users-empty">
+                    <p className="notice notice--empty">
                       Belum ada rubrik aktif untuk jenis penilaian ini. Hubungi
                       Super Admin.
                     </p>
@@ -788,7 +788,7 @@ export default async function ObservationsPage({
         </>
       )}
 
-      <div className="users-notice">
+      <div className="notice">
         <strong>Skala penilaian observer</strong>
         <p>
           1 = Sangat Kurang · 2 = Kurang · 3 = Cukup · 4 = Baik · 5 = Sangat

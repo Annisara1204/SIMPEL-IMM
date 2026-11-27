@@ -37,7 +37,7 @@ export default async function ParticipantsPage() {
     !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   )
     return (
-      <div className="setup-message">
+      <div className="state-page">
         <h1>Supabase belum dikonfigurasi</h1>
         <p>Aplikasi belum siap digunakan. Hubungi Admin sistem.</p>
         <Link prefetch={false} href="/login">
@@ -102,7 +102,9 @@ export default async function ParticipantsPage() {
       {error ? (
         <DataUnavailable />
       ) : !eventsWithPhotos.length ? (
-        <p className="users-empty">Belum ada kegiatan untuk ditampilkan.</p>
+        <p className="notice notice--empty">
+          Belum ada kegiatan untuk ditampilkan.
+        </p>
       ) : (
         eventsWithPhotos.map((event) => (
           <section className="event-manage-card" key={event.id}>
@@ -113,7 +115,7 @@ export default async function ParticipantsPage() {
               </div>
             </div>
             {!commissariats?.length && (
-              <p className="users-error">
+              <p className="notice notice--danger">
                 Belum ada Komisariat aktif. Minta Admin Sistem menambahkan atau
                 mengaktifkan Komisariat melalui menu Komisariat.
               </p>
@@ -199,8 +201,8 @@ export default async function ParticipantsPage() {
               </form>
             )}
             {event.participants.length ? (
-              <div className="users-table-wrap">
-                <table className="users-table participant-table">
+              <div className="table-wrap">
+                <table className="table participant-table">
                   <thead>
                     <tr>
                       <th scope="col">Foto</th>
@@ -354,7 +356,7 @@ export default async function ParticipantsPage() {
                 </table>
               </div>
             ) : (
-              <p className="users-empty">
+              <p className="notice notice--empty">
                 Belum ada peserta pada kegiatan ini.
               </p>
             )}

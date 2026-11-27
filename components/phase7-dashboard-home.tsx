@@ -106,7 +106,7 @@ export function Phase7DashboardHome({ data }: { data: Phase7Home }) {
                 </div>
                 <Link
                   prefetch={false}
-                  className="text-button"
+                  className="btn btn--quiet"
                   href={`/dashboard/laporan?eventId=${item.id}`}
                 >
                   Buka dashboard laporan →
@@ -190,7 +190,7 @@ export function Phase7DashboardHome({ data }: { data: Phase7Home }) {
           </p>
           <Link
             prefetch={false}
-            className="text-button"
+            className="btn btn--quiet"
             href="/dashboard/observasi"
           >
             Buka penilaian →
@@ -210,7 +210,7 @@ export function Phase7DashboardHome({ data }: { data: Phase7Home }) {
               : "Belum ada rapor yang diterbitkan untuk akun ini."}
           </p>
         </div>
-        <span className={report ? "agenda-status done" : "temporary-pill"}>
+        <span className={report ? "badge done" : "temporary-pill"}>
           {report ? "PUBLISHED" : "MENUNGGU HASIL"}
         </span>
       </div>

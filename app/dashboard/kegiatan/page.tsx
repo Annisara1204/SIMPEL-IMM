@@ -30,7 +30,7 @@ export default async function ActivitiesPage({
     !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   )
     return (
-      <div className="setup-message">
+      <div className="state-page">
         <h1>Supabase belum dikonfigurasi</h1>
         <p>Aplikasi belum siap digunakan. Hubungi Admin sistem.</p>
         <Link prefetch={false} href="/login">
@@ -97,22 +97,22 @@ export default async function ActivitiesPage({
               : "Kelola seluruh kegiatan dan peserta yang terhubung dengannya."}
           </p>
         </div>
-        <span className="sample-tag">UJI COBA</span>
+        <span className="tag">UJI COBA</span>
       </div>
       {createStatus === "success" && (
-        <p className="users-notice">
+        <p className="notice">
           <strong>Kegiatan berhasil dibuat.</strong> Kegiatan itu sekarang
           tersedia di Pengaturan Penilaian dan Pengajuan Peserta.
         </p>
       )}
       {createStatus === "invalid" && (
-        <p className="users-error">
+        <p className="notice notice--danger">
           Periksa kembali nama, komisariat, lokasi, dan tanggal kegiatan.
         </p>
       )}
       {createStatus === "failed" && <DataUnavailable />}
       {profile.role === "admin_system" && (
-        <p className="users-notice">
+        <p className="notice">
           {showArchived ? (
             <Link prefetch={false} href="/dashboard/kegiatan">
               ← Kembali ke kegiatan aktif
@@ -197,7 +197,7 @@ export default async function ActivitiesPage({
       {error ? (
         <DataUnavailable />
       ) : !events?.length ? (
-        <p className="users-empty">
+        <p className="notice notice--empty">
           {profile.role === "observer"
             ? "Belum ada kegiatan yang ditugaskan kepada Anda. Minta Admin Sistem mengatur penugasan di Pengaturan Penilaian."
             : "Belum ada kegiatan."}
@@ -221,13 +221,11 @@ export default async function ActivitiesPage({
                   )}
                 </p>
               </div>
-              <span className="agenda-status live">
+              <span className="badge live">
                 {statusNames[event.status as keyof typeof statusNames] ??
                   "Status tidak dikenal"}
               </span>
-              {event.archived_at && (
-                <span className="agenda-status">Arsip</span>
-              )}
+              {event.archived_at && <span className="badge">Arsip</span>}
             </div>
             <p className="participant-total">
               <strong>{event.participants.length}</strong> peserta terdaftar

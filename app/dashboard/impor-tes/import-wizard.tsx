@@ -292,13 +292,17 @@ export function ImportWizard({
     <section className="event-manage-card import-card">
       {savedImport ? (
         <>
-          <div className="users-notice">
+          <div className="notice">
             <strong>Impor selesai</strong>
             <p>
               {message} ID impor: <code>{savedImport}</code>
             </p>
           </div>
-          <button type="button" className="rubric-activate" onClick={reset}>
+          <button
+            type="button"
+            className="btn btn--primary btn--lg"
+            onClick={reset}
+          >
             Mulai impor lain
           </button>
         </>
@@ -414,7 +418,7 @@ export function ImportWizard({
               </p>
               <button
                 type="button"
-                className="rubric-activate"
+                className="btn btn--primary btn--lg"
                 onClick={checkMatches}
                 disabled={isPending || !eventId}
               >
@@ -429,8 +433,8 @@ export function ImportWizard({
                 Pastikan setiap baris cocok dengan peserta yang benar. Baris
                 yang tidak disertakan tidak akan diimpor.
               </p>
-              <div className="users-table-wrap">
-                <table className="users-table">
+              <div className="table-wrap">
+                <table className="table">
                   <thead>
                     <tr>
                       <th scope="col">Baris</th>
@@ -567,7 +571,7 @@ export function ImportWizard({
               })}
               <button
                 type="button"
-                className="rubric-activate"
+                className="btn btn--primary btn--lg"
                 onClick={saveReviewedImport}
                 disabled={isPending || !canSave}
               >
@@ -583,7 +587,7 @@ export function ImportWizard({
             </div>
           )}
           {message && (
-            <p className="users-error" role="alert">
+            <p className="notice notice--danger" role="alert">
               {message}
             </p>
           )}

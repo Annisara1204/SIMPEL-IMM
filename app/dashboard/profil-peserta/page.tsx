@@ -82,10 +82,10 @@ export default async function InstructorParticipantProfilesPage({
             profil dan hasil penilaian peserta.
           </p>
         </div>
-        <span className="sample-tag">AKSES SESUAI PENUGASAN</span>
+        <span className="tag">AKSES SESUAI PENUGASAN</span>
       </div>
       {!events?.length ? (
-        <p className="users-empty">
+        <p className="notice notice--empty">
           Belum ada kegiatan yang ditugaskan kepada akun Anda.
         </p>
       ) : (
@@ -135,7 +135,7 @@ export default async function InstructorParticipantProfilesPage({
                 </div>
               </div>
               {!people.length ? (
-                <p className="users-empty">
+                <p className="notice notice--empty">
                   Belum ada peserta di kegiatan ini.
                 </p>
               ) : (

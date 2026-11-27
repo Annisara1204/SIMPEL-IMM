@@ -9,6 +9,7 @@ import {
   archiveMaterial,
   archiveRubricVersion,
   createAssessmentType,
+  copyRubricToMaterials,
   createRubricVersion,
   createTrainingMaterial,
   editAspect,
@@ -981,6 +982,111 @@ export default async function AssessmentSettingsPage({
                               diaktifkan.
                             </small>
                           </form>
+                        )}
+                      {selectedStage === "training" &&
+                        canManageRubric &&
+                        eventVersions.some(
+                          (version) => version.status !== "draft",
+                        ) &&
+                        eventMaterials.some(
+                          (material) =>
+                            material.id !== selectedMaterialId &&
+                            !material.archived_at,
+                        ) && (
+                          <details className="framework-rubric-picker">
+                            <summary>Salin rubrik ke materi lain</summary>
+                            <p>
+                              Pilih versi sumber, lalu centang materi tujuan.
+                              Sistem membuat draf baru di tiap materi dengan
+                              aspek, bobot, indikator, pemetaan, dan uraian skor
+                              1–5 yang sama. Rubrik sumber tidak diubah; draf
+                              hasil salinan tetap perlu diaktifkan satu per
+                              satu.
+                            </p>
+                            <form
+                              action={copyRubricToMaterials}
+                              className="rubric-add-form"
+                            >
+                              <input
+                                type="hidden"
+                                name="eventId"
+                                value={event.id}
+                              />
+                              <input
+                                type="hidden"
+                                name="stage"
+                                value={selectedStage}
+                              />
+                              <input
+                                type="hidden"
+                                name="assessmentTypeId"
+                                value={selectedTypeId}
+                              />
+                              <input
+                                type="hidden"
+                                name="materialId"
+                                value={selectedMaterialId ?? ""}
+                              />
+                              <input
+                                type="hidden"
+                                name="typeId"
+                                value={selectedTypeId}
+                              />
+                              <label>
+                                Versi sumber
+                                <select
+                                  name="sourceVersionId"
+                                  required
+                                  defaultValue=""
+                                >
+                                  <option value="" disabled>
+                                    Pilih versi
+                                  </option>
+                                  {[...eventVersions]
+                                    .filter(
+                                      (version) => version.status !== "draft",
+                                    )
+                                    .sort((a, b) => b.version - a.version)
+                                    .map((version) => (
+                                      <option
+                                        key={version.id}
+                                        value={version.id}
+                                      >
+                                        Versi {version.version} ·{" "}
+                                        {version.status === "active"
+                                          ? "RESMI"
+                                          : "Arsip"}
+                                      </option>
+                                    ))}
+                                </select>
+                              </label>
+                              <fieldset className="framework-rubric-choice-list">
+                                <legend>Materi tujuan</legend>
+                                {eventMaterials
+                                  .filter(
+                                    (material) =>
+                                      material.id !== selectedMaterialId &&
+                                      !material.archived_at,
+                                  )
+                                  .map((material) => (
+                                    <label
+                                      className="framework-rubric-choice"
+                                      key={material.id}
+                                    >
+                                      <input
+                                        type="checkbox"
+                                        name="targetMaterialIds"
+                                        value={material.id}
+                                      />{" "}
+                                      {material.name}
+                                    </label>
+                                  ))}
+                              </fieldset>
+                              <button type="submit">
+                                Salin ke materi terpilih
+                              </button>
+                            </form>
+                          </details>
                         )}
                       {!eventVersions.length && !canManageRubric && (
                         <p className="assessment-assignment-empty">

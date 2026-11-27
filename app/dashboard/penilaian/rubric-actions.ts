@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { asRows, firstRelated, type Relation } from "@/lib/relations";
 import { evenWeight, roundWeight } from "@/lib/rubric-weights";
+import { nextVersionsByMaterial } from "@/lib/rubric-copy";
 import type {
   CompetencyMaterialAspectLink,
   CompetencyMaterialIndicatorLink,
@@ -53,6 +54,101 @@ type DraftAspect = {
   position: number;
   rubric_indicator_aspects?: DraftMapping[] | null;
 };
+
+type StaffSupabase = Awaited<ReturnType<typeof staffClient>>["supabase"];
+
+/** Salin susunan aspek, indikator, dan pemetaan ke versi draf yang sudah dibuat. */
+async function insertCopiedAspects(
+  supabase: StaffSupabase,
+  targetVersionId: string,
+  sourceAspects: DraftAspect[],
+) {
+  const aspectIds = new Map<string, string>();
+  for (const aspect of sourceAspects) {
+    const { data: copiedAspect, error: aspectError } = await supabase
+      .from("rubric_aspects")
+      .insert({
+        rubric_version_id: targetVersionId,
+        competency_aspect_id: aspect.competency_aspect_id,
+        name: aspect.name,
+        weight: aspect.weight,
+        position: aspect.position,
+      })
+      .select("id")
+      .single();
+    if (aspectError) {
+      await supabase.from("rubric_versions").delete().eq("id", targetVersionId);
+      throw new Error("Aspek versi sebelumnya gagal disalin ke draf baru.");
+    }
+    aspectIds.set(aspect.id, copiedAspect.id);
+  }
+  const copiedIndicators = new Map<string, string>();
+  for (const aspect of sourceAspects) {
+    for (const mapping of aspect.rubric_indicator_aspects ?? []) {
+      const original = Array.isArray(mapping.rubric_indicators)
+        ? mapping.rubric_indicators[0]
+        : mapping.rubric_indicators;
+      if (!original || copiedIndicators.has(original.id)) continue;
+      const { data: copied, error: indicatorError } = await supabase
+        .from("rubric_indicators")
+        .insert({
+          aspect_id: aspectIds.get(aspect.id)!,
+          competency_indicator_id: original.competency_indicator_id,
+          competency_indicator_rubric_version_id:
+            original.competency_indicator_rubric_version_id,
+          name: original.name,
+          weight: mapping.weight,
+          target: original.target,
+          position: original.position,
+          score_descriptors: original.score_descriptors,
+        })
+        .select("id")
+        .single();
+      if (indicatorError || !copied) {
+        await supabase
+          .from("rubric_versions")
+          .delete()
+          .eq("id", targetVersionId);
+        throw new Error(
+          "Indikator versi sebelumnya gagal disalin ke draf baru.",
+        );
+      }
+      copiedIndicators.set(original.id, copied.id);
+    }
+  }
+  for (const aspect of sourceAspects) {
+    const rows = (aspect.rubric_indicator_aspects ?? []).flatMap((mapping) => {
+      const originalId = (
+        Array.isArray(mapping.rubric_indicators)
+          ? mapping.rubric_indicators[0]
+          : mapping.rubric_indicators
+      )?.id;
+      const indicatorId = originalId ? copiedIndicators.get(originalId) : null;
+      const targetAspectId = aspectIds.get(aspect.id);
+      return indicatorId && targetAspectId
+        ? [
+            {
+              indicator_id: indicatorId,
+              aspect_id: targetAspectId,
+              weight: mapping.weight,
+            },
+          ]
+        : [];
+    });
+    if (rows.length) {
+      const { error: mappingsError } = await supabase
+        .from("rubric_indicator_aspects")
+        .insert(rows);
+      if (mappingsError) {
+        await supabase
+          .from("rubric_versions")
+          .delete()
+          .eq("id", targetVersionId);
+        throw new Error("Pemetaan indikator-aspek gagal disalin ke draf baru.");
+      }
+    }
+  }
+}
 
 async function createRubricVersionImpl(formData: FormData) {
   const { supabase, userId } = await staffClient(["admin_system"]);
@@ -296,83 +392,132 @@ async function createRubricVersionImpl(formData: FormData) {
     .select("id")
     .single();
   if (error) throw new Error("Versi baru gagal dibuat.");
-  const aspectIds = new Map<string, string>();
-  for (const aspect of sourceAspects) {
-    const { data: copiedAspect, error: aspectError } = await supabase
-      .from("rubric_aspects")
+  await insertCopiedAspects(supabase, created.id, sourceAspects);
+  revalidatePath("/dashboard/penilaian");
+}
+
+async function copyRubricToMaterialsImpl(formData: FormData) {
+  const { supabase, userId } = await staffClient(["admin_system"]);
+  const eventId = String(formData.get("eventId") ?? "");
+  const stage = String(formData.get("stage") ?? "");
+  const assessmentTypeId = String(formData.get("assessmentTypeId") ?? "");
+  const sourceVersionId = String(formData.get("sourceVersionId") ?? "");
+  const targetMaterialIds = [
+    ...new Set(formData.getAll("targetMaterialIds").map(String)),
+  ];
+  if (
+    !uuidPattern.test(eventId) ||
+    stage !== "training" ||
+    !uuidPattern.test(assessmentTypeId) ||
+    !uuidPattern.test(sourceVersionId) ||
+    !targetMaterialIds.length ||
+    targetMaterialIds.some((id) => !uuidPattern.test(id))
+  )
+    throw new Error("Kegiatan, rubrik sumber, atau materi tujuan tidak valid.");
+
+  const { data: source, error: sourceError } = await supabase
+    .from("rubric_versions")
+    .select(
+      "id, event_id, stage, material_id, assessment_type_id, status, competency_framework_version_id, is_trial, rubric_aspects(id, competency_aspect_id, name, weight, position, rubric_indicator_aspects(weight, rubric_indicators(id, competency_indicator_id, competency_indicator_rubric_version_id, name, target, position, score_descriptors)))",
+    )
+    .eq("id", sourceVersionId)
+    .maybeSingle();
+  if (sourceError)
+    throw new Error("Rubrik sumber belum dapat dibaca. Muat ulang halaman.");
+  if (
+    !source ||
+    source.event_id !== eventId ||
+    source.stage !== stage ||
+    source.assessment_type_id !== assessmentTypeId ||
+    !source.material_id ||
+    source.status === "draft"
+  )
+    throw new Error(
+      "Rubrik sumber tidak ditemukan atau masih berupa draf. Pilih versi resmi atau arsip.",
+    );
+  const sourceAspects = asRows<DraftAspect>(
+    source.rubric_aspects,
+    (row) =>
+      typeof row.id === "string" &&
+      typeof row.weight === "number" &&
+      "name" in row,
+  );
+  if (!sourceAspects.length)
+    throw new Error("Rubrik sumber belum memiliki aspek untuk disalin.");
+
+  const { data: targets, error: targetsError } = await supabase
+    .from("rubric_materials")
+    .select("id, name, archived_at")
+    .eq("event_id", eventId)
+    .in("id", targetMaterialIds);
+  if (targetsError || targets?.length !== targetMaterialIds.length)
+    throw new Error("Satu atau lebih materi tujuan tidak ditemukan.");
+  if (targets.some((material) => material.archived_at))
+    throw new Error(
+      "Ada materi tujuan yang diarsipkan. Pulihkan terlebih dahulu.",
+    );
+  if (targets.some((material) => material.id === source.material_id))
+    throw new Error("Materi sumber tidak boleh dijadikan tujuan.");
+
+  const [
+    { data: existingDrafts, error: draftsError },
+    { data: existingVersions, error: versionsError },
+  ] = await Promise.all([
+    supabase
+      .from("rubric_versions")
+      .select("id")
+      .eq("event_id", eventId)
+      .eq("stage", stage)
+      .eq("assessment_type_id", assessmentTypeId)
+      .in("material_id", targetMaterialIds)
+      .eq("status", "draft"),
+    supabase
+      .from("rubric_versions")
+      .select("material_id, version")
+      .eq("event_id", eventId)
+      .eq("stage", stage)
+      .eq("assessment_type_id", assessmentTypeId)
+      .in("material_id", targetMaterialIds)
+      .order("version", { ascending: false }),
+  ]);
+  if (draftsError || versionsError)
+    throw new Error("Versi rubrik materi tujuan belum dapat diperiksa.");
+  if (existingDrafts?.length)
+    throw new Error(
+      "Sebagian materi tujuan masih memiliki draf. Selesaikan atau hapus draf itu terlebih dahulu.",
+    );
+  const nextVersions = nextVersionsByMaterial(
+    (existingVersions ?? []).map((row) => ({
+      material_id: row.material_id,
+      version: row.version,
+    })),
+    targetMaterialIds,
+  );
+
+  for (const material of targets) {
+    const { data: created, error } = await supabase
+      .from("rubric_versions")
       .insert({
-        rubric_version_id: created.id,
-        competency_aspect_id: aspect.competency_aspect_id,
-        name: aspect.name,
-        weight: aspect.weight,
-        position: aspect.position,
+        event_id: eventId,
+        stage,
+        material_id: material.id,
+        assessment_type_id: assessmentTypeId,
+        version: nextVersions[material.id],
+        status: "draft",
+        created_by: userId,
+        competency_framework_version_id: source.competency_framework_version_id,
+        is_trial: source.is_trial,
       })
       .select("id")
       .single();
-    if (aspectError) {
-      await supabase.from("rubric_versions").delete().eq("id", created.id);
-      throw new Error("Aspek versi sebelumnya gagal disalin ke draf baru.");
-    }
-    aspectIds.set(aspect.id, copiedAspect.id);
-  }
-  const copiedIndicators = new Map<string, string>();
-  for (const aspect of sourceAspects) {
-    for (const mapping of aspect.rubric_indicator_aspects ?? []) {
-      const original = Array.isArray(mapping.rubric_indicators)
-        ? mapping.rubric_indicators[0]
-        : mapping.rubric_indicators;
-      if (!original || copiedIndicators.has(original.id)) continue;
-      const { data: copied, error: indicatorError } = await supabase
-        .from("rubric_indicators")
-        .insert({
-          aspect_id: aspectIds.get(aspect.id)!,
-          competency_indicator_id: original.competency_indicator_id,
-          competency_indicator_rubric_version_id:
-            original.competency_indicator_rubric_version_id,
-          name: original.name,
-          weight: mapping.weight,
-          target: original.target,
-          position: original.position,
-          score_descriptors: original.score_descriptors,
-        })
-        .select("id")
-        .single();
-      if (indicatorError || !copied) {
-        await supabase.from("rubric_versions").delete().eq("id", created.id);
-        throw new Error(
-          "Indikator versi sebelumnya gagal disalin ke draf baru.",
-        );
-      }
-      copiedIndicators.set(original.id, copied.id);
-    }
-  }
-  for (const aspect of sourceAspects) {
-    const rows = (aspect.rubric_indicator_aspects ?? []).flatMap((mapping) => {
-      const originalId = (
-        Array.isArray(mapping.rubric_indicators)
-          ? mapping.rubric_indicators[0]
-          : mapping.rubric_indicators
-      )?.id;
-      const indicatorId = originalId ? copiedIndicators.get(originalId) : null;
-      const targetAspectId = aspectIds.get(aspect.id);
-      return indicatorId && targetAspectId
-        ? [
-            {
-              indicator_id: indicatorId,
-              aspect_id: targetAspectId,
-              weight: mapping.weight,
-            },
-          ]
-        : [];
-    });
-    if (rows.length) {
-      const { error: mappingsError } = await supabase
-        .from("rubric_indicator_aspects")
-        .insert(rows);
-      if (mappingsError) {
-        await supabase.from("rubric_versions").delete().eq("id", created.id);
-        throw new Error("Pemetaan indikator-aspek gagal disalin ke draf baru.");
-      }
+    if (error || !created)
+      throw new Error(`Draf rubrik ${material.name} gagal dibuat.`);
+    try {
+      await insertCopiedAspects(supabase, created.id, sourceAspects);
+    } catch {
+      throw new Error(
+        `Rubrik ${material.name} gagal disalin. Draf dibatalkan.`,
+      );
     }
   }
   revalidatePath("/dashboard/penilaian");
@@ -1424,6 +1569,9 @@ async function activateRubricImpl(formData: FormData) {
 
 export async function createRubricVersion(formData: FormData) {
   await runPenilaianAction(formData, createRubricVersionImpl);
+}
+export async function copyRubricToMaterials(formData: FormData) {
+  await runPenilaianAction(formData, copyRubricToMaterialsImpl);
 }
 export async function createTrainingMaterial(formData: FormData) {
   await runPenilaianAction(formData, createTrainingMaterialImpl);

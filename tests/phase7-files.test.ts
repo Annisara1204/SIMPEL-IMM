@@ -43,6 +43,59 @@ test("PDF rapor menghasilkan struktur PDF dan menampilkan isi utama", async () =
   assert.ok(content.endsWith("%%EOF"));
 });
 
+test("PDF memakai urutan bagian layout baru dan tidak mengarang status", async () => {
+  const content = new TextDecoder().decode(
+    new Uint8Array(await createReportPdf(sample).arrayBuffer()),
+  );
+  const sections = [
+    "RAPOR HASIL KOMPETENSI DAD",
+    "IDENTITAS PESERTA",
+    "RINGKASAN NILAI",
+    "ASPEK KOMPETENSI",
+    "INDIKATOR YANG DINILAI",
+    "KEKUATAN",
+    "AREA PENGEMBANGAN",
+    "REKOMENDASI DAN TINDAK LANJUT",
+    "ALASAN KEPUTUSAN",
+    "PENGESAHAN",
+    "Rapor resmi IMM Observer | halaman 1 dari 1",
+  ];
+  for (const section of sections)
+    assert.ok(content.includes(section), `Bagian tidak ditemukan: ${section}`);
+  assert.ok(content.includes("Koordinator Instruktur"));
+  assert.ok(content.includes("Penanggung Jawab Kegiatan"));
+  assert.ok(content.includes("Belum ada rekomendasi yang disahkan."));
+  assert.ok(!content.includes("FINALIZED"));
+  assert.ok(!content.includes("v1"));
+  assert.ok(
+    content.indexOf("IDENTITAS PESERTA") < content.indexOf("RINGKASAN NILAI"),
+  );
+  assert.ok(content.indexOf("ASPEK KOMPETENSI") < content.indexOf("KEKUATAN"));
+});
+
+test("PDF menampilkan placeholder yang jelas untuk data kosong", async () => {
+  const empty = {
+    ...sample,
+    publishedAt: null,
+    snapshotData: {
+      schemaVersion: 1,
+      aspects: [{ aspectName: "Aspek Kosong" }],
+      indicators: [],
+      overall: { score: null },
+      collective: {},
+      approvedRecommendations: [],
+    },
+  };
+  const content = new TextDecoder().decode(
+    new Uint8Array(await createReportPdf(empty).arrayBuffer()),
+  );
+  assert.ok(content.includes("Belum tersedia"));
+  assert.ok(content.includes("Belum diterbitkan"));
+  assert.ok(content.includes("Versi snapshot: tidak tercatat"));
+  assert.ok(content.includes("Belum ada alasan yang tercatat di snapshot."));
+  assert.ok(!content.includes("0.0/100"));
+});
+
 test("ZIP bulk memakai signature ZIP dan berisi nama PDF", async () => {
   const pdf = new Uint8Array(await createReportPdf(sample).arrayBuffer());
   const zip = new Uint8Array(

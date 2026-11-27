@@ -1,0 +1,2 @@
+snapshot_id,revision,pdf_sha256,snapshot_data_sha256,audit_id,source,created_at
+39d48a66-9f46-459a-a906-be6cc14ad7d3,1,35281c2d66e4e17447b53cae00926c071c8bc9dbd36ccd3fdbeed2d7e2765604,9dd3881e1ea60201d97eb0da107db9a344b26b7ea963ff922dfd17f044d58c14,11,DEV lokal (Supabase 127.0.0.1:54322, unduh dari /dashboard/laporan),2026-11-25T07:57:54Z

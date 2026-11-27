@@ -28,6 +28,13 @@ export type ReportFileData = {
   versionInfo?: string[];
 };
 
+const MAROON = "0.545 0.118 0.247";
+const INK = "0.12 0.16 0.2";
+const MUTED = "0.45 0.48 0.51";
+const WHITE = "1 1 1";
+const LIGHT = "0.97 0.96 0.97";
+const TRACK = "0.88 0.91 0.94";
+
 const ascii = (value: unknown) =>
   String(value ?? "")
     .normalize("NFKD")
@@ -35,28 +42,39 @@ const ascii = (value: unknown) =>
     .replace(/[–—]/g, "-")
     .replace(/[“”]/g, '"')
     .replace(/[‘’]/g, "'")
-    .replace(/[^\x20-\x7E]/g, " ")
-    .replace(/\s+/g, " ")
+    .replace(/[^\x20-\x7E\n]/g, " ")
+    .replace(/[ \t]+/g, " ")
     .trim();
 const pdfEscape = (value: string) =>
   ascii(value)
     .replace(/\\/g, "\\\\")
     .replace(/\(/g, "\\(")
-    .replace(/\)/g, "\\)");
-const wrap = (text: string, limit = 88) => {
-  const words = ascii(text).split(" ").filter(Boolean);
+    .replace(/\)/g, "\\)")
+    .replace(/\n/g, " ");
+
+function wrapWords(text: string, limit: number): string[] {
   const lines: string[] = [];
-  let line = "";
-  for (const word of words) {
-    const next = line ? `${line} ${word}` : word;
-    if (next.length > limit && line) {
-      lines.push(line);
-      line = word;
-    } else line = next;
+  for (const word of ascii(text).split(" ").filter(Boolean)) {
+    if (word.length > limit) {
+      for (let start = 0; start < word.length; start += limit)
+        lines.push(word.slice(start, start + limit));
+      continue;
+    }
+    const last = lines[lines.length - 1];
+    if (!last) lines.push(word);
+    else if (`${last} ${word}`.length <= limit)
+      lines[lines.length - 1] = `${last} ${word}`;
+    else lines.push(word);
   }
-  if (line) lines.push(line);
   return lines;
-};
+}
+
+const wrap = (text: string, limit = 88) =>
+  ascii(text)
+    .split(/\n+/)
+    .filter(Boolean)
+    .flatMap((paragraph) => wrapWords(paragraph, limit));
+
 const moneyDate = (value?: string | null) =>
   value ? new Date(value).toLocaleDateString("id-ID") : "Belum diisi";
 const category = (value: number | null) =>
@@ -64,214 +82,375 @@ const category = (value: number | null) =>
     ? "Belum tersedia"
     : (categorizeScore(value)?.label ?? "Belum tersedia");
 
-function reportPages(report: ReportFileData) {
+type Cell = { x: number; lines: string[] };
+type Bar = { x: number; width: number; value: number | null };
+type DrawRow =
+  | { kind: "title"; text: string; keepWithNext?: boolean }
+  | { kind: "subtitle"; text: string; keepWithNext?: boolean }
+  | { kind: "heading"; text: string; keepWithNext?: boolean }
+  | { kind: "text"; text: string; size?: number; color?: string }
+  | { kind: "kv"; label: string; value: string }
+  | { kind: "tableHead"; cols: Cell[]; keepWithNext?: boolean }
+  | { kind: "tableRow"; cols: Cell[]; bar?: Bar }
+  | { kind: "space"; height: number }
+  | { kind: "signature"; left: string; right: string };
+
+const cell = (text: string, limit: number, x = 40): Cell => ({
+  x,
+  lines: wrap(text, limit).slice(0, 2),
+});
+
+function rowHeight(row: DrawRow): number {
+  switch (row.kind) {
+    case "title":
+      return 30;
+    case "subtitle":
+      return 22;
+    case "heading":
+      return 24;
+    case "tableHead":
+      return 20;
+    case "tableRow":
+      return Math.max(...row.cols.map((col) => col.lines.length)) * 12 + 10;
+    case "space":
+      return row.height;
+    case "signature":
+      return 34;
+    case "text":
+      return row.size && row.size > 9 ? 20 : 17;
+    case "kv":
+      return 17;
+  }
+}
+
+function reportRows(report: ReportFileData): DrawRow[] {
   const data = report.snapshotData ?? {};
   const aspects = Array.isArray(data.aspects) ? data.aspects : [];
   const indicators = Array.isArray(data.indicators) ? data.indicators : [];
   const collective = data.collective ?? {};
   const overallScore =
     typeof data.overall?.score === "number" ? data.overall.score : null;
-  const rows: {
-    text: string;
-    size?: number;
-    bold?: boolean;
-    color?: string;
-    bar?: number;
-  }[] = [
-    {
-      text: report.eventSummary
-        ? "LAPORAN KESELURUHAN KEGIATAN DAD"
-        : "RAPOR HASIL KOMPETENSI DAD",
-      size: 18,
-      bold: true,
-      color: "#173b63",
-    },
-    { text: report.event.name, size: 12, bold: true },
-    {
-      text: `Tema: ${report.event.theme || "Belum diisi"} | Penyelenggara: ${report.event.organizer || "Belum diisi"}`,
-    },
-    {
-      text: `Lokasi: ${report.event.location || "Belum diisi"} | Periode: ${moneyDate(report.event.starts_on)} - ${moneyDate(report.event.ends_on)}`,
-    },
-    ...(report.eventSummary
-      ? [
-          {
-            text: "RINGKASAN EKSEKUTIF",
-            size: 12,
-            bold: true,
-            color: "#173b63",
-          },
-          ...wrap(
-            report.summaryText ||
-              "Laporan menggunakan data snapshot final yang tersedia.",
-          ).map((text) => ({ text })),
-        ]
-      : [
-          { text: "IDENTITAS PESERTA", size: 12, bold: true, color: "#173b63" },
-          { text: `Nama: ${report.participant.display_name}` },
-          {
-            text: `Nomor: ${report.participant.student_number || "Belum diisi"} | Kelompok: ${report.participant.group_name || "Belum diisi"}`,
-          },
-          {
-            text: `Komisariat: ${report.participant.commissariat || report.event.commissariat || "Belum diisi"}`,
-          },
-        ]),
-    ...(report.versionInfo?.length
-      ? [{ text: `Framework/rubrik: ${report.versionInfo.join("; ")}` }]
-      : []),
-    { text: "HASIL KOMPETENSI", size: 12, bold: true, color: "#173b63" },
-    ...aspects.map((aspect) => ({
-      text: `${aspect.aspectName ?? aspect.aspect_name ?? "Aspek"} (${Number(aspect.weight ?? 0)}%)  ${aspect.score == null ? "Belum tersedia" : `${Number(aspect.score).toFixed(1)}/5  |  ${Number(aspect.scoreOutOf100 ?? aspect.score_out_of_100 ?? 0).toFixed(1)}/100`}`,
-      bar:
-        aspect.score == null
-          ? 0
-          : Math.max(0, Math.min(100, Number(aspect.score) * 20)),
-    })),
-    {
-      text: report.eventSummary ? "RATA-RATA KESELURUHAN" : "NILAI AKHIR",
-      size: 12,
-      bold: true,
-      color: "#173b63",
-    },
-    {
-      text: `${report.eventSummary ? "Rata-rata peserta finalized" : "Skor"}: ${overallScore == null ? "Belum tersedia" : `${overallScore.toFixed(1)}/100`} | Kategori: ${category(overallScore)} | Status: FINALIZED`,
-      bold: true,
-    },
-    ...(report.eventSummary
-      ? []
-      : [
-          {
-            text: `Keputusan: ${decisionLabel(collective.decision)}`,
-            bold: true,
-          },
-        ]),
-    ...(report.eventSummary
-      ? [{ text: "RINGKASAN ASPEK", size: 12, bold: true, color: "#173b63" }]
-      : [
-          {
-            text: "INDIKATOR YANG DINILAI",
-            size: 12,
-            bold: true,
-            color: "#173b63",
-          },
-          ...indicators.map((item) => ({
-            text: `${report.indicatorNames?.[item.indicatorId ?? ""] ?? item.indicatorId} | ${item.scope === "cross_session" ? "Lintas sesi" : "Sesi"} | Rata-rata ${item.average == null ? "-" : Number(item.average).toFixed(1)}/5 | jumlah penilai ${item.validRatings ?? 0}`,
-          })),
-        ]),
-    {
-      text: report.eventSummary ? "STATUS CAKUPAN DATA" : "KEKUATAN",
-      size: 12,
-      bold: true,
-      color: "#173b63",
-    },
-    ...wrap(
-      collective.strengths || "Belum ada catatan kekuatan yang disahkan.",
-    ).map((text) => ({ text })),
-    {
-      text: report.eventSummary ? "KETERBATASAN DATA" : "AREA PENGEMBANGAN",
-      size: 12,
-      bold: true,
-      color: "#173b63",
-    },
-    ...wrap(
-      collective.developmentAreas ||
-        "Belum ada area pengembangan yang disahkan.",
-    ).map((text) => ({ text })),
-    {
-      text: "REKOMENDASI DAN TINDAK LANJUT",
-      size: 12,
-      bold: true,
-      color: "#173b63",
-    },
-    ...(Array.isArray(data.approvedRecommendations)
-      ? data.approvedRecommendations
-      : []
-    ).flatMap((item, index: number) =>
-      wrap(`${index + 1}. ${item.recommendation}`).map((text) => ({ text })),
-    ),
-    ...(report.eventSummary
-      ? [
-          {
-            text: "Metode: skor dan distribusi dihitung dari snapshot final; data Draft/Submitted dan catatan internal Observer tidak digunakan.",
-          },
-        ]
-      : []),
-    ...(report.eventSummary && !data.approvedRecommendations?.length
-      ? [
-          {
-            text: "Belum cukup pola rekomendasi yang berulang untuk dirangkum.",
-          },
-        ]
-      : []),
-    ...wrap(collective.recommendationSummary || "").map((text) => ({ text })),
-    { text: "ALASAN KEPUTUSAN", size: 12, bold: true, color: "#173b63" },
-    ...wrap(
-      collective.decisionRationale || "Tidak ada alasan yang tercatat.",
-    ).map((text) => ({ text })),
-    {
-      text: `Diterbitkan: ${moneyDate(report.publishedAt)} | Snapshot final ${data.schemaVersion ?? "v1"}`,
-    },
-    {
-      text: "Pengesahan Koordinator Instruktur: ____________________    Penanggung Jawab Kegiatan: ____________________",
-    },
-  ];
+  const rows: DrawRow[] = [];
+  const heading = (text: string) =>
+    rows.push({ kind: "heading", text, keepWithNext: true });
+  const text = (value: string, size?: number) =>
+    rows.push({ kind: "text", text: value, size });
+  const kv = (label: string, value: string) =>
+    rows.push({ kind: "kv", label, value });
 
-  const formattedRows = rows.flatMap((row) =>
-    row.text.length > 88
-      ? wrap(row.text).map((text, index) => ({
-          ...row,
-          text,
-          bar: index === 0 ? row.bar : undefined,
-        }))
-      : [row],
+  rows.push({
+    kind: "title",
+    text: report.eventSummary
+      ? "LAPORAN KESELURUHAN KEGIATAN DAD"
+      : "RAPOR HASIL KOMPETENSI DAD",
+    keepWithNext: true,
+  });
+  rows.push({ kind: "subtitle", text: report.event.name, keepWithNext: true });
+  text(
+    `Tema: ${report.event.theme || "Belum diisi"} | Penyelenggara: ${report.event.organizer || "Belum diisi"}`,
   );
-  const pages: (typeof rows)[] = [];
-  let page: typeof rows = [];
+  text(
+    `Lokasi: ${report.event.location || "Belum diisi"} | Periode: ${moneyDate(report.event.starts_on)} - ${moneyDate(report.event.ends_on)}`,
+  );
+  rows.push({ kind: "space", height: 6 });
+
+  if (report.eventSummary) {
+    heading("RINGKASAN EKSEKUTIF");
+    wrap(
+      report.summaryText ||
+        "Laporan menggunakan data snapshot final yang tersedia.",
+    ).forEach((line) => text(line));
+  } else {
+    heading("IDENTITAS PESERTA");
+    kv("Nama", report.participant.display_name || "Belum diisi");
+    kv("NIM", report.participant.student_number || "Belum diisi");
+    kv(
+      "Kelompok / Komisariat",
+      `${report.participant.group_name || "Belum diisi"} / ${report.participant.commissariat || report.event.commissariat || "Belum diisi"}`,
+    );
+  }
+  kv(
+    "Framework / rubrik",
+    report.versionInfo?.length
+      ? report.versionInfo.join("; ")
+      : "Versi snapshot: tidak tercatat",
+  );
+  rows.push({ kind: "space", height: 6 });
+
+  heading(report.eventSummary ? "RATA-RATA KESELURUHAN" : "RINGKASAN NILAI");
+  kv(
+    report.eventSummary ? "Rata-rata peserta final" : "Nilai akhir",
+    overallScore === null
+      ? "Belum tersedia"
+      : `${overallScore.toFixed(1)} / 100`,
+  );
+  kv("Kategori", category(overallScore));
+  kv("Status", report.publishedAt ? "Diterbitkan" : "Belum diterbitkan");
+  if (!report.eventSummary) kv("Keputusan", decisionLabel(collective.decision));
+  kv("Diterbitkan", moneyDate(report.publishedAt));
+  rows.push({ kind: "space", height: 6 });
+
+  heading("ASPEK KOMPETENSI");
+  rows.push({
+    kind: "tableHead",
+    cols: [
+      { x: 40, lines: ["ASPEK"] },
+      { x: 275, lines: ["BOBOT"] },
+      { x: 330, lines: ["SKOR"] },
+      { x: 420, lines: ["GAMBAR"] },
+    ],
+    keepWithNext: true,
+  });
+  for (const aspect of aspects) {
+    const score = aspect.score == null ? null : Number(aspect.score);
+    rows.push({
+      kind: "tableRow",
+      cols: [
+        cell(aspect.aspectName ?? aspect.aspect_name ?? "Aspek", 36),
+        {
+          x: 275,
+          lines: [
+            aspect.weight == null
+              ? "Belum tercatat"
+              : `${Number(aspect.weight)}%`,
+          ],
+        },
+        {
+          x: 330,
+          lines: [
+            score === null
+              ? "Belum tersedia"
+              : `${score.toFixed(1)}/5 | ${Number(aspect.scoreOutOf100 ?? aspect.score_out_of_100 ?? 0).toFixed(1)}/100`,
+          ],
+        },
+      ],
+      bar:
+        score === null
+          ? undefined
+          : {
+              x: 420,
+              width: 135,
+              value: Math.max(0, Math.min(5, score)),
+            },
+    });
+  }
+  rows.push({ kind: "space", height: 6 });
+
+  if (report.eventSummary) {
+    heading("RINGKASAN ASPEK");
+    for (const aspect of aspects)
+      text(
+        `${aspect.aspectName ?? aspect.aspect_name ?? "Aspek"} - bobot ${aspect.weight == null ? "Belum tercatat" : `${Number(aspect.weight)}%`}`,
+      );
+  } else {
+    heading("INDIKATOR YANG DINILAI");
+    rows.push({
+      kind: "tableHead",
+      cols: [
+        { x: 40, lines: ["INDIKATOR"] },
+        { x: 320, lines: ["CAKUPAN"] },
+        { x: 395, lines: ["RATA-RATA"] },
+        { x: 485, lines: ["PENILAI"] },
+      ],
+      keepWithNext: true,
+    });
+    for (const item of indicators) {
+      rows.push({
+        kind: "tableRow",
+        cols: [
+          cell(
+            report.indicatorNames?.[item.indicatorId ?? ""] ??
+              item.indicatorId ??
+              "Indikator",
+            44,
+          ),
+          {
+            x: 320,
+            lines: [item.scope === "cross_session" ? "Lintas sesi" : "Sesi"],
+          },
+          {
+            x: 395,
+            lines: [
+              item.average == null
+                ? "Belum tersedia"
+                : Number(item.average).toFixed(1),
+            ],
+          },
+          { x: 485, lines: [String(item.validRatings ?? 0)] },
+        ],
+      });
+    }
+  }
+  rows.push({ kind: "space", height: 6 });
+
+  heading(report.eventSummary ? "STATUS CAKUPAN DATA" : "KEKUATAN");
+  wrap(
+    collective.strengths || "Belum ada catatan kekuatan yang disahkan.",
+  ).forEach((line) => text(line));
+  heading(report.eventSummary ? "KETERBATASAN DATA" : "AREA PENGEMBANGAN");
+  wrap(
+    collective.developmentAreas || "Belum ada area pengembangan yang disahkan.",
+  ).forEach((line) => text(line));
+  heading("REKOMENDASI DAN TINDAK LANJUT");
+  const recommendations = Array.isArray(data.approvedRecommendations)
+    ? data.approvedRecommendations
+    : [];
+  if (recommendations.length)
+    recommendations.forEach((item, index) =>
+      wrap(`${index + 1}. ${item.recommendation}`).forEach((line) =>
+        text(line),
+      ),
+    );
+  else
+    text(
+      report.eventSummary
+        ? "Belum cukup pola rekomendasi yang berulang untuk dirangkum."
+        : "Belum ada rekomendasi yang disahkan.",
+    );
+  wrap(collective.recommendationSummary || "").forEach((line) => text(line));
+
+  if (report.eventSummary) {
+    heading("CATATAN METODOLOGI");
+    wrap(
+      "Skor dan distribusi dihitung dari snapshot final. Data Draft/Submitted dan catatan internal penilai tidak digunakan.",
+    ).forEach((line) => text(line));
+  }
+  heading("ALASAN KEPUTUSAN");
+  wrap(
+    collective.decisionRationale ||
+      "Belum ada alasan yang tercatat di snapshot.",
+  ).forEach((line) => text(line));
+  rows.push({ kind: "space", height: 10 });
+  heading("PENGESAHAN");
+  rows.push({
+    kind: "signature",
+    left: "Koordinator Instruktur: ____________",
+    right: "Penanggung Jawab Kegiatan: ____________",
+  });
+  return rows;
+}
+
+function paginate(rows: DrawRow[]): DrawRow[][] {
+  const pages: DrawRow[][] = [];
+  let page: DrawRow[] = [];
   let used = 0;
-  for (const row of formattedRows) {
-    const height = row.size ? row.size + 8 : 17;
-    if (used + height > 730 && page.length) {
+  const limit = 700;
+  rows.forEach((row, index) => {
+    const keep = "keepWithNext" in row && row.keepWithNext === true;
+    const needed =
+      rowHeight(row) +
+      (keep && rows[index + 1] ? rowHeight(rows[index + 1]) : 0);
+    if (used + needed > limit && page.length) {
       pages.push(page);
       page = [];
       used = 0;
     }
     page.push(row);
-    used += height;
-  }
+    used += rowHeight(row);
+  });
   if (page.length) pages.push(page);
   return pages;
 }
 
+function drawText(
+  stream: string[],
+  value: string,
+  x: number,
+  y: number,
+  size: number,
+  color: string,
+  bold: boolean,
+) {
+  stream.push(
+    `${color} rg BT /${bold ? "F2" : "F1"} ${size} Tf 1 0 0 1 ${x} ${y} Tm (${pdfEscape(value)}) Tj ET`,
+  );
+}
+
+function drawRow(stream: string[], row: DrawRow, y: number) {
+  if (row.kind === "title") {
+    drawText(stream, row.text, 40, y, 18, MAROON, true);
+    return;
+  }
+  if (row.kind === "subtitle") {
+    drawText(stream, row.text, 40, y, 12, INK, true);
+    return;
+  }
+  if (row.kind === "heading") {
+    drawText(stream, row.text, 40, y, 12, MAROON, true);
+    stream.push(`${MAROON} RG 0.6 w 40 ${y - 6} m 555 ${y - 6} l S`);
+    return;
+  }
+  if (row.kind === "text") {
+    drawText(stream, row.text, 40, y, row.size ?? 9, row.color ?? INK, false);
+    return;
+  }
+  if (row.kind === "kv") {
+    drawText(stream, row.label, 40, y, 9, MUTED, false);
+    drawText(stream, row.value, 190, y, 9, INK, false);
+    return;
+  }
+  if (row.kind === "tableHead") {
+    row.cols.forEach((col) =>
+      drawText(stream, col.lines[0] ?? "", col.x, y, 8, MAROON, true),
+    );
+    stream.push(`${MAROON} RG 0.6 w 40 ${y - 5} m 555 ${y - 5} l S`);
+    return;
+  }
+  if (row.kind === "tableRow") {
+    row.cols.forEach((col) =>
+      col.lines.forEach((line, index) =>
+        drawText(stream, line, col.x, y - index * 12, 8.5, INK, false),
+      ),
+    );
+    if (row.bar && row.bar.value !== null) {
+      const width = Math.max(
+        0,
+        Math.min(row.bar.width, (row.bar.value / 5) * row.bar.width),
+      );
+      stream.push(`${TRACK} rg ${row.bar.x} ${y - 8} ${row.bar.width} 7 re f`);
+      stream.push(`${MAROON} rg ${row.bar.x} ${y - 8} ${width} 7 re f`);
+    }
+    return;
+  }
+  if (row.kind === "space") return;
+  if (row.kind === "signature") {
+    drawText(stream, row.left, 40, y, 9, INK, false);
+    drawText(stream, row.right, 305, y, 9, INK, false);
+  }
+}
+
 function buildPdf(report: ReportFileData) {
-  const pages = reportPages(report);
+  const pages = paginate(reportRows(report));
   const objects: string[] = [];
-  const pageIds = pages.map((_, index) => 4 + index * 2);
+  const pageIds = pages.map((_, index) => 5 + index * 2);
   objects[1] = "<< /Type /Catalog /Pages 2 0 R >>";
   objects[2] = `<< /Type /Pages /Kids [${pageIds.map((id) => `${id} 0 R`).join(" ")}] /Count ${pages.length} >>`;
   objects[3] =
     "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>";
+  objects[4] =
+    "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>";
   pages.forEach((rows, index) => {
-    const pageId = 4 + index * 2;
+    const pageId = 5 + index * 2;
     const contentId = pageId + 1;
-    let y = 790;
-    let stream = "0.09 0.23 0.39 rg 0 805 595 37 re f\n";
-    stream += `BT /F1 10 Tf 1 1 1 rg 1 0 0 1 40 818 Tm (IMM OBSERVER  |  DAD IMM KOTA BANDUNG) Tj ET\n`;
-    y = 786;
-    for (const row of rows) {
-      const fontSize = row.size ?? 9;
-      const color =
-        row.color === "#173b63" ? "0.09 0.23 0.39" : "0.12 0.16 0.2";
-      stream += `${color} rg\nBT /F1 ${fontSize} Tf 1 0 0 1 40 ${y} Tm (${pdfEscape(row.text)}) Tj ET\n`;
-      if (row.bar !== undefined) {
-        stream += `0.88 0.91 0.94 rg 360 ${y - 2} 170 7 re f\n0.13 0.48 0.72 rg 360 ${y - 2} ${Math.max(0, Math.min(170, row.bar * 1.7))} 7 re f\n`;
-      }
-      y -= fontSize ? fontSize + 8 : 17;
-    }
-    stream += `0.45 0.48 0.51 rg\nBT /F1 8 Tf 1 0 0 1 40 25 Tm (Rapor resmi | halaman ${index + 1} dari ${pages.length}) Tj ET\n`;
+    const stream: string[] = [
+      `${MAROON} rg 0 805 595 37 re f`,
+      `BT /F2 10 Tf 1 1 1 rg 1 0 0 1 40 818 Tm (IMM OBSERVER  |  DAD IMM KOTA BANDUNG) Tj ET`,
+      `BT /F1 9 Tf 1 1 1 rg 1 0 0 1 430 818 Tm (${report.eventSummary ? "LAPORAN KEGIATAN" : "RAPOR PESERTA"}) Tj ET`,
+    ];
+    let y = 780;
+    rows.forEach((row) => {
+      drawRow(stream, row, y);
+      y -= rowHeight(row);
+    });
+    stream.push(`${MUTED} RG 0.4 w 40 38 m 555 38 l S`);
+    stream.push(
+      `BT /F1 8 Tf ${MUTED} rg 1 0 0 1 40 25 Tm (Rapor resmi IMM Observer | halaman ${index + 1} dari ${pages.length}) Tj ET`,
+    );
+    const content = `${stream.join("\n")}\n`;
     objects[pageId] =
-      `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents ${contentId} 0 R >>`;
+      `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents ${contentId} 0 R >>`;
     objects[contentId] =
-      `<< /Length ${new TextEncoder().encode(stream).length} >>\nstream\n${stream}endstream`;
+      `<< /Length ${new TextEncoder().encode(content).length} >>\nstream\n${content}endstream`;
   });
   const maxId = objects.length - 1;
   let body = "%PDF-1.4\n";

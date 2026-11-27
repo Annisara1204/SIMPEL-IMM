@@ -4,7 +4,7 @@
 **Pengguna OS:** `ubuntu` (uid 1000, sudo, docker)
 **Akses SSH:** key `~/.ssh/imm_prod_43-173-33-195` di workstation pengembangan (private key tidak pernah keluar dari workstation)
 
-> **Status terkini (27 November 2026):** `docs/STATUS-PRODUKSI-SATU-VERSI.md` adalah otoritas tunggal. Kode aktif di produksi = commit `c8e2176` (deploy 27 November). Database memakai Supabase self-hosted di server yang sama; project cloud lama `crrqlwlfndhugcqcnkex` hanya cadangan beku yang di-pause. Pekerjaan branch `research/peta-alur-penilaian` sudah masuk `main` dan di-deploy. Bagian bertanda "riwayat" di bawah adalah catatan 13 November dan tidak menggambarkan keadaan sekarang.
+> **Status terkini (27 November 2026):** `docs/STATUS-PRODUKSI-SATU-VERSI.md` adalah otoritas tunggal. Kode aktif di produksi = commit `bdb8329` (deploy 27 November). Database memakai Supabase self-hosted di server yang sama; project cloud lama `crrqlwlfndhugcqcnkex` hanya cadangan beku yang di-pause. Pekerjaan branch `research/peta-alur-penilaian` sudah masuk `main` dan di-deploy. Bagian bertanda "riwayat" di bawah adalah catatan 13 November dan tidak menggambarkan keadaan sekarang.
 
 ## Yang berjalan di server ini
 
@@ -43,7 +43,7 @@ Target yang seharusnya dipakai aplikasi adalah **Supabase self-hosted** di serve
 
 ## Cara memperbarui aplikasi (deploy ulang)
 
-Prosedur ini dipakai untuk pembaruan aplikasi. Kode yang aktif sekarang `c8e2176` (deploy 27 November 2026).
+Prosedur ini dipakai untuk pembaruan aplikasi. Kode yang aktif sekarang `bdb8329` (deploy 27 November 2026).
 
 ```powershell
 # dari workstation, repo ini

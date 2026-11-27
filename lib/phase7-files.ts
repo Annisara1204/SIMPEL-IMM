@@ -75,6 +75,16 @@ const wrap = (text: string, limit = 88) =>
     .filter(Boolean)
     .flatMap((paragraph) => wrapWords(paragraph, limit));
 
+/** Buang pembukaan draf otomatis agar PDF hanya memuat tindak lanjutnya. */
+function shortenRecommendation(value: string): string {
+  const text = ascii(value).trim();
+  if (!/^Draf otomatis untuk indikator/i.test(text)) return text;
+  return text
+    .replace(/^Draf otomatis untuk indikator[^:]*:\s*/i, "")
+    .replace(/^[“"][^”"]*[”"]\s*\(aspek\s+[^)]*\)\s*[.:]?\s*/i, "")
+    .trim();
+}
+
 const moneyDate = (value?: string | null) =>
   value ? new Date(value).toLocaleDateString("id-ID") : "Belum diisi";
 const category = (value: number | null) =>
@@ -293,13 +303,17 @@ function reportRows(report: ReportFileData): DrawRow[] {
   ).forEach((line) => text(line));
   heading("REKOMENDASI DAN TINDAK LANJUT");
   const recommendations = Array.isArray(data.approvedRecommendations)
-    ? data.approvedRecommendations
+    ? [
+        ...new Set(
+          data.approvedRecommendations
+            .map((item) => shortenRecommendation(item.recommendation))
+            .filter(Boolean),
+        ),
+      ]
     : [];
   if (recommendations.length)
     recommendations.forEach((item, index) =>
-      wrap(`${index + 1}. ${item.recommendation}`).forEach((line) =>
-        text(line),
-      ),
+      wrap(`${index + 1}. ${item}`).forEach((line) => text(line)),
     );
   else
     text(

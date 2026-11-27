@@ -96,6 +96,33 @@ test("PDF menampilkan placeholder yang jelas untuk data kosong", async () => {
   assert.ok(!content.includes("0.0/100"));
 });
 
+test("PDF meringkas rekomendasi otomatis dan menghapus duplikatnya", async () => {
+  const verbose = {
+    ...sample,
+    snapshotData: {
+      ...sample.snapshotData,
+      approvedRecommendations: [
+        {
+          recommendation:
+            'Draf otomatis untuk indikator "Menjaga etika" (rata-rata 2/5, aspek Sikap & etika): Latihan refleksi bersama.',
+        },
+        {
+          recommendation:
+            'Draf otomatis untuk indikator "Menghargai perbedaan" (rata-rata 1/5, aspek Sikap & etika): Latihan refleksi bersama.',
+        },
+      ],
+    },
+  };
+  const content = new TextDecoder().decode(
+    new Uint8Array(await createReportPdf(verbose).arrayBuffer()),
+  );
+  assert.ok(content.includes("1. Latihan refleksi bersama."));
+  assert.ok(!content.includes("Draf otomatis"));
+  assert.ok(!content.includes("rata-rata 2/5"));
+  assert.ok(!content.includes("aspek Sikap"));
+  assert.equal(content.split("Latihan refleksi bersama.").length - 1, 1);
+});
+
 test("ZIP bulk memakai signature ZIP dan berisi nama PDF", async () => {
   const pdf = new Uint8Array(await createReportPdf(sample).arrayBuffer());
   const zip = new Uint8Array(

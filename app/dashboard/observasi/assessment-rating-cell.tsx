@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import { saveAssessmentRating } from "../penilaian/assessment-actions";
 import { SCORE_SCALE_LABELS } from "@/lib/scoring";
+import { canScheduleAutosave } from "@/lib/autosave-policy";
 
 type ResponseStatus = "unrated" | "scored" | "not_observed";
 type Value = {
@@ -18,6 +19,8 @@ type PeerRating = {
   score: number | null;
   response_status: ResponseStatus;
   evidence: string;
+  revision?: number;
+  updated_at?: string | null;
 };
 
 type Props = {
@@ -96,6 +99,7 @@ export function AssessmentRatingCell(props: Props) {
   const [conflict, setConflict] = useState<Value | null>(initialDraft.conflict);
   const [status, setStatus] = useState(initialDraft.status);
   const [pending, startTransition] = useTransition();
+  const [saveFailed, setSaveFailed] = useState(false);
   const [online, setOnline] = useState(
     () => typeof navigator === "undefined" || navigator.onLine,
   );
@@ -148,6 +152,9 @@ export function AssessmentRatingCell(props: Props) {
           score: typeof row.score === "number" ? row.score : null,
           response_status: row.response_status as ResponseStatus,
           evidence: String(row.evidence ?? ""),
+          revision: typeof row.revision === "number" ? row.revision : undefined,
+          updated_at:
+            typeof row.updated_at === "string" ? row.updated_at : null,
         };
         setPeerOverrides((current) => ({ ...current, [observerId]: peer }));
         return;
@@ -177,7 +184,16 @@ export function AssessmentRatingCell(props: Props) {
   }, [props.participantId, props.indicatorId, props.observerId]);
 
   useEffect(() => {
-    if (JSON.stringify(value) === JSON.stringify(saved) || conflict || pending)
+    const dirty = JSON.stringify(value) !== JSON.stringify(saved);
+    if (
+      !canScheduleAutosave({
+        dirty,
+        conflict: !!conflict,
+        pending,
+        failed: saveFailed,
+        online,
+      })
+    )
       return;
     localStorage.setItem(
       storageKey,
@@ -206,9 +222,15 @@ export function AssessmentRatingCell(props: Props) {
           if ("conflict" in result && result.conflict) {
             setConflict(result.latest as Value);
             setStatus(result.message);
-          } else setStatus(result.message);
+          } else {
+            setSaveFailed(true);
+            setStatus(
+              `${result.message} Pilih "Coba lagi" setelah masalah selesai.`,
+            );
+          }
           return;
         }
+        setSaveFailed(false);
         const next = result.record as Value;
         setSaved(next);
         setValue(next);
@@ -224,6 +246,7 @@ export function AssessmentRatingCell(props: Props) {
     saved,
     conflict,
     pending,
+    saveFailed,
     online,
     storageKey,
     props.participantId,
@@ -231,7 +254,8 @@ export function AssessmentRatingCell(props: Props) {
     props.indicatorId,
   ]);
 
-  const chooseScore = (raw: string) =>
+  const chooseScore = (raw: string) => {
+    setSaveFailed(false);
     setValue((current) =>
       raw === "no"
         ? { ...current, score: null, response_status: "not_observed" }
@@ -239,8 +263,10 @@ export function AssessmentRatingCell(props: Props) {
           ? { ...current, score: null, response_status: "unrated" }
           : { ...current, score: Number(raw), response_status: "scored" },
     );
+  };
   const acceptLatest = () => {
     if (!conflict) return;
+    setSaveFailed(false);
     setValue(conflict);
     setSaved(conflict);
     setConflict(null);
@@ -249,6 +275,7 @@ export function AssessmentRatingCell(props: Props) {
   };
   const applyMine = () => {
     if (!conflict) return;
+    setSaveFailed(false);
     setSaved(conflict);
     setConflict(null);
     setStatus("Menerapkan ulang draf setelah konflik");
@@ -256,8 +283,17 @@ export function AssessmentRatingCell(props: Props) {
 
   const peersById = new Map<string, PeerRating>();
   for (const item of props.peerRatings) peersById.set(item.observer_id, item);
-  for (const item of Object.values(peerOverrides))
+  for (const item of Object.values(peerOverrides)) {
+    const fromServer = peersById.get(item.observer_id);
+    if (
+      fromServer &&
+      typeof fromServer.revision === "number" &&
+      typeof item.revision === "number" &&
+      item.revision <= fromServer.revision
+    )
+      continue;
     peersById.set(item.observer_id, item);
+  }
   const visiblePeers = [...peersById.values()].filter(
     (item) => props.readOnly || item.observer_id !== props.observerId,
   );
@@ -312,12 +348,13 @@ export function AssessmentRatingCell(props: Props) {
           value={value.evidence}
           maxLength={3000}
           rows={3}
-          onChange={(event) =>
+          onChange={(event) => {
+            setSaveFailed(false);
             setValue((current) => ({
               ...current,
               evidence: event.target.value,
-            }))
-          }
+            }));
+          }}
           disabled={props.readOnly || props.locked || pending || !!conflict}
           placeholder="Tuliskan perilaku atau bukti konkret yang Anda amati."
         />
@@ -325,6 +362,18 @@ export function AssessmentRatingCell(props: Props) {
       <small className="assessment-save-status" aria-live="polite">
         {status}
       </small>
+      {saveFailed && !conflict && (
+        <button
+          type="button"
+          className="btn btn--quiet btn--sm"
+          onClick={() => {
+            setSaveFailed(false);
+            setStatus("Menyimpan ulang…");
+          }}
+        >
+          Coba lagi
+        </button>
+      )}
       {visiblePeers.length > 0 && (
         <details className="rubric-score-guide">
           <summary>

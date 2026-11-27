@@ -3,6 +3,7 @@
 import { useEffect, useState, useTransition } from "react";
 import { saveObserverNote } from "../penilaian/assessment-actions";
 import { asRow } from "@/lib/relations";
+import { canScheduleAutosave } from "@/lib/autosave-policy";
 
 type NoteType = "observation" | "strength" | "development" | "special";
 type NoteRevision = {
@@ -85,6 +86,7 @@ function NoteEditor({
   const [conflict, setConflict] = useState<typeof latest | null>(null);
   const [status, setStatus] = useState("Belum ada perubahan");
   const [pending, startTransition] = useTransition();
+  const [saveFailed, setSaveFailed] = useState(false);
 
   // Terima revisi dari perangkat lain tanpa menimpa draf lokal yang belum tersimpan.
   const [prevRecord, setPrevRecord] = useState(record);
@@ -120,7 +122,18 @@ function NoteEditor({
   }
 
   useEffect(() => {
-    if (content === syncedContent || conflict || pending || locked) return;
+    const dirty = content !== syncedContent;
+    if (
+      locked ||
+      !canScheduleAutosave({
+        dirty,
+        conflict: !!conflict,
+        pending,
+        failed: saveFailed,
+        online: true,
+      })
+    )
+      return;
     const timer = window.setTimeout(() => {
       setStatus("Menyimpan…");
       startTransition(async () => {
@@ -147,9 +160,15 @@ function NoteEditor({
             setConflict(next);
             onSaved(result.latest as NoteRecord);
             setStatus(result.message);
-          } else setStatus(result.message);
+          } else {
+            setSaveFailed(true);
+            setStatus(
+              `${result.message} Pilih "Coba lagi" setelah masalah selesai.`,
+            );
+          }
           return;
         }
+        setSaveFailed(false);
         const saved = result.record as NoteRecord;
         setRevision(saved.revision);
         setLatest({
@@ -169,6 +188,7 @@ function NoteEditor({
     revision,
     conflict,
     pending,
+    saveFailed,
     participantId,
     rubricVersionId,
     noteType,
@@ -178,6 +198,7 @@ function NoteEditor({
 
   const acceptLatest = () => {
     if (!conflict) return;
+    setSaveFailed(false);
     setContent(conflict.content);
     setSyncedContent(conflict.content);
     setRevision(conflict.revision);
@@ -187,6 +208,7 @@ function NoteEditor({
   };
   const applyMine = () => {
     if (!conflict) return;
+    setSaveFailed(false);
     setRevision(conflict.revision);
     setLatest(conflict);
     setConflict(null);
@@ -201,7 +223,10 @@ function NoteEditor({
           value={content}
           maxLength={3000}
           rows={3}
-          onChange={(event) => setContent(event.target.value)}
+          onChange={(event) => {
+            setSaveFailed(false);
+            setContent(event.target.value);
+          }}
           disabled={locked || pending || !!conflict}
           placeholder={noteTypes.find((type) => type.id === noteType)?.hint}
         />
@@ -212,6 +237,18 @@ function NoteEditor({
           : status}
         {latest.revision ? ` · versi catatan ${latest.revision}` : ""}
       </small>
+      {saveFailed && !conflict && !locked && (
+        <button
+          type="button"
+          className="btn btn--quiet btn--sm"
+          onClick={() => {
+            setSaveFailed(false);
+            setStatus("Menyimpan ulang…");
+          }}
+        >
+          Coba lagi
+        </button>
+      )}
       {conflict && (
         <div className="observation-conflict" role="alert">
           <strong>Konflik catatan</strong>

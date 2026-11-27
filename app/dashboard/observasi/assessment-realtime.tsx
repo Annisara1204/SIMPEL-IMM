@@ -19,6 +19,17 @@ export function AssessmentRealtime({ versionId }: { versionId: string }) {
     const client = createClient();
     let channel: ReturnType<typeof client.channel> | null = null;
     let cancelled = false;
+    // JWT berlaku 3600 detik. Perbarui otorisasi Realtime setiap token diperbarui
+    // agar langganan tidak diam-diam berhenti menerima perubahan penilai lain.
+    const { data: authSubscription } = client.auth.onAuthStateChange(
+      (event, session) => {
+        if (
+          (event === "TOKEN_REFRESHED" || event === "SIGNED_IN") &&
+          session?.access_token
+        )
+          client.realtime.setAuth(session.access_token);
+      },
+    );
     const emit = (
       table: string,
       payload: { new?: Record<string, unknown>; old?: Record<string, unknown> },
@@ -94,6 +105,7 @@ export function AssessmentRealtime({ versionId }: { versionId: string }) {
       });
     return () => {
       cancelled = true;
+      authSubscription.subscription.unsubscribe();
       if (refreshTimer.current) window.clearTimeout(refreshTimer.current);
       if (channel) void client.removeChannel(channel);
     };

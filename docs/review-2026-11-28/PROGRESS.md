@@ -7,7 +7,8 @@ Dokumen ini mencatat bukti per paket kerja saat eksekusi. Status rencana: `RENCA
 | 0 | Selesai | `security_baseline.sql` lolos; tiga penguji lama (participant scope, allowlist, revision privacy) lolos; `tests/relations.test.ts` memeriksa batas cast; `npm run check` dan `npm run build` exit 0 | |
 | 1 | Selesai | Migrasi `20261128010000`, penguji `supabase/tests/revision_privacy.sql` lolos dengan Kader 0 baris dan Admin 1 baris; `npm run check` exit 0; `npm run build` exit 0 | |
 | 2 | Selesai | `observer_assignment_scope.sql` lolos; unit `request-base-url.test.ts` lolos; QA browser: Kader tidak melihat 2 kotak penugasan, Admin melihat keduanya; curl host asing redirect ke host default; `npm run check` dan `npm run build` exit 0 | |
-| 3-15 | Belum | | |
+| 3 | Selesai | `tests/autosave-policy.test.ts` lolos; QA browser DEV Observer: Ubah skor → "Tersimpan · 06.32.27", tidak ada tombol "Coba lagi"; nilai dikembalikan ke "Belum dinilai"; `npm run check` dan `npm run build` exit 0 | |
+| 4-15 | Belum | | |
 
 ## Catatan Paket 1
 
@@ -29,3 +30,10 @@ Dokumen ini mencatat bukti per paket kerja saat eksekusi. Status rencana: `RENCA
 - Seleksi Komisariat dan Laporan kini memeriksa penugasan kegiatan di aplikasi, bukan hanya di RPC/RLS.
 - `requestBaseUrl` memakai daftar putih host (`IMM_ALLOWED_HOSTS`) dan `safeNextPath` membandingkan origin. QA curl dengan `Host: evil.example` menghasilkan redirect ke `http://43.173.33.195:8080/login`.
 - Untuk QA browser DEV, kata sandi dua akun uji lokal di-reset lewat Auth Admin API lokal. Tidak ada akun produksi yang diubah.
+
+## Catatan Paket 3
+
+- Autosave skor dan catatan berhenti setelah kegagalan bukan-konflik, dengan tombol "Coba lagi". Aturan ini ada di `lib/autosave-policy.ts` dan diuji unit.
+- BUG-06: Realtime kini memanggil `setAuth` lagi saat `TOKEN_REFRESHED` atau `SIGNED_IN`. QA live lebih dari satu jam tidak dilakukan, jadi perbaikan ini belum terbukti secara runtime dan tetap dicatat sebagai hipotesis.
+- BUG-07: event Realtime rekan menyimpan `revision`; penimpa dengan revisi lebih lama atau sama diabaikan bila data server punya revisi.
+- QA browser DEV (Observer A, kegiatan `48880b89`, Pelatihan/Ke-IMM-an/Observasi): memilih skor 4 menghasilkan "Tersimpan · 06.32.27" dan tidak ada tombol "Coba lagi". Nilai uji dikembalikan ke "Belum dinilai".

@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 import { asRow, asRows } from "../lib/relations.ts";
 
@@ -37,4 +38,13 @@ test("asRow menolak array, primitif, dan objek tanpa field wajib", () => {
     id: "a",
     score: 4,
   });
+});
+
+test("batas as unknown as hanya ada di dalam asRow", () => {
+  const source = readFileSync(
+    new URL("../lib/relations.ts", import.meta.url),
+    "utf8",
+  );
+  const matches = source.match(/as unknown as/g) ?? [];
+  assert.equal(matches.length, 1);
 });

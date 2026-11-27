@@ -16,6 +16,10 @@ import type {
 } from "@/lib/supabase-rows";
 import { buildAutoCompetencyMap } from "@/lib/auto-competency";
 import {
+  buildTrainingMatrix,
+  type TrainingRecapSnapshot,
+} from "@/lib/training-recap";
+import {
   approveDevelopmentRecommendation,
   approveFinalizePublishReport,
   finalizeAllEvaluations,
@@ -38,6 +42,7 @@ type Props = {
     batchFailed?: string | string[];
     batchError?: string | string[];
     error?: string | string[];
+    view?: string | string[];
   }>;
 };
 export default async function CollectiveEvaluationPage({
@@ -77,6 +82,7 @@ export default async function CollectiveEvaluationPage({
   const participantId = Array.isArray(params.participantId)
     ? params.participantId[0]
     : params.participantId;
+  const recapView = Array.isArray(params.view) ? params.view[0] : params.view;
   const paramValue = (value: string | string[] | undefined) =>
     Array.isArray(value) ? value[0] : value;
   const batchFailure = paramValue(params.batchError) ?? null;
@@ -145,7 +151,9 @@ export default async function CollectiveEvaluationPage({
   const { data: eventSnapshots } = eventId
     ? await supabase
         .from("assessment_snapshots")
-        .select("id,participant_id,snapshot_data,finalized_at,revision")
+        .select(
+          "id,participant_id,snapshot_data,finalized_at,revision,rubric_version_ids",
+        )
         .eq("event_id", eventId)
     : { data: [] };
   const snapshotRows = (eventSnapshots ?? []).map((snapshot) => ({
@@ -195,6 +203,29 @@ export default async function CollectiveEvaluationPage({
     activeVersions.find((item) => item.id === versionIdParam)?.id ??
     activeVersions[0]?.id ??
     null;
+  const trainingVersions = activeVersions.filter(
+    (version) => version.stage === "training",
+  );
+  const trainingMatrix =
+    recapView === "training" &&
+    selectedEvent &&
+    !selectedParticipant &&
+    trainingVersions.length
+      ? buildTrainingMatrix({
+          participants: participantRows.map((person) => ({
+            id: person.id,
+            display_name: person.display_name,
+          })),
+          versions: trainingVersions.map((version) => ({
+            id: version.id,
+            name: firstRelated(version.rubric_materials)?.name ?? "Materi",
+            version: Number(version.version) || 0,
+          })),
+          summaryRows: (summaryRows ?? []) as AssessmentSummaryRow[],
+          snapshots: (eventSnapshots ?? []) as TrainingRecapSnapshot[],
+          minimumCoverage: Number(policy?.minimum_coverage ?? 80),
+        })
+      : null;
   const [{ data: evaluation }, { data: moderations }, { data: snapshots }] =
     selectedParticipant && eventId && selectedVersionId
       ? await Promise.all([
@@ -380,57 +411,137 @@ export default async function CollectiveEvaluationPage({
             ← Pilih kegiatan lain
           </Link>
           <h2>{selectedEvent.name}</h2>
-          {autoCompetency && autoCompetency.columns.length > 0 && (
+          <nav
+            className="assessment-penilaian-tabs"
+            aria-label="Tampilan rekap"
+          >
+            <Link
+              prefetch={false}
+              className={
+                recapView === "training"
+                  ? "assessment-penilaian-tab"
+                  : "assessment-penilaian-tab active"
+              }
+              aria-current={recapView === "training" ? undefined : "true"}
+              href={`/dashboard/evaluasi?eventId=${eventId}`}
+            >
+              Peta kompetensi
+            </Link>
+            <Link
+              prefetch={false}
+              className={
+                recapView === "training"
+                  ? "assessment-penilaian-tab active"
+                  : "assessment-penilaian-tab"
+              }
+              aria-current={recapView === "training" ? "true" : undefined}
+              href={`/dashboard/evaluasi?eventId=${eventId}&view=training`}
+            >
+              Rekap penilaian pelatihan
+            </Link>
+          </nav>
+          {recapView === "training" ? (
             <section className="rubric-edit">
-              <h3>Peta kompetensi otomatis</h3>
+              <h3>Rekap penilaian pelatihan</h3>
               <p className="data-caption">
-                Semua peserta tampil. Status Final memakai nilai dari rapor;
-                status Sementara memakai penilaian terkini. Bobot aspek dapat
-                berasal dari rubrik berbeda sehingga totalnya bisa lebih dari
-                100%; nilai sementara dinormalisasi dari aspek yang tersedia.
-                Materi terarsipkan tidak ikut dalam nilai sementara.
+                Satu baris per peserta, satu kolom per materi Pelatihan. Angka
+                0–100 memakai nilai rapor Final bila tersedia; selebihnya
+                penilaian sementara, bukan hasil resmi. Tanda &quot;—&quot;
+                berarti belum ada nilai.
               </p>
-              <div className="competency-matrix-scroll">
-                <table className="competency-matrix">
-                  <thead>
-                    <tr>
-                      <th scope="col">Peserta</th>
-                      {autoCompetency.columns.map((column) => (
-                        <th key={column.name} scope="col">
-                          {column.name}
-                          <small>Bobot {column.weight}%</small>
-                        </th>
-                      ))}
-                      <th scope="col">Nilai akhir</th>
-                      <th scope="col">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {autoCompetency.rows.map((row) => (
-                      <tr key={row.participantId}>
-                        <th scope="row">{row.displayName}</th>
-                        {autoCompetency.columns.map((column) => {
-                          const score = row.aspectScores.get(column.name);
-                          return (
-                            <td key={column.name}>
-                              {score === undefined ? "—" : score.toFixed(1)}
-                            </td>
-                          );
-                        })}
-                        <td>
-                          {row.finalScore === null
-                            ? "—"
-                            : row.finalScore.toFixed(1)}
-                        </td>
-                        <td>
-                          {row.status === "final" ? "Final" : "Sementara"}
-                        </td>
+              {trainingMatrix && trainingMatrix.columns.length ? (
+                <div className="competency-matrix-scroll">
+                  <table className="competency-matrix">
+                    <thead>
+                      <tr>
+                        <th scope="col">Peserta</th>
+                        {trainingMatrix.columns.map((column) => (
+                          <th key={column.name} scope="col">
+                            {column.name}
+                          </th>
+                        ))}
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {trainingMatrix.rows.map((row) => (
+                        <tr key={row.participantId}>
+                          <th scope="row">{row.displayName}</th>
+                          {trainingMatrix.columns.map((column) => {
+                            const score = row.scores.get(column.name);
+                            return (
+                              <td key={column.name}>
+                                {score === undefined || score === null
+                                  ? "—"
+                                  : score.toFixed(1)}
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <p className="notice notice--empty">
+                  Belum ada rubrik Pelatihan aktif pada kegiatan ini. Minta
+                  Super Admin menambah materi dan mengaktifkan rubriknya.
+                </p>
+              )}
             </section>
+          ) : (
+            autoCompetency &&
+            autoCompetency.columns.length > 0 && (
+              <section className="rubric-edit">
+                <h3>Peta kompetensi otomatis</h3>
+                <p className="data-caption">
+                  Semua peserta tampil. Status Final memakai nilai dari rapor;
+                  status Sementara memakai penilaian terkini. Bobot aspek dapat
+                  berasal dari rubrik berbeda sehingga totalnya bisa lebih dari
+                  100%; nilai sementara dinormalisasi dari aspek yang tersedia.
+                  Materi terarsipkan tidak ikut dalam nilai sementara.
+                </p>
+                <div className="competency-matrix-scroll">
+                  <table className="competency-matrix">
+                    <thead>
+                      <tr>
+                        <th scope="col">Peserta</th>
+                        {autoCompetency.columns.map((column) => (
+                          <th key={column.name} scope="col">
+                            {column.name}
+                            <small>Bobot {column.weight}%</small>
+                          </th>
+                        ))}
+                        <th scope="col">Nilai akhir</th>
+                        <th scope="col">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {autoCompetency.rows.map((row) => (
+                        <tr key={row.participantId}>
+                          <th scope="row">{row.displayName}</th>
+                          {autoCompetency.columns.map((column) => {
+                            const score = row.aspectScores.get(column.name);
+                            return (
+                              <td key={column.name}>
+                                {score === undefined ? "—" : score.toFixed(1)}
+                              </td>
+                            );
+                          })}
+                          <td>
+                            {row.finalScore === null
+                              ? "—"
+                              : row.finalScore.toFixed(1)}
+                          </td>
+                          <td>
+                            {row.status === "final" ? "Final" : "Sementara"}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+            )
           )}
           <h3>Pilih peserta</h3>
           {participantRows.map((person) => (

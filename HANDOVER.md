@@ -566,6 +566,27 @@ Dampak lain: aksi di `app/dashboard/evaluasi/actions.ts` (draf rekomendasi otoma
 - **Deploy produksi selesai 27 November 2026 06:50 WIB:** backup `/home/ubuntu/imm-app.bak-2026-11-27-065007-full` dan `/home/ubuntu/.env.production.bak-2026-11-27-065007`; hash env sama; rsync tanpa `--delete`; build OK; `pm2 restart imm --update-env` (restart ke-32, online). Smoke sepuluh halaman 200; bundle memuat pesan fallback; tidak ada 5xx pada halaman; tidak ada migrasi atau perubahan data. Kode aktif: `3a676a5`. Pengguna wajib Ctrl+F5.
 - Sisa temuan audit yang belum disentuh: 15 cast `as unknown as` dan trik `setTimeout(..., 0)` untuk aturan lint. Keduanya berada di luar empat modul yang sudah diperbaiki hari ini.
 
+## Tombol rekap penilaian pelatihan di Evaluasi Kolektif (27 November 2026, DEV)
+
+- Pemilik meminta tombol di halaman rekap Evaluasi Kolektif untuk berpindah ke tampilan "penilaian pelatihan" yang memakai pill seperti `Pelatihan · Observasi · AIIK`. Pill itu adalah tab **Jenis penilaian** yang sebenarnya sudah ada, tetapi hanya muncul setelah satu peserta dipilih; dari halaman rekap memang belum terlihat.
+- Pemilik memilih fungsi **tabel rekap penilaian** dan menegaskan: **lokal saja, frontend produksi tidak dimatikan/di-deploy**.
+- Setelah uji pertama, pemilik mengoreksi bentuk tabel: yang menjadi **kolom adalah nama materi** (AIIK, IMM, Teknik Persidangan, Kepemimpinan dan Manajemen Organisasi), **baris adalah peserta**, isi sel adalah **nilai akhir 0–100**. Pill materi dihapus; tombol switch dipertahankan. Bila satu materi memiliki beberapa versi aktif, versi terbesar yang dipakai.
+- Berubah: `app/dashboard/evaluasi/page.tsx` (tombol switch `Peta kompetensi` / `Rekap penilaian pelatihan` dan tabel matriks), `lib/training-recap.ts` (baru, `buildTrainingRecap` dan `buildTrainingMatrix`), `tests/training-recap.test.ts` (baru, 5 tes), `package.json` (daftar tes fase 7).
+- Cara pakai: buka `/dashboard/evaluasi?eventId=…`, klik "Rekap penilaian pelatihan". Tabel menampilkan satu baris per peserta dan satu kolom per materi. Klik "Peta kompetensi" untuk kembali. Tidak ada penulisan data atau migrasi.
+- Verifikasi: `npm run check` lolos dengan 49 tes (0 error; 1 warning lama `WHITE` di `lib/phase7-files.ts`), `npm run build` lolos. Browser DEV `localhost:3100` dengan akun Kader: switcher dan tabel 5 peserta tampil dengan kolom "Materi umum", tidak ada pill materi, `scrollWidth == clientWidth == 1280` tanpa overflow horizontal. Data DEV tidak diubah.
+- **Belum di-deploy ke produksi** sesuai permintaan pemilik; kode produksi tetap `0f9259d`.
+
+## Tarik data produksi ke lokal untuk melihat rekap nyata (27 November 2026)
+
+- Persetujuan pemilik: data produksi adalah data simulasi trial, data DEV lokal boleh ditimpa setelah backup, dan akun produksi ikut disalin.
+- Cadangan lokal dibuat lebih dulu: `node_modules/.cache/imm-db/local-before-prod-20261127.dump` (1,1 MB, berisi seluruh skema dan data DEV sebelumnya: 1 kegiatan, 5 peserta). Berkas ini diabaikan Git (`node_modules/`).
+- Data produksi diambil **read-only** lewat SSH ke server, `docker exec supabase-db pg_dump -Fc`, disimpan sebagai `node_modules/.cache/imm-db/prod-20261127.dump` (1,2 MB). Tidak ada penulisan ke produksi.
+- Skema `public` dan `auth` lokal identik dengan produksi (dibandingkan kolom lewat `information_schema`). Data lokal di-truncate, lalu dump dipulihkan sebagai `supabase_admin` dengan `pg_restore --data-only --disable-triggers --single-transaction -n public -n auth`.
+- Hasil di lokal: 4 kegiatan, 59 peserta, 20 versi rubrik, 2.983 rating, 7 snapshot, 9 akun `auth.users`. Jumlah rating produksi bertambah menjadi 2.988 saat dicek setelahnya; lokal memuat keadaan pada saat dump dibuat.
+- Verifikasi browser `http://localhost:3100` dengan akun QA Kader produksi (kredensial tetap di `.env.qa-test`, tidak dicetak): halaman `/dashboard/evaluasi?eventId=63d451a4-9a5b-4055-894e-76316cdc469e&view=training` menampilkan 9 peserta dan kolom materi AIK, IMM, Teknik Persidangan, Kepemimpinan dan Manajemen Organisasi. `scrollWidth == clientWidth == 1280`, tanpa overflow horizontal.
+- Data DEV lama sudah tertimpa; prosedur pemulihan: restore berkas `local-before-prod-20261127.dump` ke basis data lokal. Server dev dan frontend produksi tidak dimatikan.
+- **Akun DEV lama (`admin@dev.local`, `observera@dev.local`, dan seterusnya dengan `Devpass123!`) tidak lagi bisa login** karena ikut tertimpa. Untuk membuka data lokal sekarang, pakai akun QA produksi dari `.env.qa-test`, misalnya `qa-prod-kader@imm-observer.invalid` (kata sandi ada di berkas itu, tidak dicetak). Verifikasi login akun tersebut berhasil setelah laptop direstart.
+
 ## Daftar putih agregat publik (27 November 2026)
 
 - Sebelumnya `get_public_event_aggregate(uuid)` diberi `EXECUTE` ke `anon` dan menerima `event_id` apa pun. Daftar putih hanya ada di `NEXT_PUBLIC_PUBLIC_AGGREGATE_EVENT_ID` pada Server Component, jadi RPC bisa dipanggil langsung untuk kegiatan lain.

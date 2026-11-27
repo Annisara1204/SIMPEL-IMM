@@ -418,7 +418,9 @@ export function DashboardContent({
             <div>
               <strong>Instruktur Simulasi 01</strong>
               <small>Materi ideologi dan keislaman</small>
-              <a href="#profil-instruktur">Media sosial: contoh profil</a>
+              <a href="/dashboard/profil-instruktur">
+                Media sosial: contoh profil
+              </a>
             </div>
           </div>
           <div className="instructor-row">
@@ -426,7 +428,9 @@ export function DashboardContent({
             <div>
               <strong>Instruktur Simulasi 02</strong>
               <small>Materi kemuhammadiyahan</small>
-              <a href="#profil-instruktur">Media sosial: contoh profil</a>
+              <a href="/dashboard/profil-instruktur">
+                Media sosial: contoh profil
+              </a>
             </div>
           </div>
           <div className="data-caption">

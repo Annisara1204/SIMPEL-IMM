@@ -30,13 +30,13 @@ export default async function CommissariatApplicationsPage() {
     !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   )
     return (
-      <main className="setup-message">
+      <div className="setup-message">
         <h1>Supabase belum dikonfigurasi</h1>
         <p>Aplikasi belum siap digunakan. Hubungi Admin sistem.</p>
         <Link prefetch={false} href="/login">
           Kembali ke login
         </Link>
-      </main>
+      </div>
     );
   const supabase = await createClient();
   const { data: claims } = await supabase.auth.getClaims();
@@ -50,7 +50,7 @@ export default async function CommissariatApplicationsPage() {
   if (profile?.role !== "komisariat") redirect("/dashboard");
   if (!profile.commissariat_id)
     return (
-      <main className="users-page">
+      <div className="users-page">
         <div className="users-notice">
           <strong>Akun Komisariat belum ditautkan</strong>
           <p>
@@ -58,7 +58,7 @@ export default async function CommissariatApplicationsPage() {
             melalui menu Pengguna.
           </p>
         </div>
-      </main>
+      </div>
     );
 
   const [
@@ -122,7 +122,7 @@ export default async function CommissariatApplicationsPage() {
   );
 
   return (
-    <main className="users-page">
+    <div className="users-page">
       <div className="users-heading">
         <div>
           <p className="login-eyebrow">RUANG KERJA KOMISARIAT</p>
@@ -530,6 +530,6 @@ export default async function CommissariatApplicationsPage() {
         Akun lain yang ditautkan ke Komisariat yang sama dapat melihat dan
         mengelola draf/pengajuan ini. Komisariat lain tidak dapat membukanya.
       </p>
-    </main>
+    </div>
   );
 }

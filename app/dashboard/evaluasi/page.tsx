@@ -48,10 +48,10 @@ export default async function CollectiveEvaluationPage({
     !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   )
     return (
-      <main className="setup-message">
+      <div className="setup-message">
         <h1>Evaluasi belum dikonfigurasi</h1>
         <DataUnavailable />
-      </main>
+      </div>
     );
   const supabase = await createClient();
   const { data: claims } = await supabase.auth.getClaims();
@@ -319,7 +319,7 @@ export default async function CollectiveEvaluationPage({
   const displayParticipant = selectedParticipant;
 
   return (
-    <main className="users-page">
+    <div className="users-page">
       {batchResult && (
         <div
           className="users-notice"
@@ -1113,6 +1113,6 @@ export default async function CollectiveEvaluationPage({
           </section>
         </>
       )}
-    </main>
+    </div>
   );
 }

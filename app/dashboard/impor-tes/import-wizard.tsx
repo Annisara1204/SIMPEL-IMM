@@ -450,6 +450,7 @@ export function ImportWizard({
                         <td>{row.score}</td>
                         <td>
                           <select
+                            aria-label={`Peserta baris ${row.rowNumber}`}
                             value={row.participantId}
                             disabled={!row.include}
                             onChange={(event) =>
@@ -581,7 +582,11 @@ export function ImportWizard({
               )}
             </div>
           )}
-          {message && <p className="users-error">{message}</p>}
+          {message && (
+            <p className="users-error" role="alert">
+              {message}
+            </p>
+          )}
         </>
       )}
     </section>

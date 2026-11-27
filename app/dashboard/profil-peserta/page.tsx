@@ -72,7 +72,7 @@ export default async function InstructorParticipantProfilesPage({
   }));
 
   return (
-    <main className="users-page">
+    <div className="users-page">
       <div className="users-heading">
         <div>
           <p className="login-eyebrow">PROFIL KEGIATAN</p>
@@ -193,6 +193,6 @@ export default async function InstructorParticipantProfilesPage({
         kegiatan yang ditugaskan. Catatan observasi rinci tetap dibuka melalui
         menu Observasi. Foto memakai tautan sementara dan akses privat.
       </p>
-    </main>
+    </div>
   );
 }

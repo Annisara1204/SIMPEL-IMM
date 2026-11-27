@@ -98,7 +98,7 @@ export default async function AnalitikPage() {
   );
 
   return (
-    <main className="users-page">
+    <div className="users-page">
       <div className="users-heading">
         <div>
           <p className="login-eyebrow">DATA &amp; LAPORAN</p>
@@ -192,6 +192,6 @@ export default async function AnalitikPage() {
           tidak menjadi hasil final.
         </p>
       </section>
-    </main>
+    </div>
   );
 }

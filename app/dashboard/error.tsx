@@ -15,7 +15,7 @@ export default function DashboardError({
   }, [error]);
 
   return (
-    <main className="setup-message">
+    <div className="setup-message">
       <h1>Halaman gagal dimuat</h1>
       <p>
         Maaf, terjadi kesalahan saat memuat halaman ini. Coba muat ulang; bila
@@ -27,6 +27,6 @@ export default function DashboardError({
       <Link prefetch={false} className="users-back" href="/dashboard">
         Kembali ke Ringkasan
       </Link>
-    </main>
+    </div>
   );
 }

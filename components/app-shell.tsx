@@ -137,7 +137,10 @@ export function AppShell({
   const homeHref = role === "public" ? "/" : "/dashboard";
 
   return (
-    <main className="app-shell">
+    <div className="app-shell">
+      <a className="skip-link" href="#main-content">
+        Lewati ke konten
+      </a>
       <aside className={`sidebar ${mobileOpen ? "sidebar-open" : ""}`}>
         <div className="brand">
           <div className="brand-mark">
@@ -252,8 +255,10 @@ export function AppShell({
             )}
           </div>
         </header>
-        <div className="content">{children}</div>
+        <main id="main-content" className="content">
+          {children}
+        </main>
       </section>
-    </main>
+    </div>
   );
 }

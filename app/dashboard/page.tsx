@@ -37,13 +37,13 @@ export default async function DashboardPage() {
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !key)
     return (
-      <main className="setup-message">
+      <div className="setup-message">
         <h1>Login belum dikonfigurasi</h1>
         <p>Aplikasi belum siap digunakan. Hubungi Admin sistem.</p>
         <Link prefetch={false} href="/login">
           Kembali ke login
         </Link>
-      </main>
+      </div>
     );
   const supabase = await createClient();
   const { data: claimsData } = await supabase.auth.getClaims();
@@ -56,17 +56,17 @@ export default async function DashboardPage() {
     .maybeSingle();
   if (error)
     return (
-      <main className="setup-message">
+      <div className="setup-message">
         <h1>Profil belum tersedia</h1>
         <DataUnavailable />
         <form action="/auth/signout" method="post">
           <button>Keluar</button>
         </form>
-      </main>
+      </div>
     );
   if (!profile?.role || !allowedRoles.includes(profile.role as AppRole))
     return (
-      <main className="setup-message">
+      <div className="setup-message">
         <h1>Akun sedang menunggu penetapan akses</h1>
         <p>
           Dashboard belum menampilkan fitur. Superadmin akan menetapkan role
@@ -78,7 +78,7 @@ export default async function DashboardPage() {
         <form action="/auth/signout" method="post">
           <button>Keluar</button>
         </form>
-      </main>
+      </div>
     );
   type InstructorAssignmentRow = {
     id: string;
@@ -100,7 +100,7 @@ export default async function DashboardPage() {
     );
     if (!instructorAssignmentRows.length)
       return (
-        <main className="setup-message">
+        <div className="setup-message">
           <h1>Akun menunggu penugasan Superadmin</h1>
           <p>
             Role Instruktur sudah ditetapkan, tetapi dashboard baru terbuka
@@ -112,7 +112,7 @@ export default async function DashboardPage() {
           <form action="/auth/signout" method="post">
             <button>Keluar</button>
           </form>
-        </main>
+        </div>
       );
   }
   let phase7Home: Phase7Home | null = null;

@@ -37,13 +37,13 @@ export default async function ParticipantsPage() {
     !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   )
     return (
-      <main className="setup-message">
+      <div className="setup-message">
         <h1>Supabase belum dikonfigurasi</h1>
         <p>Aplikasi belum siap digunakan. Hubungi Admin sistem.</p>
         <Link prefetch={false} href="/login">
           Kembali ke login
         </Link>
-      </main>
+      </div>
     );
   const supabase = await createClient();
   const { data: claims } = await supabase.auth.getClaims();
@@ -88,7 +88,7 @@ export default async function ParticipantsPage() {
     })),
   }));
   return (
-    <main className="users-page">
+    <div className="users-page">
       <div className="users-heading">
         <div>
           <p className="login-eyebrow">PROFIL PESERTA</p>
@@ -341,7 +341,7 @@ export default async function ParticipantsPage() {
                               <button
                                 className="remove-button"
                                 type="submit"
-                                aria-label="Hapus peserta"
+                                aria-label={`Hapus ${person.display_name}`}
                               >
                                 Hapus
                               </button>
@@ -366,6 +366,6 @@ export default async function ParticipantsPage() {
         Nama yang sama tidak otomatis ditolak. Halaman hanya tersedia bagi
         Observer dan Admin Sistem (Super Admin).
       </p>
-    </main>
+    </div>
   );
 }

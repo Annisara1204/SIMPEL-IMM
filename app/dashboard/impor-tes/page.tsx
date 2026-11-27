@@ -10,13 +10,13 @@ export default async function TestImportPage() {
     !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   )
     return (
-      <main className="setup-message">
+      <div className="setup-message">
         <h1>Supabase belum dikonfigurasi</h1>
         <p>Aplikasi belum siap digunakan. Hubungi Admin sistem.</p>
         <Link prefetch={false} href="/login">
           Kembali ke login
         </Link>
-      </main>
+      </div>
     );
   const supabase = await createClient();
   const { data: claims } = await supabase.auth.getClaims();
@@ -46,7 +46,7 @@ export default async function TestImportPage() {
       .limit(50),
   ]);
   return (
-    <main className="users-page">
+    <div className="users-page">
       <div className="users-heading">
         <div>
           <p className="login-eyebrow">TAHAP 5 · DATA TES</p>
@@ -125,6 +125,6 @@ export default async function TestImportPage() {
           lama tidak diganti tanpa konfirmasi.
         </p>
       </div>
-    </main>
+    </div>
   );
 }

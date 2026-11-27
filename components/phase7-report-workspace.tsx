@@ -690,13 +690,13 @@ export function Phase7ReportWorkspace(props: Props) {
   if (role === "peserta") {
     if (!participantReport)
       return (
-        <main className="users-page">
+        <div className="users-page">
           <h1>Rapor Saya</h1>
           <p className="users-notice">
             {reportError ??
               "Rapor belum diterbitkan. Setelah diterbitkan, rapor akan tampil di sini."}
           </p>
-        </main>
+        </div>
       );
     const report: ReportFileData = {
       participant: participantReport.participant,
@@ -708,7 +708,7 @@ export function Phase7ReportWorkspace(props: Props) {
       versionInfo: participantReport.version_info ?? [],
     };
     return (
-      <main className="users-page">
+      <div className="users-page">
         <div className="users-heading">
           <div>
             <p className="login-eyebrow">RAPOR PESERTA · PUBLISHED</p>
@@ -727,13 +727,17 @@ export function Phase7ReportWorkspace(props: Props) {
           </button>
         </div>
         <ReportPreview report={report} />
-        {message && <p className="users-error">{message}</p>}
-      </main>
+        {message && (
+          <p className="users-error" role="alert">
+            {message}
+          </p>
+        )}
+      </div>
     );
   }
 
   return (
-    <main className="users-page">
+    <div className="users-page">
       <div className="users-heading">
         <div>
           <p className="login-eyebrow">LAPORAN, RAPOR & EKSPOR</p>
@@ -1324,13 +1328,16 @@ export function Phase7ReportWorkspace(props: Props) {
             </section>
           )}
           {message && (
-            <p className="users-notice" role="status">
+            <p
+              className="users-notice"
+              role={/gagal|error/i.test(message) ? "alert" : "status"}
+            >
               {message}
             </p>
           )}
         </>
       )}
-    </main>
+    </div>
   );
 }
 

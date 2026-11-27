@@ -32,7 +32,7 @@ export default async function CompetencyFrameworkPage() {
     .maybeSingle();
   if (!framework)
     return (
-      <main className="users-page">
+      <div className="users-page">
         <section className="event-manage-card">
           <h1>Kerangka Kompetensi DAD</h1>
           <p>
@@ -40,7 +40,7 @@ export default async function CompetencyFrameworkPage() {
             pemetaan materi, dan rubrik trial sudah dijalankan berurutan.
           </p>
         </section>
-      </main>
+      </div>
     );
   const { data: frameworkVersion } = await supabase
     .from("competency_framework_versions")
@@ -50,12 +50,12 @@ export default async function CompetencyFrameworkPage() {
     .maybeSingle();
   if (!frameworkVersion)
     return (
-      <main className="users-page">
+      <div className="users-page">
         <section className="event-manage-card">
           <h1>Kerangka Kompetensi DAD</h1>
           <p>Versi trial belum tersedia.</p>
         </section>
-      </main>
+      </div>
     );
 
   const [
@@ -200,7 +200,7 @@ export default async function CompetencyFrameworkPage() {
   );
 
   return (
-    <main className="users-page competency-framework-page">
+    <div className="users-page competency-framework-page">
       <header className="users-heading">
         <div>
           <p className="login-eyebrow">KERANGKA DAD</p>
@@ -258,6 +258,6 @@ export default async function CompetencyFrameworkPage() {
         </div>
         <RubricPreview items={items} />
       </section>
-    </main>
+    </div>
   );
 }

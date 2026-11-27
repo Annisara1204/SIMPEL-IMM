@@ -92,12 +92,6 @@ export function FrameworkRubricPicker({
             value={pair}
           />
         ))}
-        <button
-          className="rubric-activate framework-rubric-apply"
-          type="submit"
-        >
-          Terapkan pilihan Kerangka DAD
-        </button>
         <div className="framework-rubric-choice-list">
           {aspects.map((aspect) => (
             <fieldset className="framework-rubric-choice" key={aspect.id}>
@@ -140,6 +134,12 @@ export function FrameworkRubricPicker({
             </fieldset>
           ))}
         </div>
+        <button
+          className="rubric-activate framework-rubric-apply"
+          type="submit"
+        >
+          Terapkan pilihan Kerangka DAD
+        </button>
       </form>
     </details>
   );

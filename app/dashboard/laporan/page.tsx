@@ -34,10 +34,10 @@ export default async function ReportingPage({ searchParams }: Props) {
     !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   )
     return (
-      <main className="setup-message">
+      <div className="setup-message">
         <h1>Laporan belum dikonfigurasi</h1>
         <DataUnavailable />
-      </main>
+      </div>
     );
   const supabase = await createClient();
   const { data: claims } = await supabase.auth.getClaims();
@@ -95,10 +95,10 @@ export default async function ReportingPage({ searchParams }: Props) {
     null;
   if (!selectedEvent)
     return (
-      <main className="users-page">
+      <div className="users-page">
         <h1>Laporan dan Rapor</h1>
         <DataUnavailable />
-      </main>
+      </div>
     );
   const [moderator, { data: rows, error: reportError }] = await Promise.all([
     isEventModerator(supabase, selectedEvent.id),

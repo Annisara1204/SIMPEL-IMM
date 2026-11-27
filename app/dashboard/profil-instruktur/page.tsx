@@ -43,7 +43,7 @@ export default async function InstructorProfilesPage() {
   }));
 
   return (
-    <main className="users-page">
+    <div className="users-page">
       <div className="users-heading">
         <div>
           <p className="login-eyebrow">PROFIL INSTRUKTUR</p>
@@ -73,7 +73,7 @@ export default async function InstructorProfilesPage() {
                   {person.fullName.slice(0, 2).toUpperCase()}
                 </div>
               )}
-              <h3>{person.fullName}</h3>
+              <h2>{person.fullName}</h2>
             </article>
           ))}
         </div>
@@ -83,6 +83,6 @@ export default async function InstructorProfilesPage() {
         lahir, jenis kelamin, nomor handphone, dan alamat hanya terlihat oleh
         pemilik profil.
       </p>
-    </main>
+    </div>
   );
 }

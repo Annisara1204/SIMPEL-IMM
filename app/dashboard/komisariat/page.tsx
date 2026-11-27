@@ -25,13 +25,13 @@ export default async function CommissariatsPage({
     !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   )
     return (
-      <main className="setup-message">
+      <div className="setup-message">
         <h1>Supabase belum dikonfigurasi</h1>
         <p>Aplikasi belum siap digunakan. Hubungi Admin sistem.</p>
         <Link prefetch={false} href="/login">
           Kembali ke login
         </Link>
-      </main>
+      </div>
     );
   const supabase = await createClient();
   const { data: claims } = await supabase.auth.getClaims();
@@ -51,7 +51,7 @@ export default async function CommissariatsPage({
     searchParams,
   ]);
   return (
-    <main className="users-page">
+    <div className="users-page">
       <div className="users-heading">
         <div>
           <p className="login-eyebrow">PENGELOLAAN DATA</p>
@@ -149,6 +149,6 @@ export default async function CommissariatsPage({
         kemudian melalui halaman ini. Nama harus unik; perubahan nama tidak
         mengganti ID Komisariat.
       </p>
-    </main>
+    </div>
   );
 }

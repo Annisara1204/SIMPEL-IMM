@@ -31,13 +31,13 @@ export default async function ObservationsPage({
     !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   )
     return (
-      <main className="setup-message">
+      <div className="setup-message">
         <h1>Supabase belum dikonfigurasi</h1>
         <p>Aplikasi belum siap digunakan. Hubungi Admin sistem.</p>
         <Link prefetch={false} href="/login">
           Kembali ke login
         </Link>
-      </main>
+      </div>
     );
   const supabase = await createClient();
   const { data: claims } = await supabase.auth.getClaims();
@@ -245,7 +245,7 @@ export default async function ObservationsPage({
   )?.label;
 
   return (
-    <main className="users-page">
+    <div className="users-page">
       <div className="users-heading">
         <div>
           <p className="login-eyebrow">PENILAIAN OBSERVER</p>
@@ -803,6 +803,6 @@ export default async function ObservationsPage({
         kegiatan. RLS basis data memisahkan kepemilikan penilaian setiap
         observer.
       </p>
-    </main>
+    </div>
   );
 }

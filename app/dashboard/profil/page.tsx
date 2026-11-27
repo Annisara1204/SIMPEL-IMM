@@ -16,12 +16,12 @@ export default async function ProfilePage({
     !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   )
     return (
-      <main className="setup-message">
+      <div className="setup-message">
         <h1>Supabase belum dikonfigurasi</h1>
         <Link prefetch={false} href="/login">
           Kembali ke login
         </Link>
-      </main>
+      </div>
     );
   const supabase = await createClient();
   const { data: claimsData } = await supabase.auth.getClaims();
@@ -43,10 +43,10 @@ export default async function ProfilePage({
   ]);
   if (!profile)
     return (
-      <main className="setup-message">
+      <div className="setup-message">
         <h1>Profil belum tersedia</h1>
         <DataUnavailable />
-      </main>
+      </div>
     );
   const { data: photo } = personalProfile?.photo_path
     ? await supabase.storage
@@ -54,7 +54,7 @@ export default async function ProfilePage({
         .createSignedUrl(personalProfile.photo_path, 1800)
     : { data: null };
   return (
-    <main className="login-page embedded">
+    <div className="login-page embedded">
       <section className="login-card personal-profile-card">
         <p className="login-eyebrow">PROFIL AKUN</p>
         <h1>Profil saya</h1>
@@ -195,6 +195,6 @@ export default async function ProfilePage({
           <button type="submit">Simpan profil</button>
         </form>
       </section>
-    </main>
+    </div>
   );
 }

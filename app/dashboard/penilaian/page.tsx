@@ -1005,7 +1005,7 @@ export default async function AssessmentSettingsPage({
                             </p>
                             <form
                               action={copyRubricToMaterials}
-                              className="rubric-add-form"
+                              className="rubric-copy-form"
                             >
                               <input
                                 type="hidden"
@@ -1032,35 +1032,40 @@ export default async function AssessmentSettingsPage({
                                 name="typeId"
                                 value={selectedTypeId}
                               />
-                              <label>
-                                Versi sumber
-                                <select
-                                  name="sourceVersionId"
-                                  required
-                                  defaultValue=""
-                                >
-                                  <option value="" disabled>
-                                    Pilih versi
-                                  </option>
-                                  {[...eventVersions]
-                                    .filter(
-                                      (version) => version.status !== "draft",
-                                    )
-                                    .sort((a, b) => b.version - a.version)
-                                    .map((version) => (
-                                      <option
-                                        key={version.id}
-                                        value={version.id}
-                                      >
-                                        Versi {version.version} ·{" "}
-                                        {version.status === "active"
-                                          ? "RESMI"
-                                          : "Arsip"}
-                                      </option>
-                                    ))}
-                                </select>
-                              </label>
-                              <fieldset className="framework-rubric-choice-list">
+                              <div className="rubric-copy-controls">
+                                <label>
+                                  Versi sumber
+                                  <select
+                                    name="sourceVersionId"
+                                    required
+                                    defaultValue=""
+                                  >
+                                    <option value="" disabled>
+                                      Pilih versi
+                                    </option>
+                                    {[...eventVersions]
+                                      .filter(
+                                        (version) => version.status !== "draft",
+                                      )
+                                      .sort((a, b) => b.version - a.version)
+                                      .map((version) => (
+                                        <option
+                                          key={version.id}
+                                          value={version.id}
+                                        >
+                                          Versi {version.version} ·{" "}
+                                          {version.status === "active"
+                                            ? "RESMI"
+                                            : "Arsip"}
+                                        </option>
+                                      ))}
+                                  </select>
+                                </label>
+                                <button type="submit">
+                                  Salin ke materi terpilih
+                                </button>
+                              </div>
+                              <fieldset className="rubric-copy-list">
                                 <legend>Materi tujuan</legend>
                                 {eventMaterials
                                   .filter(
@@ -1069,22 +1074,16 @@ export default async function AssessmentSettingsPage({
                                       !material.archived_at,
                                   )
                                   .map((material) => (
-                                    <label
-                                      className="framework-rubric-choice"
-                                      key={material.id}
-                                    >
+                                    <label key={material.id}>
                                       <input
                                         type="checkbox"
                                         name="targetMaterialIds"
                                         value={material.id}
-                                      />{" "}
-                                      {material.name}
+                                      />
+                                      <span>{material.name}</span>
                                     </label>
                                   ))}
                               </fieldset>
-                              <button type="submit">
-                                Salin ke materi terpilih
-                              </button>
                             </form>
                           </details>
                         )}

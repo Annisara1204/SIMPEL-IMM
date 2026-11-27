@@ -4,6 +4,7 @@ import { uuidPattern } from "@/lib/validation";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { assertEventAssignment } from "@/lib/authorization";
 
 async function reviewerClient() {
   const supabase = await createClient();
@@ -19,14 +20,37 @@ async function reviewerClient() {
     throw new Error(
       "Akses hanya untuk Observer yang ditugaskan atau Admin Sistem.",
     );
-  return { supabase, userId };
+  return { supabase, userId, role: profile.role };
+}
+
+async function assertSubmissionAssignment(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+  role: string | null,
+  submissionId: string,
+) {
+  const { data: submission, error } = await supabase
+    .from("commissariat_submissions")
+    .select("event_id")
+    .eq("id", submissionId)
+    .maybeSingle();
+  if (error || !submission)
+    throw new Error("Pengajuan tidak ditemukan atau akses ditolak.");
+  await assertEventAssignment(
+    supabase,
+    userId,
+    role,
+    submission.event_id,
+    "meninjau pengajuan",
+  );
 }
 
 export async function startReview(formData: FormData) {
-  const { supabase } = await reviewerClient();
+  const { supabase, userId, role } = await reviewerClient();
   const submissionId = String(formData.get("submissionId") ?? "");
   if (!uuidPattern.test(submissionId))
     throw new Error("ID pengajuan tidak valid.");
+  await assertSubmissionAssignment(supabase, userId, role, submissionId);
   const { error } = await supabase.rpc("start_commissariat_review", {
     p_submission_id: submissionId,
   });
@@ -36,7 +60,7 @@ export async function startReview(formData: FormData) {
 }
 
 export async function saveAdministrativeDecision(formData: FormData) {
-  const { supabase, userId } = await reviewerClient();
+  const { supabase, userId, role } = await reviewerClient();
   const participantId = String(formData.get("participantId") ?? "");
   const status = String(formData.get("status") ?? "");
   const reason = String(formData.get("publicReason") ?? "").trim();
@@ -56,11 +80,18 @@ export async function saveAdministrativeDecision(formData: FormData) {
     throw new Error("Peserta tidak ditemukan atau akses ditolak.");
   const { data: submission } = await supabase
     .from("commissariat_submissions")
-    .select("id, status")
+    .select("id, status, event_id")
     .eq("id", participant.submission_id)
     .maybeSingle();
   if (!submission || submission.status !== "under_review")
     throw new Error("Pengajuan tidak sedang ditinjau.");
+  await assertEventAssignment(
+    supabase,
+    userId,
+    role,
+    submission.event_id,
+    "meninjau pengajuan",
+  );
   const { data: decision, error } = await supabase
     .from("commissariat_submission_decisions")
     .upsert(
@@ -108,10 +139,11 @@ export async function saveAdministrativeDecision(formData: FormData) {
 }
 
 export async function publishAdministrativeResults(formData: FormData) {
-  const { supabase } = await reviewerClient();
+  const { supabase, userId, role } = await reviewerClient();
   const submissionId = String(formData.get("submissionId") ?? "");
   if (!uuidPattern.test(submissionId))
     throw new Error("ID pengajuan tidak valid.");
+  await assertSubmissionAssignment(supabase, userId, role, submissionId);
   const { error } = await supabase.rpc("publish_administrative_selection", {
     p_submission_id: submissionId,
   });

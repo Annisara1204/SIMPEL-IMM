@@ -12,10 +12,7 @@ import { staffClient } from "./internal";
 import { runPenilaianAction } from "./form-error";
 
 async function assignObserverImpl(formData: FormData) {
-  const { supabase, userId } = await staffClient([
-    "admin_system",
-    "bidang_kader",
-  ]);
+  const { supabase, userId } = await staffClient(["admin_system"]);
   const eventId = String(formData.get("eventId") ?? "");
   const observerId = String(formData.get("observerId") ?? "");
   if (!uuidPattern.test(eventId) || !uuidPattern.test(observerId))
@@ -62,7 +59,7 @@ async function assignObserverImpl(formData: FormData) {
 }
 
 async function removeObserverAssignmentImpl(formData: FormData) {
-  const { supabase } = await staffClient(["admin_system", "bidang_kader"]);
+  const { supabase } = await staffClient(["admin_system"]);
   const assignmentId = String(formData.get("assignmentId") ?? "");
   if (!uuidPattern.test(assignmentId))
     throw new Error("Penugasan tidak valid.");

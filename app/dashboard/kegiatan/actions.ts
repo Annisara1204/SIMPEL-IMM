@@ -4,11 +4,10 @@ import { uuidPattern } from "@/lib/validation";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { assertEventAssignment } from "@/lib/authorization";
 
 const photoBucket = "participant-photos";
 const maxPhotoSize = 5 * 1024 * 1024;
-const canonicalUuidPattern =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 async function validatePhoto(file: FormDataEntryValue | null) {
   if (!(file instanceof File) || file.size < 1)
@@ -74,28 +73,6 @@ async function authorizedActor() {
   if (!profile || !["admin_system", "observer"].includes(profile.role ?? ""))
     throw new Error("Akses ditolak.");
   return { supabase, userId, role: profile.role };
-}
-
-async function assertEventAssignment(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  userId: string,
-  role: string | null,
-  eventId: string,
-  actionLabel: string,
-) {
-  if (!canonicalUuidPattern.test(eventId))
-    throw new Error("Kegiatan tidak valid.");
-  if (role === "admin_system") return;
-  const { data: assignment, error } = await supabase
-    .from("observer_assignments")
-    .select("id")
-    .eq("event_id", eventId)
-    .eq("observer_id", userId)
-    .maybeSingle();
-  if (error || !assignment)
-    throw new Error(
-      `Anda hanya dapat ${actionLabel} pada kegiatan yang ditugaskan.`,
-    );
 }
 
 async function assertEventActive(

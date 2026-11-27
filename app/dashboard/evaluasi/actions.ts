@@ -11,6 +11,7 @@ import {
 import { buildEvaluationPlan } from "@/lib/evaluation-planning";
 import { buildLowScoreRecommendations } from "@/lib/phase6-recommendations";
 import { asRows, relatedRows } from "@/lib/relations";
+import { requireModerator } from "@/lib/authorization";
 import type {
   AssessmentSummaryRow,
   RubricVersionJoined,
@@ -46,31 +47,6 @@ function evaluationErrorUrl(message: string, formData: FormData): string {
   }
   params.set("error", message.slice(0, 300));
   return `/dashboard/evaluasi?${params.toString()}`;
-}
-
-async function requireModerator(eventId: string) {
-  const supabase = await createClient();
-  const { data: claims } = await supabase.auth.getClaims();
-  const userId = claims?.claims?.sub;
-  if (!userId) redirect("/login");
-  const { data: allowed, error } = await supabase.rpc(
-    "is_assessment_moderator",
-    { target_event_id: eventId },
-  );
-  if (error || allowed !== true)
-    throw new Error(
-      "Hanya Admin Sistem atau koordinator instruktur kegiatan yang dapat memoderasi hasil.",
-    );
-  const { data: event, error: eventError } = await supabase
-    .from("events")
-    .select("archived_at")
-    .eq("id", eventId)
-    .maybeSingle();
-  if (eventError || !event)
-    throw new Error("Kegiatan tidak ditemukan atau akses ditolak.");
-  if (event.archived_at)
-    throw new Error("Kegiatan sudah diarsipkan. Pulihkan terlebih dahulu.");
-  return { supabase, userId };
 }
 
 /**

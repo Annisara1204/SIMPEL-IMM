@@ -459,68 +459,77 @@ export default async function AssessmentSettingsPage({
                         : "Terencana"}
                   </span>
                 </div>
-                <div className="assignment-box">
-                  <h3>Observer yang ditugaskan</h3>
-                  {eventAssignments.map((assignment) => (
-                    <div className="assignment-row" key={assignment.id}>
-                      <span>
-                        {observers?.find(
-                          (observer) => observer.id === assignment.observer_id,
-                        )?.display_name || "Akun Observer"}
-                      </span>
-                      <form action={removeObserverAssignment}>
-                        <input
-                          type="hidden"
-                          name="assignmentId"
-                          value={assignment.id}
-                        />
-                        <button
-                          type="submit"
-                          className="remove-button"
-                          aria-label={`Cabut akses ${
-                            observers?.find(
-                              (observer) =>
-                                observer.id === assignment.observer_id,
-                            )?.display_name ?? "Observer"
-                          }`}
-                        >
-                          Cabut akses
-                        </button>
-                      </form>
-                    </div>
-                  ))}
-                  {!eventAssignments.length && (
-                    <p className="assessment-assignment-empty">
-                      Belum ada Observer yang mendapat akses ke penilaian
-                      kegiatan ini.
-                    </p>
-                  )}
-                  <form action={assignObserver} className="commission-add-form">
-                    <input type="hidden" name="eventId" value={event.id} />
-                    <label>
-                      Tugaskan Observer
-                      <select required name="observerId" defaultValue="">
-                        <option value="" disabled>
-                          {availableObservers.length
-                            ? "Pilih akun Observer"
-                            : "Semua Observer sudah ditugaskan"}
-                        </option>
-                        {availableObservers.map((observer) => (
-                          <option key={observer.id} value={observer.id}>
-                            {observer.display_name || "Observer tanpa nama"}
+                {canManageRubric && (
+                  <div className="assignment-box">
+                    <h3>Observer yang ditugaskan</h3>
+                    {eventAssignments.map((assignment) => (
+                      <div className="assignment-row" key={assignment.id}>
+                        <span>
+                          {observers?.find(
+                            (observer) =>
+                              observer.id === assignment.observer_id,
+                          )?.display_name || "Akun Observer"}
+                        </span>
+                        <form action={removeObserverAssignment}>
+                          <input
+                            type="hidden"
+                            name="assignmentId"
+                            value={assignment.id}
+                          />
+                          <button
+                            type="submit"
+                            className="remove-button"
+                            aria-label={`Cabut akses ${
+                              observers?.find(
+                                (observer) =>
+                                  observer.id === assignment.observer_id,
+                              )?.display_name ?? "Observer"
+                            }`}
+                          >
+                            Cabut akses
+                          </button>
+                        </form>
+                      </div>
+                    ))}
+                    {!eventAssignments.length && (
+                      <p className="assessment-assignment-empty">
+                        Belum ada Observer yang mendapat akses ke penilaian
+                        kegiatan ini.
+                      </p>
+                    )}
+                    <form
+                      action={assignObserver}
+                      className="commission-add-form"
+                    >
+                      <input type="hidden" name="eventId" value={event.id} />
+                      <label>
+                        Tugaskan Observer
+                        <select required name="observerId" defaultValue="">
+                          <option value="" disabled>
+                            {availableObservers.length
+                              ? "Pilih akun Observer"
+                              : "Semua Observer sudah ditugaskan"}
                           </option>
-                        ))}
-                      </select>
-                    </label>
-                    <button type="submit" disabled={!availableObservers.length}>
-                      Tugaskan
-                    </button>
-                  </form>
-                  <p className="assessment-assignment-hint">
-                    Observer yang ditugaskan dapat membuka kegiatan ini melalui
-                    menu Observasi.
-                  </p>
-                </div>
+                          {availableObservers.map((observer) => (
+                            <option key={observer.id} value={observer.id}>
+                              {observer.display_name || "Observer tanpa nama"}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <button
+                        type="submit"
+                        disabled={!availableObservers.length}
+                      >
+                        Tugaskan
+                      </button>
+                    </form>
+                    <p className="assessment-assignment-hint">
+                      Observer yang ditugaskan dapat membuka kegiatan ini
+                      melalui menu Observasi.
+                    </p>
+                  </div>
+                )}
                 {canManageRubric && (
                   <div className="assignment-box">
                     <h3>Penugasan Instruktur per kegiatan</h3>

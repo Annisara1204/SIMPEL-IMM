@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { asRow } from "@/lib/relations";
+import { requireModerator } from "@/lib/authorization";
 import type { ReportSnapshotData } from "@/lib/supabase-rows";
 
 async function currentUser() {
@@ -49,6 +50,7 @@ export async function publishReport(formData: FormData) {
     .maybeSingle();
   if (!snapshot) throw new Error("Snapshot rapor tidak ditemukan.");
   await assertEventActive(supabase, snapshot.event_id);
+  await requireModerator(snapshot.event_id);
   const { error } = await supabase.rpc("publish_assessment_report", {
     target_snapshot_id: snapshotId,
   });
@@ -134,8 +136,8 @@ export async function auditReportExport(input: {
 
 /**
  * Snapshot penuh untuk PDF/ZIP. Halaman Laporan mengirim hanya DTO ringkas;
- * fungsi dipanggil saat ekspor. RLS tabel assessment_snapshots sendiri yang
- * membatasi hasil ke Admin Sistem dan koordinator kegiatan yang ditugaskan.
+ * fungsi dipanggil saat ekspor. Akses diperiksa di aplikasi lewat
+ * is_assessment_moderator per kegiatan, selain RLS tabel assessment_snapshots.
  */
 export async function loadReportSnapshots(
   snapshotIds: string[],
@@ -148,6 +150,14 @@ export async function loadReportSnapshots(
     .select("id,event_id,snapshot_data")
     .in("id", ids);
   const eventIds = [...new Set((data ?? []).map((row) => row.event_id))];
+  for (const eventId of eventIds) {
+    const { data: allowed, error } = await supabase.rpc(
+      "is_assessment_moderator",
+      { target_event_id: eventId },
+    );
+    if (error || allowed !== true)
+      throw new Error("Rapor kegiatan ini tidak dapat dibuka oleh akun Anda.");
+  }
   const { data: events } = eventIds.length
     ? await supabase.from("events").select("id,archived_at").in("id", eventIds)
     : { data: [] };

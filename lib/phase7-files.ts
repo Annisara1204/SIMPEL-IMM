@@ -123,7 +123,6 @@ const category = (value: number | null) =>
     : (categorizeScore(value)?.label ?? "Belum tersedia");
 
 type Cell = { x: number; lines: string[] };
-type Bar = { x: number; width: number; value: number | null };
 type DrawRow =
   | { kind: "title"; text: string; keepWithNext?: boolean }
   | { kind: "subtitle"; text: string; keepWithNext?: boolean }
@@ -131,7 +130,7 @@ type DrawRow =
   | { kind: "text"; text: string; size?: number; color?: string }
   | { kind: "kv"; label: string; value: string }
   | { kind: "tableHead"; cols: Cell[]; keepWithNext?: boolean }
-  | { kind: "tableRow"; cols: Cell[]; bar?: Bar }
+  | { kind: "tableRow"; cols: Cell[] }
   | {
       kind: "aspectChart";
       items: { label: string; value: number | null }[];
@@ -158,7 +157,7 @@ function rowHeight(row: DrawRow): number {
     case "tableRow":
       return Math.max(...row.cols.map((col) => col.lines.length)) * 12 + 10;
     case "aspectChart":
-      return 40 + row.items.length * 18;
+      return 150;
     case "stats":
       return 38;
     case "space":
@@ -271,9 +270,7 @@ function reportRows(report: ReportFileData): DrawRow[] {
     kind: "tableHead",
     cols: [
       { x: 40, lines: ["ASPEK"] },
-      { x: 260, lines: ["BOBOT"] },
-      { x: 310, lines: ["HASIL SKOR (0-100)"] },
-      { x: 470, lines: ["GAMBAR"] },
+      { x: 430, lines: ["HASIL SKOR (0-100)"] },
     ],
     keepWithNext: true,
   });
@@ -292,26 +289,14 @@ function reportRows(report: ReportFileData): DrawRow[] {
     rows.push({
       kind: "tableRow",
       cols: [
-        cell(aspect.aspectName ?? aspect.aspect_name ?? "Aspek", 30),
+        cell(aspect.aspectName ?? aspect.aspect_name ?? "Aspek", 60),
         {
-          x: 260,
-          lines: [
-            aspect.weight == null
-              ? "Belum tercatat"
-              : `${Number(aspect.weight)}%`,
-          ],
-        },
-        {
-          x: 310,
+          x: 430,
           lines: [
             score100 === null ? "Belum tersedia" : `${score100.toFixed(1)}/100`,
           ],
         },
       ],
-      bar:
-        score === null
-          ? undefined
-          : { x: 470, width: 80, value: Math.max(0, Math.min(5, score)) },
     });
   }
   rows.push({ kind: "space", height: 6 });
@@ -497,14 +482,6 @@ function drawRow(stream: string[], row: DrawRow, y: number) {
         drawText(stream, line, col.x, y - index * 12, 8.5, INK, false),
       ),
     );
-    if (row.bar && row.bar.value !== null) {
-      const width = Math.max(
-        0,
-        Math.min(row.bar.width, (row.bar.value / 5) * row.bar.width),
-      );
-      stream.push(`${TRACK} rg ${row.bar.x} ${y - 8} ${row.bar.width} 7 re f`);
-      stream.push(`${MAROON} rg ${row.bar.x} ${y - 8} ${width} 7 re f`);
-    }
     return;
   }
   if (row.kind === "stats") {
@@ -517,30 +494,51 @@ function drawRow(stream: string[], row: DrawRow, y: number) {
     return;
   }
   if (row.kind === "aspectChart") {
-    const barX = 170;
-    const barW = 260;
-    const bottom = y - 14 - row.items.length * 18;
-    for (const value of [0, 50, 100]) {
-      const x = barX + (value / 100) * barW;
+    const axisX = 90;
+    const axisRight = 520;
+    const baseline = y - 110;
+    const plotHeight = 90;
+    stream.push(
+      `${MUTED} RG 0.6 w ${axisX} ${baseline} m ${axisX} ${baseline + plotHeight} l S`,
+    );
+    stream.push(
+      `${MUTED} RG 0.6 w ${axisX} ${baseline} m ${axisRight} ${baseline} l S`,
+    );
+    for (const tick of [0, 20, 40, 60, 80, 100]) {
+      const tickY = baseline + (tick / 100) * plotHeight;
       stream.push(
-        `${TRACK} RG 0.4 w ${x.toFixed(1)} ${y - 14} m ${x.toFixed(1)} ${bottom} l S`,
+        `${TRACK} RG 0.4 w ${axisX} ${tickY.toFixed(1)} m ${axisRight} ${tickY.toFixed(1)} l S`,
       );
-      drawText(stream, String(value), x - 5, bottom - 12, 7, MUTED, false);
+      drawText(stream, String(tick), 50, tickY - 3, 7, MUTED, false);
     }
+    const slot = (axisRight - axisX) / row.items.length;
+    const barWidth = Math.min(48, slot * 0.5);
     row.items.forEach((item, index) => {
-      const yy = y - 14 - index * 18;
-      drawText(stream, ascii(item.label).slice(0, 24), 40, yy, 8, INK, false);
-      stream.push(`${TRACK} rg ${barX} ${yy - 6} ${barW} 7 re f`);
+      const center = axisX + slot * (index + 0.5);
+      const barX = center - barWidth / 2;
       const value =
         item.value === null ? 0 : Math.max(0, Math.min(100, item.value));
       stream.push(
-        `${MAROON} rg ${barX} ${yy - 6} ${(value / 100) * barW} 7 re f`,
+        `${TRACK} rg ${barX.toFixed(1)} ${baseline} ${barWidth.toFixed(1)} ${plotHeight} re f`,
+      );
+      if (item.value !== null)
+        stream.push(
+          `${MAROON} rg ${barX.toFixed(1)} ${baseline} ${barWidth.toFixed(1)} ${((value / 100) * plotHeight).toFixed(1)} re f`,
+        );
+      drawText(
+        stream,
+        `Materi ${index + 1}`,
+        center - 18,
+        baseline - 16,
+        8,
+        INK,
+        false,
       );
       drawText(
         stream,
         item.value === null ? "Belum tersedia" : `${value.toFixed(0)}/100`,
-        440,
-        yy,
+        center - 16,
+        baseline + (value / 100) * plotHeight + 5,
         8,
         INK,
         false,

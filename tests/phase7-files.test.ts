@@ -78,6 +78,8 @@ test("PDF memakai urutan bagian layout baru dan tidak mengarang status", async (
   for (const section of sections)
     assert.ok(content.includes(section), `Bagian tidak ditemukan: ${section}`);
   assert.ok(content.includes("Belum ada rekomendasi yang disahkan."));
+  assert.ok(!content.includes("BOBOT"));
+  assert.ok(!content.includes("GAMBAR"));
   assert.ok(!content.includes("FINALIZED"));
   assert.ok(!content.includes("v1"));
   assert.ok(
@@ -145,10 +147,13 @@ test("PDF menampilkan grafik rata-rata nilai per materi", async () => {
   for (const section of [
     "CAKUPAN PENILAIAN",
     "GRAFIK RATA-RATA NILAI PER MATERI",
-    "AIK",
-    "Character Building",
+    "Materi 1",
+    "Materi 2",
+    "70/100",
+    "82/100",
   ])
     assert.ok(content.includes(section), `Bagian tidak ditemukan: ${section}`);
+  assert.ok(content.includes("90 re f"), "Batang vertikal tidak digambar");
 });
 
 test("PDF meringkas rekomendasi otomatis dan menghapus duplikatnya", async () => {

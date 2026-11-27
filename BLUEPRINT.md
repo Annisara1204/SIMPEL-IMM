@@ -15,6 +15,7 @@ Pengguna pemula; gunakan bahasa Indonesia sederhana dan jelaskan istilah teknis 
 - Fokus awal: pengujian dengan biaya awal Rp0; belum ada infrastruktur khusus yang diwajibkan.
 - Rekomendasi teknologi: Next.js + Supabase/PostgreSQL. **Usang (rancangan awal):** hosting Vercel dan rencana membeli domain; produksi kini self-hosted pada IP tanpa TLS. Paket gratis hanya untuk prototipe/pengujian; batas, jeda layanan, kebijakan pemakaian, dan backup tetap harus ditinjau sebelum penggunaan resmi.
 - **Keputusan akhir untuk sementara (24 Nov 2026):** produksi memakai `http://43.173.33.195:8080/` lewat HTTP polos, tanpa domain dan TLS. Port 8080 dipertahankan. Ini keputusan final untuk sementara, bukan rencana pindah ke domain/Vercel; rincian di `docs/STATUS-PRODUKSI-SATU-VERSI.md`.
+- **Keputusan 28 Nov 2026 (pemilik, eksplisit):** OpenCode Telegram Bot dipasang di server produksi sebagai asisten debugging. OpenCode V2 dipasang global dan dapat dipakai untuk project IMM maupun WMS; bot berjalan sebagai user `ubuntu` dengan akses penuh. Pemilik menerima bahwa `AGENTS.md` dan `.gitignore` tidak mencegah agent membaca `.env.production`; kredensial bot hanya tersimpan di konfigurasi server berizin `600`. Rincian instalasi dan verifikasi ada di `docs/STATUS-PRODUKSI-SATU-VERSI.md` dan `HANDOVER.md`.
 - Tidak memakai data pribadi peserta sebenarnya saat pengembangan awal.
 
 ### Kegiatan dan penilaian
@@ -40,6 +41,7 @@ Pengguna pemula; gunakan bahasa Indonesia sederhana dan jelaskan istilah teknis 
 - Kerangka awal DAD akan diuji dengan enam aspek berbobot dan 27 indikator dari prompt 11 November 2026. Ini rancangan trial, bukan standar resmi IMM; aspek, indikator, bobot, rubrik, dan pemetaan materi perlu divalidasi Koordinator Instruktur terhadap silabus.
 - Kerangka trial mula-mula menjadi template tetap yang disimpan berversi di basis data, lalu disalin ke rubrik per kegiatan/materi. Fase berikutnya boleh menyediakan opsi custom aspek, indikator, bobot, rubrik, dan pemetaan materi; perubahan memakai versi baru agar hasil historis tetap.
 - **Keputusan 27 November 2026:** rubrik dapat disalin dari satu versi resmi/arsip ke banyak materi dalam satu kegiatan. Aksi membuat draf versi berikutnya di tiap materi tujuan tanpa mengubah versi sumber atau hasil lama. Hanya Admin Sistem; materi terarsip dan tujuan yang masih memiliki draf ditolak. Draf hasil salinan tetap diaktifkan satu per satu.
+- **Keputusan 28 November 2026:** judul versi rubrik memakai status (`Draf`/`Aktif`/`Diarsipkan`), bukan penanda resmi/percobaan. Penanda resmi atau percobaan menjadi badge atau teks tambahan, agar versi draf tidak tampak sudah berlaku.
 - Phase 2 menambahkan master `competency_frameworks`, `competency_framework_versions`, `competency_aspects`, `competency_indicators`, dan `competency_indicator_aspects`; rubrik per kegiatan tetap menjadi snapshot dan dapat merujuk ke master asal.
 - Catatan tetap ditulis per Observer dan tidak digabung otomatis. Penggabungan dengan atribusi nama penulis dapat dipertimbangkan setelah ada alur pengiriman/submission yang disepakati; review/finalisasi aplikasi belum termasuk trial.
 - Skor Observer berupa bilangan bulat saja, tanpa pecahan.
@@ -71,6 +73,7 @@ Pengguna pemula; gunakan bahasa Indonesia sederhana dan jelaskan istilah teknis 
 - Dashboard/report resmi memakai snapshot Fase 6; Draft/Submitted tidak menjadi hasil final. Dashboard menampilkan status provisional/finalized/published, progres submit penilai, distribusi keputusan, dan agregat aspek.
 - **Keputusan 26 November 2026:** tabel ringkas "Peta kompetensi peserta" menampilkan satu baris per peserta. Nilai akhir peserta adalah rata-rata sederhana dari semua snapshot finalnya, dan keputusan diambil dari snapshot terbaru. Aspek disatukan berdasarkan nama, bukan ID unik versi rubrik. Snapshot per jenis dan isi rapor PDF tidak diubah.
 - **Keputusan 26 November 2026:** halaman Evaluasi Kolektif menampilkan "Peta kompetensi otomatis" untuk semua peserta tanpa finalisasi manual. Peserta dengan snapshot final memakai nilai rapor; peserta lain memakai agregasi penilaian terkini berstatus sementara. Materi terarsipkan tidak ikut agregasi sementara karena RPC hanya membaca rubrik aktif. Angka sementara bukan hasil resmi dan tidak mengubah snapshot.
+- **Keputusan 28 November 2026:** nilai sementara dihitung per versi rubrik lalu digabungkan dengan aturan eksplisit, bukan normalisasi bobot tersembunyi. Status tetap Sementara; snapshot dan isi rapor tidak diubah.
 - **Gate publikasi keras (24 Nov 2026):** snapshot `provisional` tidak boleh diterbitkan; publikasi hanya untuk snapshot yang sudah Finalized. **Penjelasan (25 Nov 2026):** guard lunak berlaku untuk **simpan draf** evaluasi, coverage dan moderasi yang belum selesai menjadi peringatan serta status sementara. **Finalisasi tetap keras**: coverage dan moderasi harus selesai sebelum snapshot dibuat. Lihat `docs/STATUS-PRODUKSI-SATU-VERSI.md` §3.
 - Rapor peserta hanya tersedia setelah snapshot final diterbitkan secara eksplisit. Bila akses Peserta dibuka kelak, akun role Peserta ditautkan Admin Sistem ke satu record peserta; akses rapor diperiksa lagi di basis data dan RPC hanya mengembalikan rapor Published miliknya. Untuk sementara akun dan rapor Peserta **tidak dibagikan** karena produksi memakai IP tanpa domain/TLS.
 - Tema dan penyelenggara kegiatan bersifat opsional sampai datanya diisi. Nama pengesah diambil dari akun yang menerbitkan rapor bila datanya tersedia; PDF tidak mengarang identitas.
@@ -154,7 +157,7 @@ Admin Sistem, Bidang Kader, Observer, Instruktur tetap, dan Komisariat memakai l
 ### Pendaftaran akun Instruktur
 
 - Ada dua jenis akun Instruktur: **permanen** untuk instruktur tetap dan **sementara** untuk instruktur perbantuan.
-- Akun permanen mendaftar sendiri dengan email dan kata sandi.
+- **Keputusan 28 November 2026:** akun permanen tidak mendaftar sendiri. Halaman `/daftar` diubah menjadi formulir permintaan akun yang diproses Admin Sistem, dengan `DISABLE_SIGNUP=true` tetap berlaku. **Usang:** akun permanen mendaftar sendiri dengan email dan kata sandi.
 - Akun sementara dibuat secara manual oleh Superadmin menggunakan username dan kata sandi.
 - Kedua jenis akun dapat mengedit profil miliknya sendiri.
 - Profil berisi nama lengkap, tempat lahir, tanggal lahir, jenis kelamin, nomor handphone, dan alamat domisili sebagai kolom wajib; foto terbaru opsional.

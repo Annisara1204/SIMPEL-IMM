@@ -80,7 +80,7 @@ Dry-run membungkus seluruh simulasi dalam transaksi yang di-`ROLLBACK`. Bukti ya
 
 - `count(*)` sebelum = sesudah simulasi untuk `assessment_snapshots`, `assessment_report_publications`, `assessment_report_publication_audit`, `assessment_export_audit`, `collective_evaluations`, `participant_access`, dan `participants`.
 - Baris `aman = true` untuk setiap pasangan jumlah di atas.
-- Sidik PDF identik: `sha256sum` setiap PDF hasil unduhan sama dengan `docs/baseline-pdf-sha256.csv`. Di Windows: `Get-FileHash .\<file>.pdf -Algorithm SHA256`. Simpan outputnya berdampingan dengan berkas dry-run. Hash `snapshot_data` tidak dihitung ulang. Sejak 27 November 2026 ada dua baris untuk snapshot `39d48a66-…` revision 1: baris lama (`35281c2d…`) untuk PDF immutable hasil generator lama, dan baris baru (`24074c18…`, commit `03db8dd`) untuk generator layout v2. Cocokkan PDF restore dengan baris sesuai versi generatornya; jangan menimpa baris lama.
+- Sidik PDF identik: `sha256sum` setiap PDF hasil unduhan sama dengan `docs/baseline-pdf-sha256.csv`. Di Windows: `Get-FileHash .\<file>.pdf -Algorithm SHA256`. Simpan outputnya berdampingan dengan berkas dry-run. Hash `snapshot_data` tidak dihitung ulang. Sejak 27 November 2026 ada tiga baris untuk snapshot `39d48a66-…` revision 1: `35281c2d…` untuk PDF immutable hasil generator lama, `24074c18…` (commit `03db8dd`) untuk layout v2, dan `25e4cb95…` (commit `ecf842a`) untuk generator dengan grafik dan ringkasan cakupan. Cocokkan PDF restore dengan baris sesuai versi generatornya; jangan menimpa baris lama.
 - Daftar peserta yang diskip dan yang dihapus (jumlah, bukan nama, bila dibagikan).
 
 Bila ada satu saja angka berubah atau sidik PDF beda, gate gagal. Jangan lanjut ke apply.
@@ -118,7 +118,7 @@ Restore dinyatakan berhasil hanya bila semua berikut terpenuhi dan exit code 0:
 4. `auth.users` dan `auth.identities` ada dan jumlahnya sesuai sumber.
 5. Hash `.env.production` hasil restore sama dengan hash sebelum backup.
 6. `count(*)` per tabel hasil restore sama dengan sumber, termasuk tabel dikecualikan di bagian 4.
-7. Sidik PDF hasil restore sama dengan baris yang sesuai di `docs/baseline-pdf-sha256.csv` (generator lama memakai `35281c2d…`, generator layout v2 memakai `24074c18…`).
+7. Sidik PDF hasil restore sama dengan baris yang sesuai di `docs/baseline-pdf-sha256.csv` (`35281c2d…`, `24074c18…`, atau `25e4cb95…`).
 
 Uji restore wajib sebelum gate Fase 5 butir 4. Bukti bersifat tertulis bertanggal; tidak memakai nama penandatangan.
 

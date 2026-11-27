@@ -7,6 +7,12 @@
 
 import { type Relation } from "./relations";
 
+export {
+  isAssessmentSummaryRow,
+  isEventReportRow,
+  isNoteRecord,
+} from "./row-guards";
+
 // ---------- Phase 6: RPC get_event_assessment_summary ----------
 export type AssessmentSummaryRow = {
   participant_id: string;

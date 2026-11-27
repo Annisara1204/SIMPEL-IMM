@@ -14,6 +14,7 @@ import { buildLowScoreRecommendations } from "@/lib/phase6-recommendations";
 import { asRows, relatedRows } from "@/lib/relations";
 import { requireModerator } from "@/lib/authorization";
 import { validateDecisionRationale } from "@/lib/finalize-validation";
+import { isAssessmentSummaryRow } from "@/lib/supabase-rows";
 import type {
   AssessmentSummaryRow,
   RubricVersionJoined,
@@ -448,7 +449,10 @@ async function generateAutomaticRecommendationsImpl(formData: FormData) {
             indicator.competency_indicator_id ?? indicator.id,
             indicator.name,
           );
-  const summary = (summaryRows ?? []) as AssessmentSummaryRow[];
+  const summary = asRows<AssessmentSummaryRow>(
+    summaryRows,
+    isAssessmentSummaryRow,
+  );
   const lowIndicators = scopedSummaryRows(
     summary,
     rubricVersionId,
@@ -646,7 +650,10 @@ async function runFinalize(
     return failed(
       "Rekap skor belum tersedia. Jalankan seluruh migrasi basis data terlebih dahulu.",
     );
-  const summaryRowsTyped = (summaryRows ?? []) as AssessmentSummaryRow[];
+  const summaryRowsTyped = asRows<AssessmentSummaryRow>(
+    summaryRows,
+    isAssessmentSummaryRow,
+  );
   const rows = scopedSummaryRows(
     summaryRowsTyped,
     rubricVersionId,
@@ -923,7 +930,9 @@ async function finalizeAllEvaluationsImpl(formData: FormData) {
       participantId: evaluation.participant_id as string,
       rubricVersionId: evaluation.rubric_version_id as string,
       evidenceReferences: Array.isArray(evaluation.evidence_references)
-        ? (evaluation.evidence_references as unknown[]).map(String)
+        ? evaluation.evidence_references.filter(
+            (item): item is string => typeof item === "string",
+          )
         : [],
       strengths: String(evaluation.strengths ?? ""),
       developmentAreas: String(evaluation.development_areas ?? ""),

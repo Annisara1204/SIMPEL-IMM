@@ -9,6 +9,7 @@ import { buildEvaluationPlan } from "@/lib/evaluation-planning";
 import { asRows, firstRelated, relatedRows } from "@/lib/relations";
 import { stageLabel } from "@/lib/stage-labels";
 import { isEventModerator } from "@/lib/moderation-access";
+import { isAssessmentSummaryRow } from "@/lib/supabase-rows";
 import type {
   AssessmentSummaryRow,
   ReportSnapshotData,
@@ -169,7 +170,10 @@ export default async function CollectiveEvaluationPage({
           id: person.id,
           display_name: person.display_name,
         })),
-        summaryRows: (summaryRows ?? []) as AssessmentSummaryRow[],
+        summaryRows: asRows<AssessmentSummaryRow>(
+          summaryRows,
+          isAssessmentSummaryRow,
+        ),
         snapshotRows,
         minimumCoverage: Number(policy?.minimum_coverage ?? 80),
       })
@@ -218,7 +222,10 @@ export default async function CollectiveEvaluationPage({
             name: firstRelated(version.rubric_materials)?.name ?? "Materi",
             version: Number(version.version) || 0,
           })),
-          summaryRows: (summaryRows ?? []) as AssessmentSummaryRow[],
+          summaryRows: asRows<AssessmentSummaryRow>(
+            summaryRows,
+            isAssessmentSummaryRow,
+          ),
           snapshots: (eventSnapshots ?? []) as TrainingRecapSnapshot[],
           minimumCoverage: Number(policy?.minimum_coverage ?? 80),
         })
@@ -298,8 +305,9 @@ export default async function CollectiveEvaluationPage({
     );
   }
 
-  const rowsForParticipant = (
-    (summaryRows ?? []) as AssessmentSummaryRow[]
+  const rowsForParticipant = asRows<AssessmentSummaryRow>(
+    summaryRows,
+    isAssessmentSummaryRow,
   ).filter((row) => row.participant_id === participantId);
   const scopedRows = selectedVersionId
     ? rowsForParticipant.filter(

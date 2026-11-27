@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { firstRelated } from "@/lib/relations";
+import { asRows, firstRelated } from "@/lib/relations";
 import { AssessmentRatingCell } from "./assessment-rating-cell";
 import { ObserverNotes, type NoteRecord } from "./observer-notes";
+import { isNoteRecord } from "@/lib/supabase-rows";
 import { AssessmentRealtime } from "./assessment-realtime";
 import { SubmissionControls } from "./submission-controls";
 import { stageOrder } from "@/lib/stage-labels";
@@ -759,12 +760,13 @@ export default async function ObservationsPage({
                             participantId={participant.id}
                             rubricVersionId={activeVersion.id}
                             currentUserId={userId}
-                            notes={
+                            notes={asRows<NoteRecord>(
                               (observerNotes ?? []).filter(
                                 (note) =>
                                   note.participant_id === participant.id,
-                              ) as NoteRecord[]
-                            }
+                              ),
+                              isNoteRecord,
+                            )}
                             locked={
                               profile.role === "admin_system" ||
                               status !== "draft"

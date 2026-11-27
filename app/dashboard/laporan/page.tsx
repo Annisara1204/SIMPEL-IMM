@@ -5,6 +5,7 @@ import { assignParticipantAccount, publishReport } from "./actions";
 import { asRow, asRows, firstRelated, relatedRows } from "@/lib/relations";
 import { stageLabel } from "@/lib/stage-labels";
 import { isEventModerator } from "@/lib/moderation-access";
+import { isEventReportRow } from "@/lib/supabase-rows";
 import type {
   AssessmentProgressRow,
   CompetencyFrameworkVersionJoined,
@@ -108,10 +109,12 @@ export default async function ReportingPage({ searchParams }: Props) {
   ]);
   const canManage = role === "admin_system" || moderator === true;
   if (role === "instruktur" && !canManage) redirect("/dashboard");
-  const reportRows = ((rows ?? []) as EventReportRow[]).map((row) => ({
-    ...row,
-    snapshot_data: compactReportSnapshot(row.snapshot_data),
-  }));
+  const reportRows = asRows<EventReportRow>(rows, isEventReportRow).map(
+    (row) => ({
+      ...row,
+      snapshot_data: compactReportSnapshot(row.snapshot_data),
+    }),
+  );
   const rubricVersionIds = reportRows
     .flatMap((row) => row.rubric_version_ids ?? [])
     .filter((id) => typeof id === "string");

@@ -10,7 +10,8 @@ Dokumen ini mencatat bukti per paket kerja saat eksekusi. Status rencana: `RENCA
 | 3 | Selesai | `tests/autosave-policy.test.ts` lolos; QA browser DEV Observer: Ubah skor → "Tersimpan · 06.32.27", tidak ada tombol "Coba lagi"; nilai dikembalikan ke "Belum dinilai"; `npm run check` dan `npm run build` exit 0 | |
 | 4 | Selesai | `tests/action-error.test.ts` lolos; QA browser DEV: duplikat nama Komisariat menghasilkan `?error=...` dan banner inline, bukan error boundary; `npm run check` dan `npm run build` exit 0 | |
 | 5 | Selesai | `tests/finalize-validation.test.ts` dan `finalize_approval_order.sql` lolos; QA browser DEV: halaman Evaluasi dengan tombol satu klik merender tanpa error boundary; `npm run check` dan `npm run build` exit 0 | |
-| 6-15 | Belum | | |
+| 6 | Selesai | `tests/report-snapshot-dto.test.ts` dan `tests/supabase-rows.test.ts` lolos; QA browser DEV: halaman Laporan dua kegiatan merender tanpa error boundary; `npm run check` (19 tes) dan `npm run build` exit 0 | |
+| 7-15 | Belum | | |
 
 ## Catatan Paket 1
 
@@ -55,3 +56,10 @@ Dokumen ini mencatat bukti per paket kerja saat eksekusi. Status rencana: `RENCA
 - ID snapshot diambil langsung dari `supabase.rpc`, bukan query terpisah setelah RPC.
 - Gate approve tidak ditambahkan ke `publish_assessment_report` agar tujuh snapshot lama tanpa rekomendasi tetap bisa diterbitkan. Kontrak ini dijaga oleh `supabase/tests/finalize_approval_order.sql`.
 - QA browser DEV memastikan halaman Evaluasi dengan tombol "Setujui, finalisasi, terbitkan, dan unduh rapor" merender normal untuk evaluasi draft. Klik finalisasi penuh tidak dijalankan agar tidak mengubah data uji.
+
+## Catatan Paket 6
+
+- DTO ringkas kini membawa `minimum`, `maximum`, `range`, dan `pending`, sehingga kolom "Rentang" tidak lagi selalu "—". Penguji unit membuktikan keempat field ikut.
+- Pemeriksa baris RPC dipindah ke `lib/row-guards.ts` agar bisa diuji dengan `node --test`; `lib/supabase-rows.ts` mengekspornya kembali.
+- Cast langsung hasil RPC diganti `asRows` dengan guard di Evaluasi, Laporan, dan Observasi. Satu batas `as unknown as` di `lib/relations.ts:43` tetap dipertahankan.
+- QA browser DEV: halaman Laporan untuk dua kegiatan merender normal. Tidak ada baris "Indikator yang perlu perhatian" pada data lokal, jadi tampilan angka Rentang belum terbukti di browser; penguji unit menjadi bukti utama.

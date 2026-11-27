@@ -3,9 +3,9 @@ import type { ReportSnapshotData } from "./supabase-rows";
 /**
  * Versi ringkas snapshot_data yang dikirim ke komponen Laporan.
  * Berisi hanya field yang dipakai untuk tampilan, filter, dan Excel.
- * Detail penuh (observerScores, rentang, pending, dan lain-lain) sengaja
- * tidak dikirim; PDF dan ZIP mengambil snapshot penuh lewat Server Action
- * saat tombol ekspor ditekan.
+ * Detail penuh seperti observerScores sengaja tidak dikirim; PDF dan ZIP
+ * mengambil snapshot penuh lewat Server Action saat tombol ekspor ditekan.
+ * Rentang dan jumlah pending ikut dikirim karena dipakai tabel perhatian.
  */
 export function compactReportSnapshot(
   data: ReportSnapshotData | null,
@@ -34,7 +34,11 @@ export function compactReportSnapshot(
           scopeKey: indicator.scopeKey ?? indicator.scope_key ?? undefined,
           average: indicator.average,
           validRatings: indicator.validRatings,
+          minimum: indicator.minimum,
+          maximum: indicator.maximum,
+          range: indicator.range,
           notObserved: indicator.notObserved,
+          pending: indicator.pending,
           reviewStatus: indicator.reviewStatus,
         }))
       : undefined,

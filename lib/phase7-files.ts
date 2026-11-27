@@ -23,6 +23,11 @@ export type ReportFileData = {
   snapshotId?: string | null;
   snapshotData: ReportSnapshotData;
   indicatorNames?: Record<string, string>;
+  /** Snapshot Published lain untuk peserta yang sama, dipakai grafik perkembangan. */
+  materialHistory?: {
+    label: string;
+    aspects: { name: string; score: number | null }[];
+  }[];
   eventSummary?: boolean;
   summaryText?: string;
   versionInfo?: string[];
@@ -36,6 +41,14 @@ const LIGHT = "0.97 0.96 0.97";
 const TRACK = "0.88 0.91 0.94";
 const TEAL = "0.31 0.72 0.76";
 const TEAL_SOFT = "0.88 0.95 0.96";
+const SERIES_COLORS = [
+  MAROON,
+  TEAL,
+  "0.85 0.55 0.15",
+  "0.25 0.45 0.75",
+  "0.35 0.65 0.40",
+  "0.55 0.35 0.70",
+];
 
 const ascii = (value: unknown) =>
   String(value ?? "")
@@ -114,6 +127,12 @@ type DrawRow =
       items: { value: number | null; index: number }[];
       keepWithNext?: boolean;
     }
+  | {
+      kind: "consistencyChart";
+      materials: string[];
+      series: { name: string; color: string; points: (number | null)[] }[];
+      keepWithNext?: boolean;
+    }
   | { kind: "stats"; cells: { label: string; value: string }[] }
   | { kind: "space"; height: number }
   | { kind: "signature"; left: string; right: string };
@@ -139,6 +158,10 @@ function rowHeight(row: DrawRow): number {
       return 40 + row.items.length * 18;
     case "indicatorChart":
       return 130;
+    case "consistencyChart":
+      return (
+        145 + row.materials.length * 13 + Math.ceil(row.series.length / 2) * 15
+      );
     case "stats":
       return 38;
     case "space":
@@ -368,6 +391,40 @@ function reportRows(report: ReportFileData): DrawRow[] {
       rows.push({ kind: "indicatorChart", items: chartItems });
       rows.push({ kind: "space", height: 6 });
     }
+
+    const history = (report.materialHistory ?? []).filter(
+      (item) => item.aspects.length > 0,
+    );
+    if (history.length >= 2) {
+      const names = [
+        ...new Set(
+          history.flatMap((item) => item.aspects.map((aspect) => aspect.name)),
+        ),
+      ].slice(0, 6);
+      const series = names.map((name, index) => ({
+        name,
+        color: SERIES_COLORS[index % SERIES_COLORS.length],
+        points: history.map((item) => {
+          const aspect = item.aspects.find(
+            (candidate) => candidate.name === name,
+          );
+          if (!aspect || aspect.score === null) return null;
+          return Math.max(0, Math.min(100, aspect.score));
+        }),
+      }));
+      heading("GRAFIK PERKEMBANGAN ASPEK PER MATERI");
+      rows.push({
+        kind: "consistencyChart",
+        materials: history.map((item) => item.label),
+        series,
+        keepWithNext: true,
+      });
+      rows.push({ kind: "space", height: 6 });
+    } else if (history.length === 1) {
+      text(
+        "Grafik perkembangan belum tersedia karena hanya satu materi yang diterbitkan.",
+      );
+    }
   }
   rows.push({ kind: "space", height: 6 });
 
@@ -570,10 +627,10 @@ function drawRow(stream: string[], row: DrawRow, y: number) {
     const line = points
       .map(
         (point, index) =>
-          `${index ? "l" : "m"} ${point.x.toFixed(1)} ${point.y.toFixed(1)}`,
+          `${point.x.toFixed(1)} ${point.y.toFixed(1)} ${index ? "l" : "m"}`,
       )
       .join(" ");
-    const area = `${left} ${bottom} m ${points.map((point) => `l ${point.x.toFixed(1)} ${point.y.toFixed(1)}`).join(" ")} l ${right} ${bottom} h f`;
+    const area = `${left} ${bottom} m ${points.map((point) => `${point.x.toFixed(1)} ${point.y.toFixed(1)} l`).join(" ")} ${right} ${bottom} l h f`;
     stream.push(`${TEAL_SOFT} rg ${area}`);
     stream.push(`${MAROON} RG 1.2 w ${line} S`);
     points.forEach((point) =>
@@ -601,6 +658,82 @@ function drawRow(stream: string[], row: DrawRow, y: number) {
       MUTED,
       false,
     );
+    return;
+  }
+  if (row.kind === "consistencyChart") {
+    const left = 50;
+    const right = 540;
+    const top = y - 14;
+    const bottom = y - 104;
+    for (const value of [0, 25, 50, 75, 100]) {
+      const yy = bottom - (value / 100) * (bottom - top);
+      stream.push(
+        `${TRACK} RG 0.4 w ${left} ${yy.toFixed(1)} m ${right} ${yy.toFixed(1)} l S`,
+      );
+      drawText(stream, String(value), 32, yy - 3, 7, MUTED, false);
+    }
+    const xFor = (index: number) =>
+      left + ((right - left) * index) / Math.max(1, row.materials.length - 1);
+    row.materials.forEach((_, index) =>
+      drawText(
+        stream,
+        `M${index + 1}`,
+        xFor(index) - 5,
+        bottom - 12,
+        7,
+        MUTED,
+        false,
+      ),
+    );
+    row.series.forEach((series) => {
+      let segment: string[] = [];
+      const flush = () => {
+        if (segment.length > 1)
+          stream.push(`${series.color} RG 1.2 w ${segment.join(" ")} S`);
+        segment = [];
+      };
+      series.points.forEach((value, index) => {
+        if (value === null) {
+          flush();
+          return;
+        }
+        const x = xFor(index);
+        const yy = bottom - (value / 100) * (bottom - top);
+        segment.push(
+          `${x.toFixed(1)} ${yy.toFixed(1)} ${segment.length ? "l" : "m"}`,
+        );
+        stream.push(
+          `${series.color} rg ${(x - 2).toFixed(1)} ${(yy - 2).toFixed(1)} 4 4 re f`,
+        );
+      });
+      flush();
+    });
+    const legendRows = Math.ceil(row.series.length / 2);
+    row.series.forEach((series, index) => {
+      const x = 40 + (index % 2) * 250;
+      const yy = bottom - 28 - Math.floor(index / 2) * 14;
+      stream.push(`${series.color} rg ${x} ${yy - 6} 8 8 re f`);
+      drawText(
+        stream,
+        ascii(series.name).slice(0, 30),
+        x + 14,
+        yy,
+        8,
+        INK,
+        false,
+      );
+    });
+    row.materials.forEach((label, index) => {
+      drawText(
+        stream,
+        `M${index + 1} = ${ascii(label).slice(0, 26)}`,
+        40,
+        bottom - 30 - legendRows * 14 - index * 12,
+        7,
+        MUTED,
+        false,
+      );
+    });
     return;
   }
   if (row.kind === "space") return;

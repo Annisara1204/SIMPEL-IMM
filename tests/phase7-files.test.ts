@@ -107,6 +107,22 @@ test("PDF menampilkan grafik aspek dan indikator", async () => {
       ],
     },
     indicatorNames: { i1: "Pemahaman materi", i2: "Refleksi" },
+    materialHistory: [
+      {
+        label: "AIK",
+        aspects: [
+          { name: "Intelektualitas", score: 40 },
+          { name: "Religiusitas", score: 60 },
+        ],
+      },
+      {
+        label: "Character Building",
+        aspects: [
+          { name: "Intelektualitas", score: 55 },
+          { name: "Religiusitas", score: 70 },
+        ],
+      },
+    ],
   };
   const content = new TextDecoder().decode(
     new Uint8Array(await createReportPdf(withCharts).arrayBuffer()),
@@ -116,6 +132,9 @@ test("PDF menampilkan grafik aspek dan indikator", async () => {
     "GRAFIK KOMPETENSI ASPEK",
     "GRAFIK RATA-RATA INDIKATOR",
     "Rata-rata indikator",
+    "GRAFIK PERKEMBANGAN ASPEK PER MATERI",
+    "M1 = AIK",
+    "M2 = Character Building",
   ])
     assert.ok(content.includes(section), `Bagian tidak ditemukan: ${section}`);
 });

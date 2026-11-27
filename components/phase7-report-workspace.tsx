@@ -374,9 +374,46 @@ export function Phase7ReportWorkspace(props: Props) {
     async (report: ReportFileData) => {
       let finalReport = report;
       if (report.snapshotId && role !== "peserta") {
-        await loadSnapshots([report.snapshotId]);
+        const historyRows = rows.filter(
+          (row) =>
+            row.display_name === report.participant.display_name &&
+            row.snapshot_id &&
+            row.published_at,
+        );
+        await loadSnapshots([
+          report.snapshotId,
+          ...historyRows.map((row) => row.snapshot_id!),
+        ]);
         const full = fullSnapshots.current[report.snapshotId];
         if (full) finalReport = { ...report, snapshotData: full };
+        const seen = new Set<string>();
+        const materialHistory = historyRows.flatMap((row) => {
+          const labels = versionInfoBySnapshot[row.snapshot_id!] ?? [];
+          const label = labels[labels.length - 1] ?? "Materi tidak tercatat";
+          if (seen.has(label)) return [];
+          seen.add(label);
+          const snapshot = fullSnapshots.current[row.snapshot_id!];
+          if (!snapshot) return [];
+          return [
+            {
+              label,
+              aspects: aspects(snapshot).map((aspect) => ({
+                name: aspectNameOf(aspect),
+                score:
+                  aspect.scoreOutOf100 == null &&
+                  aspect.score_out_of_100 == null &&
+                  aspect.score == null
+                    ? null
+                    : Number(
+                        aspect.scoreOutOf100 ??
+                          aspect.score_out_of_100 ??
+                          Number(aspect.score) * 20,
+                      ),
+              })),
+            },
+          ];
+        });
+        finalReport = { ...finalReport, materialHistory };
       }
       const reportEventId =
         event?.id ?? String(participantReport?.event?.id ?? "");
@@ -386,7 +423,14 @@ export function Phase7ReportWorkspace(props: Props) {
       });
       downloadIndividualReport(finalReport);
     },
-    [event, participantReport, role, loadSnapshots],
+    [
+      event,
+      participantReport,
+      role,
+      loadSnapshots,
+      rows,
+      versionInfoBySnapshot,
+    ],
   );
 
   const exportIndividual = useCallback(

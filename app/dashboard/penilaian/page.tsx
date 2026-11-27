@@ -1101,6 +1101,10 @@ export default async function AssessmentSettingsPage({
                                     )
                                     .join(",")}`}
                                   versionId={version.id}
+                                  eventId={event.id}
+                                  stage={selectedStage}
+                                  materialId={selectedMaterialId}
+                                  typeId={selectedTypeId}
                                   aspects={frameworkChoices}
                                   materialName={selectedMaterial.name}
                                   selectedAspectIds={aspects.flatMap(

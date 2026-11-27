@@ -3,12 +3,8 @@ import { uuidPattern } from "@/lib/validation";
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import {
-  asRows,
-  firstRelated,
-  relatedRows,
-  type Relation,
-} from "@/lib/relations";
+import { asRows, firstRelated, type Relation } from "@/lib/relations";
+import { evenWeight, roundWeight } from "@/lib/rubric-weights";
 import type {
   CompetencyMaterialAspectLink,
   CompetencyMaterialIndicatorLink,
@@ -57,17 +53,6 @@ type DraftAspect = {
   position: number;
   rubric_indicator_aspects?: DraftMapping[] | null;
 };
-
-function evenWeight(total: number, count: number, index: number) {
-  const regular = Math.round((total / count) * 100) / 100;
-  return index === count - 1
-    ? Math.round((total - regular * (count - 1)) * 100) / 100
-    : regular;
-}
-
-function roundWeight(value: number) {
-  return Math.round(value * 100) / 100;
-}
 
 async function createRubricVersionImpl(formData: FormData) {
   const { supabase, userId } = await staffClient(["admin_system"]);
@@ -800,11 +785,11 @@ async function applyFrameworkRubricSelectionImpl(formData: FormData) {
   const manualAspectsBefore = (currentAspects ?? []).filter(
     (item) => !item.competency_aspect_id,
   );
-  const manualWeightTotal = manualAspectsBefore.reduce(
+  const initialManualWeightTotal = manualAspectsBefore.reduce(
     (sum, item) => sum + Number(item.weight),
     0,
   );
-  if (manualWeightTotal >= 100 && selectedAspectIds.length)
+  if (initialManualWeightTotal >= 100 && selectedAspectIds.length)
     throw new Error(
       "Bobot aspek manual sudah mencapai 100%. Kurangi bobot aspek manual sebelum menambahkan aspek framework.",
     );
@@ -823,17 +808,27 @@ async function applyFrameworkRubricSelectionImpl(formData: FormData) {
   }
   for (const current of currentAspects ?? []) {
     if (!current.competency_aspect_id) continue;
-    const { data: remaining } = await supabase
+    const { data: remaining, error: remainingError } = await supabase
       .from("rubric_indicators")
       .select("id")
       .eq("aspect_id", current.id)
       .limit(1);
-    if (remaining?.length)
-      await supabase
+    if (remainingError)
+      throw new Error("Indikator pada aspek draf gagal diperiksa.");
+    if (remaining?.length) {
+      const { error: detachError } = await supabase
         .from("rubric_aspects")
         .update({ competency_aspect_id: null })
         .eq("id", current.id);
-    else await supabase.from("rubric_aspects").delete().eq("id", current.id);
+      if (detachError)
+        throw new Error("Aspek draf gagal dilepaskan dari framework.");
+    } else {
+      const { error: deleteError } = await supabase
+        .from("rubric_aspects")
+        .delete()
+        .eq("id", current.id);
+      if (deleteError) throw new Error("Aspek draf gagal dihapus.");
+    }
   }
 
   const { data: refreshedAspects, error: refreshedAspectError } = await supabase
@@ -844,6 +839,14 @@ async function applyFrameworkRubricSelectionImpl(formData: FormData) {
   const manualAspects = (refreshedAspects ?? []).filter(
     (item) => !item.competency_aspect_id,
   );
+  const manualWeightTotal = manualAspects.reduce(
+    (sum, item) => sum + Number(item.weight),
+    0,
+  );
+  if (selectedAspectIds.length && manualWeightTotal >= 100)
+    throw new Error(
+      "Bobot aspek manual sudah mencapai 100%. Kurangi bobot aspek manual sebelum menambahkan aspek framework.",
+    );
   const orderedSelectedAspects = [...(aspects ?? [])].sort(
     (a, b) => a.position - b.position,
   );
@@ -945,12 +948,29 @@ async function applyFrameworkRubricSelectionImpl(formData: FormData) {
       throw new Error(`Indikator ${indicator.code} gagal disalin ke draf.`);
     createdIndicators.set(indicator.id, data.id);
   }
+  const createdIndicatorIds = new Set(createdIndicators.values());
   for (const aspectId of selectedAspectIds) {
+    const localAspectId = aspectRows.get(aspectId)!;
     const inAspect = chosenPairs.filter((pair) => pair.aspectId === aspectId);
+    const { data: existingMappings, error: existingMappingsError } =
+      await supabase
+        .from("rubric_indicator_aspects")
+        .select("indicator_id,weight")
+        .eq("aspect_id", localAspectId);
+    if (existingMappingsError)
+      throw new Error("Pemetaan indikator pada aspek draf gagal dibaca.");
+    const manualMappingWeight = (existingMappings ?? [])
+      .filter((row) => !createdIndicatorIds.has(row.indicator_id))
+      .reduce((sum, row) => sum + Number(row.weight), 0);
+    const availableWeight = 100 - manualMappingWeight;
+    if (availableWeight <= 0)
+      throw new Error(
+        "Bobot pemetaan manual sudah mencapai 100%. Kurangi bobot tersebut sebelum menambahkan indikator framework.",
+      );
     const rows = inAspect.map((pair, index) => ({
       indicator_id: createdIndicators.get(pair.indicatorId)!,
-      aspect_id: aspectRows.get(aspectId)!,
-      weight: evenWeight(100, inAspect.length, index),
+      aspect_id: localAspectId,
+      weight: evenWeight(availableWeight, inAspect.length, index),
     }));
     const { error } = await supabase
       .from("rubric_indicator_aspects")
@@ -965,20 +985,6 @@ async function applyFrameworkRubricSelectionImpl(formData: FormData) {
       .eq("id", versionId);
     if (error)
       throw new Error("Referensi versi framework pada draf gagal disimpan.");
-  }
-  for (const aspectId of selectedAspectIds) {
-    const localAspectId = aspectRows.get(aspectId)!;
-    const { data: links } = await supabase
-      .from("rubric_indicator_aspects")
-      .select("id")
-      .eq("aspect_id", localAspectId)
-      .order("id");
-    if (links?.length)
-      for (const [index, link] of links.entries())
-        await supabase
-          .from("rubric_indicator_aspects")
-          .update({ weight: evenWeight(100, links.length, index) })
-          .eq("id", link.id);
   }
   revalidatePath("/dashboard/penilaian");
 }
@@ -1411,6 +1417,9 @@ async function activateRubricImpl(formData: FormData) {
     .eq("id", versionId);
   if (activateError) throw new Error("Rubrik gagal diaktifkan.");
   revalidatePath("/dashboard/penilaian");
+  revalidatePath("/dashboard/observasi");
+  revalidatePath("/dashboard/evaluasi");
+  revalidatePath("/dashboard/laporan");
 }
 
 export async function createRubricVersion(formData: FormData) {

@@ -219,6 +219,11 @@ export async function setAssessmentSubmissionStatus(input: {
       ok: false as const,
       message: "Peserta tidak cocok dengan versi rubrik.",
     };
+  if (version.status !== "active")
+    return {
+      ok: false as const,
+      message: "Status hanya dapat diubah pada rubrik aktif.",
+    };
   if (role === "admin_system")
     return {
       ok: false as const,

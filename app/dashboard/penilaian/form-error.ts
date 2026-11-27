@@ -5,6 +5,7 @@ const contextKeys = [
   "stage",
   "materialId",
   "typeId",
+  "versionId",
   "assignment",
   "showArchived",
 ] as const;

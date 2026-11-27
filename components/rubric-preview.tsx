@@ -7,6 +7,7 @@ export type RubricPreviewItem = {
   aspectNames: string[];
   rubricCode: string | null;
   rubricStatus: string | null;
+  rubricVersion: number | null;
   anchors: { score: number; label: string; description: string }[];
 };
 
@@ -20,9 +21,13 @@ export function RubricPreview({ items }: { items: RubricPreviewItem[] }) {
               <span className="competency-code">{item.code}</span>
               <h2>{item.name}</h2>
             </div>
-            <span className="agenda-status done">
+            <span
+              className={`agenda-status ${item.rubricStatus === "published" ? "done" : "next"}`}
+            >
               {item.rubricStatus === "published"
-                ? "Rubrik trial v1"
+                ? item.rubricVersion !== null
+                  ? `Rubrik v${item.rubricVersion} tersedia`
+                  : "Rubrik tersedia"
                 : "Rubrik belum tersedia"}
             </span>
           </header>

@@ -25,11 +25,17 @@ export default async function CompetencyFrameworkPage() {
   if (!profile?.role || !allowedRoles.includes(profile.role))
     redirect("/dashboard");
 
-  const { data: framework } = await supabase
+  const { data: framework, error: frameworkError } = await supabase
     .from("competency_frameworks")
     .select("id, name, description, is_trial")
     .eq("code", "DAD_IMM")
     .maybeSingle();
+  if (frameworkError)
+    return (
+      <div className="users-page">
+        <DataUnavailable />
+      </div>
+    );
   if (!framework)
     return (
       <div className="users-page">
@@ -42,12 +48,19 @@ export default async function CompetencyFrameworkPage() {
         </section>
       </div>
     );
-  const { data: frameworkVersion } = await supabase
-    .from("competency_framework_versions")
-    .select("id, version, status, is_official, source_note")
-    .eq("framework_id", framework.id)
-    .eq("version", 1)
-    .maybeSingle();
+  const { data: frameworkVersion, error: frameworkVersionError } =
+    await supabase
+      .from("competency_framework_versions")
+      .select("id, version, status")
+      .eq("framework_id", framework.id)
+      .eq("version", 1)
+      .maybeSingle();
+  if (frameworkVersionError)
+    return (
+      <div className="users-page">
+        <DataUnavailable />
+      </div>
+    );
   if (!frameworkVersion)
     return (
       <div className="users-page">
@@ -59,11 +72,11 @@ export default async function CompetencyFrameworkPage() {
     );
 
   const [
-    { data: aspects },
-    { data: indicators },
-    { data: indicatorAspectLinks },
-    { data: rubrics },
-    { data: rubricVersions },
+    { data: aspects, error: aspectsError },
+    { data: indicators, error: indicatorsError },
+    { data: indicatorAspectLinks, error: indicatorAspectError },
+    { data: rubrics, error: rubricsError },
+    { data: rubricVersions, error: rubricVersionsError },
     { data: materials, error: materialsError },
     { data: materialIndicatorLinks, error: materialMappingsError },
   ] = await Promise.all([
@@ -106,13 +119,23 @@ export default async function CompetencyFrameworkPage() {
       .eq("active", true),
   ]);
   const rubricVersionIds = (rubricVersions ?? []).map((item) => item.id);
-  const { data: anchors } = rubricVersionIds.length
+  const { data: anchors, error: anchorsError } = rubricVersionIds.length
     ? await supabase
         .from("rubric_behavioral_anchors")
         .select("rubric_version_id, score, label, description")
         .in("rubric_version_id", rubricVersionIds)
         .order("score")
-    : { data: [] };
+    : { data: [], error: null };
+  const masterLoadError = Boolean(
+    aspectsError ||
+    indicatorsError ||
+    indicatorAspectError ||
+    rubricsError ||
+    rubricVersionsError ||
+    anchorsError ||
+    materialsError ||
+    materialMappingsError,
+  );
   const aspectById = new Map(
     (aspects ?? []).map((aspect) => [aspect.id, aspect]),
   );
@@ -142,6 +165,7 @@ export default async function CompetencyFrameworkPage() {
         .filter((name): name is string => !!name),
       rubricCode: rubric?.code ?? null,
       rubricStatus: published?.status ?? null,
+      rubricVersion: published?.version ?? null,
       anchors: (anchors ?? [])
         .filter((anchor) => anchor.rubric_version_id === published?.id)
         .map((anchor) => ({
@@ -168,9 +192,8 @@ export default async function CompetencyFrameworkPage() {
   for (const mapping of materialIndicatorLinks ?? []) {
     const indicator = indicatorsById.get(mapping.indicator_id);
     if (!indicator) continue;
-    const aspectNames = (linksByIndicator.get(indicator.id) ?? [])
-      .map((id) => aspectById.get(id)?.name)
-      .filter((name): name is string => !!name);
+    const mappedAspectName = aspectById.get(mapping.aspect_id)?.name;
+    const aspectNames = mappedAspectName ? [mappedAspectName] : [];
     const mapped = mappingsByMaterial.get(mapping.material_id) ?? [];
     mapped.push({
       code: indicator.code,
@@ -213,51 +236,68 @@ export default async function CompetencyFrameworkPage() {
         </span>
       </header>
       <div className="users-notice">
-        <strong>Kerangka uji, bukan standar resmi</strong>
+        <strong>
+          {framework.is_trial
+            ? "Kerangka uji, bukan standar resmi"
+            : "Kerangka resmi IMM"}
+        </strong>
         <p>
           Skala 1–5 menggunakan anchor perilaku dan N/O untuk kondisi belum
           teramati. Tidak ada alur persetujuan/finalisasi di aplikasi pada tahap
-          ini. Aspek berbobot total {totalWeight.toFixed(2)}%.
+          ini.{" "}
+          {masterLoadError
+            ? ""
+            : `Aspek berbobot total ${totalWeight.toFixed(2)}%.`}
         </p>
       </div>
-      {(materialsError || materialMappingsError) && <DataUnavailable />}
-      <section className="event-manage-card">
-        <h2>Aspek kompetensi</h2>
-        <div className="competency-aspect-grid">
-          {(aspects ?? []).map((aspect) => (
-            <article className="competency-aspect-card" key={aspect.id}>
-              <span>
-                {aspect.code} · {Number(aspect.weight).toFixed(0)}%
-              </span>
-              <h3>{aspect.name}</h3>
-              <p>
-                {
-                  items.filter((item) => item.aspectNames.includes(aspect.name))
-                    .length
-                }{" "}
-                indikator terhubung
-              </p>
-            </article>
-          ))}
-        </div>
-      </section>
-      <CompetencyMaterialMapping
-        contexts={mappingContexts}
-        indicatorCodes={(indicators ?? []).map((indicator) => indicator.code)}
-      />
-      <section className="event-manage-card">
-        <div className="event-manage-title">
-          <div>
-            <h2>Bank rubrik indikator</h2>
-            <p>
-              {items.length} indikator ·{" "}
-              {items.reduce((count, item) => count + item.anchors.length, 0)}{" "}
-              anchor skor tersimpan.
-            </p>
-          </div>
-        </div>
-        <RubricPreview items={items} />
-      </section>
+      {masterLoadError && <DataUnavailable />}
+      {!masterLoadError && (
+        <>
+          <section className="event-manage-card">
+            <h2>Aspek kompetensi</h2>
+            <div className="competency-aspect-grid">
+              {(aspects ?? []).map((aspect) => (
+                <article className="competency-aspect-card" key={aspect.id}>
+                  <span>
+                    {aspect.code} · {Number(aspect.weight).toFixed(0)}%
+                  </span>
+                  <h3>{aspect.name}</h3>
+                  <p>
+                    {
+                      items.filter((item) =>
+                        item.aspectNames.includes(aspect.name),
+                      ).length
+                    }{" "}
+                    indikator terhubung
+                  </p>
+                </article>
+              ))}
+            </div>
+          </section>
+          <CompetencyMaterialMapping
+            contexts={mappingContexts}
+            indicatorCodes={(indicators ?? []).map(
+              (indicator) => indicator.code,
+            )}
+          />
+          <section className="event-manage-card">
+            <div className="event-manage-title">
+              <div>
+                <h2>Bank rubrik indikator</h2>
+                <p>
+                  {items.length} indikator ·{" "}
+                  {items.reduce(
+                    (count, item) => count + item.anchors.length,
+                    0,
+                  )}{" "}
+                  anchor skor tersimpan.
+                </p>
+              </div>
+            </div>
+            <RubricPreview items={items} />
+          </section>
+        </>
+      )}
     </div>
   );
 }

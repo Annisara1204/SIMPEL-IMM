@@ -25,12 +25,20 @@ export function FrameworkRubricPicker({
   selectedAspectIds,
   selectedIndicatorIds,
   materialName,
+  eventId,
+  stage,
+  materialId,
+  typeId,
 }: {
   versionId: string;
   aspects: FrameworkAspectChoice[];
   selectedAspectIds: string[];
   selectedIndicatorIds: string[];
   materialName: string;
+  eventId?: string;
+  stage?: string;
+  materialId?: string;
+  typeId?: string;
 }) {
   const initialPairs = aspects.flatMap((aspect) =>
     aspect.indicators
@@ -76,6 +84,12 @@ export function FrameworkRubricPicker({
       </p>
       <form action={applyFrameworkRubricSelection}>
         <input type="hidden" name="versionId" value={versionId} />
+        {eventId && <input type="hidden" name="eventId" value={eventId} />}
+        {stage && <input type="hidden" name="stage" value={stage} />}
+        {materialId && (
+          <input type="hidden" name="materialId" value={materialId} />
+        )}
+        {typeId && <input type="hidden" name="typeId" value={typeId} />}
         {selectedAspects.map((id) => (
           <input
             key={`aspect:${id}`}

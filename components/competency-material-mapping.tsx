@@ -43,6 +43,12 @@ export function CompetencyMaterialMapping({
       : kind === "cross_session"
         ? "Lintas sesi"
         : "Aktivitas";
+  const unmappedCodes = indicatorCodes.filter(
+    (code) =>
+      !contexts.some((context) =>
+        context.mappings.some((mapping) => mapping.code === code),
+      ),
+  );
 
   return (
     <>
@@ -73,10 +79,10 @@ export function CompetencyMaterialMapping({
               <p>{context.description}</p>
               {context.mappings.length ? (
                 <div className="competency-context-mappings">
-                  {context.mappings.map((mapping) => (
+                  {context.mappings.map((mapping, index) => (
                     <article
                       className="competency-context-mapping"
-                      key={`${context.id}-${mapping.code}`}
+                      key={`${context.id}-${mapping.code}-${index}`}
                     >
                       <header>
                         <div>
@@ -207,11 +213,13 @@ export function CompetencyMaterialMapping({
             </tbody>
           </table>
         </div>
-        <p className="competency-context-footnote">
-          Belum ada konteks terencana untuk indikator: HUM-01 (Empati) dan
-          HUM-02 (Solidaritas). Keduanya tidak dipetakan secara asal dan perlu
-          ditinjau ketika rancangan aktivitas DAD tersedia.
-        </p>
+        {unmappedCodes.length > 0 && (
+          <p className="competency-context-footnote">
+            Belum ada konteks terencana untuk indikator:{" "}
+            {unmappedCodes.join(", ")}. Indikator ini tidak dipetakan secara
+            asal dan perlu ditinjau ketika rancangan aktivitas DAD tersedia.
+          </p>
+        )}
       </section>
     </>
   );

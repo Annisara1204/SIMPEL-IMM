@@ -163,7 +163,7 @@ function rowHeight(row: DrawRow): number {
     case "materialTrend":
       return 160;
     case "aspectRadar":
-      return 190;
+      return 200;
     case "stats":
       return 38;
     case "space":
@@ -719,9 +719,13 @@ function drawRow(stream: string[], row: DrawRow, y: number) {
     }
     row.items.forEach((item, index) => {
       const point = pointAt(index, 1.16);
-      const label = ascii(item.label).slice(0, 16);
-      const x = point.x < centerX ? point.x - label.length * 3.4 : point.x + 2;
-      drawText(stream, label, x, point.y + 3, 7, INK, false);
+      wrap(item.label, 16)
+        .slice(0, 2)
+        .forEach((line, lineIndex) => {
+          const x =
+            point.x < centerX ? point.x - line.length * 3.4 : point.x + 2;
+          drawText(stream, line, x, point.y + 3 - lineIndex * 9, 7, INK, false);
+        });
     });
     return;
   }

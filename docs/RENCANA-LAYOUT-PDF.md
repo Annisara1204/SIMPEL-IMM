@@ -1,7 +1,7 @@
 # Rencana Perombakan Layout PDF Rapor
 
 **Tanggal:** 27 November 2026
-**Status:** rencana selesai dan dieksekusi di DEV pada 27 November 2026 (commit `03db8dd`). Baseline lama diarsipkan, baris baseline baru ditambahkan. Deploy produksi menunggu langkah terpisah.
+**Status:** selesai. Dieksekusi di DEV pada 27 November 2026 (generator commit `03db8dd`) dan di-deploy ke produksi pukul 10:28 WIB (commit aktif `97f540b`). Baseline lama diarsipkan, baris baseline baru ditambahkan.
 **Pemicu:** pemilik menunjukkan bahwa PDF rapor saat ini masih terasa "asal ada", bukan sekadar kurang aksesibel.
 
 ## 1. Kondisi saat ini

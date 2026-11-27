@@ -102,6 +102,12 @@ const coverageOf = (row: ReportRow) => {
       ) / weight
     : null;
 };
+const STATUS_LABELS: Record<string, string> = {
+  Provisional: "Sementara",
+  Finalized: "Final",
+  Published: "Diterbitkan",
+};
+
 export function Phase7ReportWorkspace(props: Props) {
   const router = useRouter();
   const {
@@ -801,9 +807,9 @@ export function Phase7ReportWorkspace(props: Props) {
                   onChange={(change) => setStatusFilter(change.target.value)}
                 >
                   <option value="all">Semua status</option>
-                  <option value="provisional">Provisional</option>
-                  <option value="finalized">Finalized</option>
-                  <option value="published">Published</option>
+                  <option value="provisional">Sementara</option>
+                  <option value="finalized">Final</option>
+                  <option value="published">Diterbitkan</option>
                 </select>
               </label>
             </div>
@@ -962,8 +968,8 @@ export function Phase7ReportWorkspace(props: Props) {
                         <th scope="col">Penilai</th>
                         <th scope="col">Target</th>
                         <th scope="col">Draft</th>
-                        <th scope="col">Submitted</th>
-                        <th scope="col">Finalized</th>
+                        <th scope="col">Terkirim</th>
+                        <th scope="col">Final</th>
                         <th scope="col">Belum mulai</th>
                         <th scope="col">Progres kiriman</th>
                       </tr>
@@ -1127,7 +1133,7 @@ export function Phase7ReportWorkspace(props: Props) {
                           <span
                             className={`agenda-status ${status.toLowerCase()}`}
                           >
-                            {status}
+                            {STATUS_LABELS[status] ?? status}
                           </span>
                         </td>
                         <td>
@@ -1219,76 +1225,98 @@ export function Phase7ReportWorkspace(props: Props) {
           {canManage && (
             <section className="event-manage-card">
               <h2>Ekspor dan laporan</h2>
-              <div className="rubric-editor-grid report-export-grid">
-                <button
-                  type="button"
-                  disabled={busy}
-                  onClick={() => void exportExcel("summary")}
-                >
-                  Excel rekap peserta
-                </button>
-                <label>
-                  Filter materi/sesi untuk ekspor
-                  <select
-                    value={scopeFilter}
-                    onChange={(change) => setScopeFilter(change.target.value)}
-                  >
-                    <option value="all">Semua sesi</option>
-                    {allScopes.map((scope) => (
-                      <option key={scope} value={scope}>
-                        {scope}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <button
-                  type="button"
-                  disabled={busy}
-                  onClick={() => void exportExcel("material")}
-                >
-                  Excel rekap per materi
-                </button>
-                {canViewPrivate && (
-                  <>
-                    <label>
-                      Filter Observer internal
+              <div className="report-export-groups">
+                <div className="report-export-group">
+                  <p className="report-export-title">Rekap peserta</p>
+                  <div className="report-export-controls">
+                    <button
+                      className="export-button"
+                      type="button"
+                      disabled={busy}
+                      onClick={() => void exportExcel("summary")}
+                    >
+                      Unduh Excel rekap peserta
+                    </button>
+                    <label className="export-filter">
+                      Materi/sesi
                       <select
-                        value={observerFilter}
+                        value={scopeFilter}
                         onChange={(change) =>
-                          setObserverFilter(change.target.value)
+                          setScopeFilter(change.target.value)
                         }
                       >
-                        <option value="all">Semua Observer</option>
-                        {observerNames.map((name) => (
-                          <option key={name} value={name}>
-                            {name}
+                        <option value="all">Semua sesi</option>
+                        {allScopes.map((scope) => (
+                          <option key={scope} value={scope}>
+                            {scope}
                           </option>
                         ))}
                       </select>
                     </label>
                     <button
+                      className="export-button"
                       type="button"
                       disabled={busy}
-                      onClick={() => void exportExcel("observer")}
+                      onClick={() => void exportExcel("material")}
                     >
-                      Excel internal Observer
+                      Unduh Excel rekap per materi
                     </button>
-                  </>
+                  </div>
+                </div>
+                {canViewPrivate && (
+                  <div className="report-export-group">
+                    <p className="report-export-title">
+                      Data internal Observer
+                    </p>
+                    <div className="report-export-controls">
+                      <label className="export-filter">
+                        Observer
+                        <select
+                          value={observerFilter}
+                          onChange={(change) =>
+                            setObserverFilter(change.target.value)
+                          }
+                        >
+                          <option value="all">Semua Observer</option>
+                          {observerNames.map((name) => (
+                            <option key={name} value={name}>
+                              {name}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <button
+                        className="export-button"
+                        type="button"
+                        disabled={busy}
+                        onClick={() => void exportExcel("observer")}
+                      >
+                        Unduh Excel internal Observer
+                      </button>
+                    </div>
+                  </div>
                 )}
-                <button
-                  type="button"
-                  disabled={busy || !finalized.length}
-                  onClick={() => void exportExcel("evaluation")}
-                >
-                  Excel evaluasi akhir
-                </button>
-                <button
-                  type="button"
-                  disabled={busy || !finalized.length}
-                  onClick={() => void exportEventPdf()}
-                >
-                  PDF laporan kegiatan
-                </button>
+                <div className="report-export-group">
+                  <p className="report-export-title">Hasil akhir</p>
+                  <div className="report-export-controls">
+                    <button
+                      className="export-button"
+                      type="button"
+                      disabled={busy || !finalized.length}
+                      onClick={() => void exportExcel("evaluation")}
+                    >
+                      Unduh Excel evaluasi akhir
+                    </button>
+                    <button
+                      className="export-button export-button-primary"
+                      type="button"
+                      disabled={busy || !finalized.length}
+                      onClick={() => void exportEventPdf()}
+                    >
+                      Unduh PDF laporan kegiatan
+                    </button>
+                  </div>
+                </div>
               </div>
               <p className="privacy-note">
                 Excel internal hanya mencakup sumber penilaian pada snapshot

@@ -1321,6 +1321,12 @@ p {
 .event-manage-card .users-table td {
   padding: 10px 14px;
 }
+.event-manage-card .users-table td small {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted-warm);
+  line-height: 1.4;
+}
 @media (max-width: 760px) {
   .event-manage-card {
     padding: 15px;
@@ -3135,11 +3141,83 @@ p {
   margin: 6px 0;
   line-height: 1.5;
 }
-.report-export-grid {
-  border: 1px solid var(--color-border);
+.report-export-groups {
+  display: grid;
+  gap: 12px;
+}
+.report-export-group {
+  border: 1px solid var(--color-border-soft);
   border-radius: 10px;
   background: var(--color-surface-soft);
-  padding: 14px;
+  padding: 12px 14px 14px;
+  min-width: 0;
+}
+.report-export-title {
+  margin: 0 0 10px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-primary-dark);
+}
+.report-export-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 10px;
+}
+.export-filter {
+  display: grid;
+  gap: 5px;
+  min-width: 190px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-label);
+}
+.export-filter select {
+  height: 40px;
+  min-width: 0;
+  max-width: 100%;
+  border: 1px solid var(--color-border-input);
+  border-radius: 8px;
+  padding: 0 10px;
+}
+.export-button {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--color-border-input);
+  border-radius: 8px;
+  background: var(--color-surface);
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 600;
+}
+.export-button:not(:disabled):hover {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+  color: var(--color-primary-dark);
+}
+.export-button-primary {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: #fff;
+}
+.export-button-primary:not(:disabled):hover {
+  background: var(--color-primary-dark);
+  color: #fff;
+}
+.export-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+@media (max-width: 760px) {
+  .report-export-controls {
+    align-items: stretch;
+  }
+  .export-filter,
+  .export-button {
+    width: 100%;
+  }
 }
 .agenda-status.published {
   background: #e8f5ed;

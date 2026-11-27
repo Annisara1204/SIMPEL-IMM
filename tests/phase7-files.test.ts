@@ -3,7 +3,15 @@ import test from "node:test";
 import { createReportPdf, createReportZip } from "../lib/phase7-files.ts";
 
 const sample = {
-  participant: { display_name: "Peserta Simulasi" },
+  participant: {
+    display_name: "Peserta Simulasi",
+    student_number: "2024001",
+    major: "Keperawatan",
+    commissariat: "PK IMM Unisa Bandung",
+  },
+  evaluatorNames: "Observer A, Observer B",
+  approverName: "Instruktur MoT",
+  approvedAt: "2026-11-27T00:00:00Z",
   event: {
     name: "DAD Simulasi",
     theme: "Kaderisasi",
@@ -48,29 +56,34 @@ test("PDF memakai urutan bagian layout baru dan tidak mengarang status", async (
     new Uint8Array(await createReportPdf(sample).arrayBuffer()),
   );
   const sections = [
-    "RAPOR HASIL KOMPETENSI DAD",
-    "IDENTITAS PESERTA",
+    "RAPOT DAD KADER",
+    "Pimpinan Cabang Ikatan Mahasiswa Muhammadiyah Kota Bandung",
+    "PROFIL PESERTA",
+    "Asal Jurusan",
+    "Asal Komisariat",
     "RINGKASAN NILAI",
-    "ASPEK KOMPETENSI",
-    "INDIKATOR YANG DINILAI",
+    "ASPEK PENILAIAN",
+    "HASIL SKOR",
+    "NILAI PER INDIKATOR",
     "KEKUATAN",
     "AREA PENGEMBANGAN",
-    "REKOMENDASI DAN TINDAK LANJUT",
+    "REKOMENDASI TINGKAT LANJUT",
     "ALASAN KEPUTUSAN",
     "PENGESAHAN",
+    "Dinilai oleh",
+    "Disahkan oleh",
+    "Tanggal disahkan",
     "Rapor resmi IMM Observer | halaman",
   ];
   for (const section of sections)
     assert.ok(content.includes(section), `Bagian tidak ditemukan: ${section}`);
-  assert.ok(content.includes("Koordinator Instruktur"));
-  assert.ok(content.includes("Penanggung Jawab Kegiatan"));
   assert.ok(content.includes("Belum ada rekomendasi yang disahkan."));
   assert.ok(!content.includes("FINALIZED"));
   assert.ok(!content.includes("v1"));
   assert.ok(
-    content.indexOf("IDENTITAS PESERTA") < content.indexOf("RINGKASAN NILAI"),
+    content.indexOf("PROFIL PESERTA") < content.indexOf("RINGKASAN NILAI"),
   );
-  assert.ok(content.indexOf("ASPEK KOMPETENSI") < content.indexOf("KEKUATAN"));
+  assert.ok(content.indexOf("ASPEK PENILAIAN") < content.indexOf("KEKUATAN"));
 });
 
 test("PDF menampilkan placeholder yang jelas untuk data kosong", async () => {
@@ -96,7 +109,7 @@ test("PDF menampilkan placeholder yang jelas untuk data kosong", async () => {
   assert.ok(!content.includes("0.0/100"));
 });
 
-test("PDF menampilkan grafik aspek dan indikator", async () => {
+test("PDF menampilkan grafik rata-rata nilai per materi", async () => {
   const withCharts = {
     ...sample,
     snapshotData: {
@@ -110,6 +123,7 @@ test("PDF menampilkan grafik aspek dan indikator", async () => {
     materialHistory: [
       {
         label: "AIK",
+        score: 70,
         aspects: [
           { name: "Intelektualitas", score: 40 },
           { name: "Religiusitas", score: 60 },
@@ -117,6 +131,7 @@ test("PDF menampilkan grafik aspek dan indikator", async () => {
       },
       {
         label: "Character Building",
+        score: 82,
         aspects: [
           { name: "Intelektualitas", score: 55 },
           { name: "Religiusitas", score: 70 },
@@ -129,12 +144,9 @@ test("PDF menampilkan grafik aspek dan indikator", async () => {
   );
   for (const section of [
     "CAKUPAN PENILAIAN",
-    "GRAFIK KOMPETENSI ASPEK",
-    "GRAFIK RATA-RATA INDIKATOR",
-    "Rata-rata indikator",
-    "GRAFIK PERKEMBANGAN ASPEK PER MATERI",
-    "M1 = AIK",
-    "M2 = Character Building",
+    "GRAFIK RATA-RATA NILAI PER MATERI",
+    "AIK",
+    "Character Building",
   ])
     assert.ok(content.includes(section), `Bagian tidak ditemukan: ${section}`);
 });

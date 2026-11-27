@@ -103,6 +103,7 @@ export type EventReportRow = {
   display_name: string;
   student_number: string | null;
   group_name: string | null;
+  major: string | null;
   commissariat: string;
   account_linked: boolean;
   snapshot_id: string | null;
@@ -113,6 +114,9 @@ export type EventReportRow = {
   finalized_at: string | null;
   published_at: string | null;
   publication_revision: number | null;
+  evaluator_names: string | null;
+  approver_name: string | null;
+  approved_at: string | null;
 };
 
 // ---------- Phase 7: RPC get_staff_event_summary ----------

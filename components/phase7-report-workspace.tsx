@@ -29,6 +29,7 @@ type ReportRow = {
   display_name: string;
   student_number: string | null;
   group_name: string | null;
+  major: string | null;
   commissariat: string;
   snapshot_id: string | null;
   snapshot_data: ReportSnapshotData | null;
@@ -36,6 +37,9 @@ type ReportRow = {
   finalized_at: string | null;
   published_at: string | null;
   publication_revision: number | null;
+  evaluator_names?: string | null;
+  approver_name?: string | null;
+  approved_at?: string | null;
   account_linked?: boolean;
 };
 type ProgressRow = {
@@ -397,6 +401,10 @@ export function Phase7ReportWorkspace(props: Props) {
           return [
             {
               label,
+              score:
+                typeof snapshot.overall?.score === "number"
+                  ? Number(snapshot.overall.score)
+                  : null,
               aspects: aspects(snapshot).map((aspect) => ({
                 name: aspectNameOf(aspect),
                 score:
@@ -1425,6 +1433,7 @@ function toReport(
       display_name: row.display_name,
       student_number: row.student_number,
       group_name: row.group_name,
+      major: row.major,
       commissariat: row.commissariat,
     },
     event: {
@@ -1437,6 +1446,9 @@ function toReport(
       ends_on: event?.ends_on,
     },
     publishedAt: row.published_at,
+    evaluatorNames: row.evaluator_names,
+    approverName: row.approver_name,
+    approvedAt: row.approved_at,
     snapshotId: row.snapshot_id,
     snapshotData: row.snapshot_data,
     indicatorNames,

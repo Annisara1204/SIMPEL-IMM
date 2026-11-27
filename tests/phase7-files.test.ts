@@ -58,7 +58,7 @@ test("PDF memakai urutan bagian layout baru dan tidak mengarang status", async (
     "REKOMENDASI DAN TINDAK LANJUT",
     "ALASAN KEPUTUSAN",
     "PENGESAHAN",
-    "Rapor resmi IMM Observer | halaman 1 dari 1",
+    "Rapor resmi IMM Observer | halaman",
   ];
   for (const section of sections)
     assert.ok(content.includes(section), `Bagian tidak ditemukan: ${section}`);
@@ -94,6 +94,30 @@ test("PDF menampilkan placeholder yang jelas untuk data kosong", async () => {
   assert.ok(content.includes("Versi snapshot: tidak tercatat"));
   assert.ok(content.includes("Belum ada alasan yang tercatat di snapshot."));
   assert.ok(!content.includes("0.0/100"));
+});
+
+test("PDF menampilkan grafik aspek dan indikator", async () => {
+  const withCharts = {
+    ...sample,
+    snapshotData: {
+      ...sample.snapshotData,
+      indicators: [
+        { indicatorId: "i1", average: 4, validRatings: 2, scope: "session" },
+        { indicatorId: "i2", average: 3, validRatings: 2, scope: "session" },
+      ],
+    },
+    indicatorNames: { i1: "Pemahaman materi", i2: "Refleksi" },
+  };
+  const content = new TextDecoder().decode(
+    new Uint8Array(await createReportPdf(withCharts).arrayBuffer()),
+  );
+  for (const section of [
+    "CAKUPAN PENILAIAN",
+    "GRAFIK KOMPETENSI ASPEK",
+    "GRAFIK RATA-RATA INDIKATOR",
+    "Rata-rata indikator",
+  ])
+    assert.ok(content.includes(section), `Bagian tidak ditemukan: ${section}`);
 });
 
 test("PDF meringkas rekomendasi otomatis dan menghapus duplikatnya", async () => {

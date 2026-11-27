@@ -34,6 +34,8 @@ const MUTED = "0.45 0.48 0.51";
 const WHITE = "1 1 1";
 const LIGHT = "0.97 0.96 0.97";
 const TRACK = "0.88 0.91 0.94";
+const TEAL = "0.31 0.72 0.76";
+const TEAL_SOFT = "0.88 0.95 0.96";
 
 const ascii = (value: unknown) =>
   String(value ?? "")
@@ -102,6 +104,17 @@ type DrawRow =
   | { kind: "kv"; label: string; value: string }
   | { kind: "tableHead"; cols: Cell[]; keepWithNext?: boolean }
   | { kind: "tableRow"; cols: Cell[]; bar?: Bar }
+  | {
+      kind: "aspectChart";
+      items: { label: string; value: number | null }[];
+      keepWithNext?: boolean;
+    }
+  | {
+      kind: "indicatorChart";
+      items: { value: number | null; index: number }[];
+      keepWithNext?: boolean;
+    }
+  | { kind: "stats"; cells: { label: string; value: string }[] }
   | { kind: "space"; height: number }
   | { kind: "signature"; left: string; right: string };
 
@@ -122,6 +135,12 @@ function rowHeight(row: DrawRow): number {
       return 20;
     case "tableRow":
       return Math.max(...row.cols.map((col) => col.lines.length)) * 12 + 10;
+    case "aspectChart":
+      return 40 + row.items.length * 18;
+    case "indicatorChart":
+      return 130;
+    case "stats":
+      return 38;
     case "space":
       return row.height;
     case "signature":
@@ -200,6 +219,34 @@ function reportRows(report: ReportFileData): DrawRow[] {
   kv("Diterbitkan", moneyDate(report.publishedAt));
   rows.push({ kind: "space", height: 6 });
 
+  heading("CAKUPAN PENILAIAN");
+  const total = (
+    key:
+      | "plannedIndicators"
+      | "assessedIndicators"
+      | "notObservedIndicators"
+      | "pendingIndicators",
+  ) => aspects.reduce((sum, aspect) => sum + Number(aspect[key] ?? 0), 0);
+  rows.push({
+    kind: "stats",
+    cells: [
+      {
+        label: "Indikator direncanakan",
+        value: String(total("plannedIndicators")),
+      },
+      {
+        label: "Indikator dinilai",
+        value: String(total("assessedIndicators")),
+      },
+      {
+        label: "Tidak teramati",
+        value: String(total("notObservedIndicators")),
+      },
+      { label: "Menunggu penilai", value: String(total("pendingIndicators")) },
+    ],
+  });
+  rows.push({ kind: "space", height: 6 });
+
   heading("ASPEK KOMPETENSI");
   rows.push({
     kind: "tableHead",
@@ -246,6 +293,26 @@ function reportRows(report: ReportFileData): DrawRow[] {
   }
   rows.push({ kind: "space", height: 6 });
 
+  if (aspects.length) {
+    heading("GRAFIK KOMPETENSI ASPEK");
+    rows.push({
+      kind: "aspectChart",
+      items: aspects.map((aspect) => ({
+        label: aspect.aspectName ?? aspect.aspect_name ?? "Aspek",
+        value:
+          aspect.scoreOutOf100 == null && aspect.score == null
+            ? null
+            : Number(
+                aspect.scoreOutOf100 ??
+                  aspect.score_out_of_100 ??
+                  Number(aspect.score) * 20,
+              ),
+      })),
+      keepWithNext: true,
+    });
+    rows.push({ kind: "space", height: 6 });
+  }
+
   if (report.eventSummary) {
     heading("RINGKASAN ASPEK");
     for (const aspect of aspects)
@@ -289,6 +356,17 @@ function reportRows(report: ReportFileData): DrawRow[] {
           { x: 485, lines: [String(item.validRatings ?? 0)] },
         ],
       });
+    }
+    const chartItems = indicators
+      .map((item, index) => ({
+        value: item.average == null ? null : Number(item.average),
+        index: index + 1,
+      }))
+      .filter((item) => item.value !== null && Number.isFinite(item.value));
+    if (chartItems.length >= 2) {
+      heading("GRAFIK RATA-RATA INDIKATOR");
+      rows.push({ kind: "indicatorChart", items: chartItems });
+      rows.push({ kind: "space", height: 6 });
     }
   }
   rows.push({ kind: "space", height: 6 });
@@ -424,6 +502,105 @@ function drawRow(stream: string[], row: DrawRow, y: number) {
       stream.push(`${TRACK} rg ${row.bar.x} ${y - 8} ${row.bar.width} 7 re f`);
       stream.push(`${MAROON} rg ${row.bar.x} ${y - 8} ${width} 7 re f`);
     }
+    return;
+  }
+  if (row.kind === "stats") {
+    const step = 515 / row.cells.length;
+    row.cells.forEach((item, index) => {
+      const x = 40 + index * step;
+      drawText(stream, item.label, x, y, 8, MUTED, false);
+      drawText(stream, item.value, x, y - 15, 14, MAROON, true);
+    });
+    return;
+  }
+  if (row.kind === "aspectChart") {
+    const barX = 170;
+    const barW = 260;
+    const bottom = y - 14 - row.items.length * 18;
+    for (const value of [0, 50, 100]) {
+      const x = barX + (value / 100) * barW;
+      stream.push(
+        `${TRACK} RG 0.4 w ${x.toFixed(1)} ${y - 14} m ${x.toFixed(1)} ${bottom} l S`,
+      );
+      drawText(stream, String(value), x - 5, bottom - 12, 7, MUTED, false);
+    }
+    row.items.forEach((item, index) => {
+      const yy = y - 14 - index * 18;
+      drawText(stream, ascii(item.label).slice(0, 24), 40, yy, 8, INK, false);
+      stream.push(`${TRACK} rg ${barX} ${yy - 6} ${barW} 7 re f`);
+      const value =
+        item.value === null ? 0 : Math.max(0, Math.min(100, item.value));
+      stream.push(
+        `${MAROON} rg ${barX} ${yy - 6} ${(value / 100) * barW} 7 re f`,
+      );
+      drawText(
+        stream,
+        item.value === null ? "Belum tersedia" : `${value.toFixed(0)}/100`,
+        440,
+        yy,
+        8,
+        INK,
+        false,
+      );
+    });
+    return;
+  }
+  if (row.kind === "indicatorChart") {
+    const left = 50;
+    const right = 540;
+    const top = y - 14;
+    const bottom = y - 92;
+    for (let score = 1; score <= 5; score++) {
+      const yy = bottom - ((score - 1) / 4) * (bottom - top);
+      stream.push(
+        `${TRACK} RG 0.4 w ${left} ${yy.toFixed(1)} m ${right} ${yy.toFixed(1)} l S`,
+      );
+      drawText(stream, String(score), 36, yy - 3, 7, MUTED, false);
+    }
+    const points = row.items.map((item, index) => {
+      const x =
+        left + ((right - left) * index) / Math.max(1, row.items.length - 1);
+      const value = Math.max(1, Math.min(5, item.value!));
+      return {
+        x,
+        y: bottom - ((value - 1) / 4) * (bottom - top),
+        index: item.index,
+      };
+    });
+    const line = points
+      .map(
+        (point, index) =>
+          `${index ? "l" : "m"} ${point.x.toFixed(1)} ${point.y.toFixed(1)}`,
+      )
+      .join(" ");
+    const area = `${left} ${bottom} m ${points.map((point) => `l ${point.x.toFixed(1)} ${point.y.toFixed(1)}`).join(" ")} l ${right} ${bottom} h f`;
+    stream.push(`${TEAL_SOFT} rg ${area}`);
+    stream.push(`${MAROON} RG 1.2 w ${line} S`);
+    points.forEach((point) =>
+      stream.push(
+        `${TEAL} rg ${(point.x - 2).toFixed(1)} ${(point.y - 2).toFixed(1)} 4 4 re f`,
+      ),
+    );
+    points.forEach((point) =>
+      drawText(
+        stream,
+        `I${point.index}`,
+        point.x - 5,
+        bottom - 12,
+        7,
+        MUTED,
+        false,
+      ),
+    );
+    drawText(
+      stream,
+      "Rata-rata indikator (1 = Sangat Kurang, 5 = Sangat Baik)",
+      40,
+      bottom - 26,
+      8,
+      MUTED,
+      false,
+    );
     return;
   }
   if (row.kind === "space") return;

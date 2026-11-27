@@ -1,4 +1,5 @@
 "use server";
+import { runAction } from "@/lib/action-error";
 import { uuidPattern } from "@/lib/validation";
 
 import { revalidatePath } from "next/cache";
@@ -15,7 +16,7 @@ const roles = [
   "peserta",
 ] as const;
 
-export async function createTemporaryInstructor(formData: FormData) {
+async function createTemporaryInstructorImpl(formData: FormData) {
   const supabase = await createClient();
   const { data: claimsData } = await supabase.auth.getClaims();
   const actorId = claimsData?.claims?.sub;
@@ -71,7 +72,7 @@ export async function createTemporaryInstructor(formData: FormData) {
   revalidatePath("/dashboard/pengguna");
 }
 
-export async function updateUserRole(formData: FormData) {
+async function updateUserRoleImpl(formData: FormData) {
   const supabase = await createClient();
   const { data: claimsData } = await supabase.auth.getClaims();
   const userId = claimsData?.claims?.sub;
@@ -116,7 +117,7 @@ export async function updateUserRole(formData: FormData) {
   revalidatePath("/dashboard");
 }
 
-export async function assignUserCommissariat(formData: FormData) {
+async function assignUserCommissariatImpl(formData: FormData) {
   const supabase = await createClient();
   const { data: claimsData } = await supabase.auth.getClaims();
   const userId = claimsData?.claims?.sub;
@@ -155,4 +156,31 @@ export async function assignUserCommissariat(formData: FormData) {
     );
   revalidatePath("/dashboard/pengguna");
   revalidatePath("/dashboard");
+}
+
+export async function createTemporaryInstructor(formData: FormData) {
+  return runAction(
+    "/dashboard/pengguna",
+    formData,
+    (data) => createTemporaryInstructorImpl(data),
+    ["akun", "userId"],
+  );
+}
+
+export async function updateUserRole(formData: FormData) {
+  return runAction(
+    "/dashboard/pengguna",
+    formData,
+    (data) => updateUserRoleImpl(data),
+    ["akun", "userId"],
+  );
+}
+
+export async function assignUserCommissariat(formData: FormData) {
+  return runAction(
+    "/dashboard/pengguna",
+    formData,
+    (data) => assignUserCommissariatImpl(data),
+    ["akun", "userId"],
+  );
 }

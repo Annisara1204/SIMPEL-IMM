@@ -1,4 +1,5 @@
 "use server";
+import { runAction } from "@/lib/action-error";
 import { uuidPattern } from "@/lib/validation";
 
 import * as XLSX from "xlsx";
@@ -33,7 +34,7 @@ async function authorizedClient() {
   return { supabase, userId };
 }
 
-export async function parseWorkbook(formData: FormData) {
+async function parseWorkbookImpl(formData: FormData) {
   await authorizedClient();
   const file = formData.get("file");
   if (!(file instanceof File) || file.size < 1)
@@ -278,4 +279,13 @@ export async function commitImport(input: {
     );
   revalidatePath("/dashboard/impor-tes");
   return { importId: data as string };
+}
+
+export async function parseWorkbook(formData: FormData) {
+  return runAction(
+    "/dashboard/impor-tes",
+    formData,
+    (data) => parseWorkbookImpl(data),
+    ["eventId", "testType", "importId"],
+  );
 }

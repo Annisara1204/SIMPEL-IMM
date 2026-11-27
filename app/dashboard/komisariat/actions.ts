@@ -1,4 +1,5 @@
 "use server";
+import { runAction } from "@/lib/action-error";
 import { uuidPattern } from "@/lib/validation";
 
 import { revalidatePath } from "next/cache";
@@ -23,7 +24,7 @@ function validName(value: string) {
   return value.trim().length >= 3 && value.trim().length <= 120;
 }
 
-export async function addCommissariat(formData: FormData) {
+async function addCommissariatImpl(formData: FormData) {
   const supabase = await requireAdmin();
   const name = String(formData.get("name") ?? "").trim();
   if (!validName(name))
@@ -39,7 +40,7 @@ export async function addCommissariat(formData: FormData) {
   redirect("/dashboard/komisariat?status=added");
 }
 
-export async function editCommissariat(formData: FormData) {
+async function editCommissariatImpl(formData: FormData) {
   const supabase = await requireAdmin();
   const id = String(formData.get("id") ?? "");
   const name = String(formData.get("name") ?? "").trim();
@@ -59,7 +60,7 @@ export async function editCommissariat(formData: FormData) {
   redirect("/dashboard/komisariat?status=updated");
 }
 
-export async function setCommissariatActive(formData: FormData) {
+async function setCommissariatActiveImpl(formData: FormData) {
   const supabase = await requireAdmin();
   const id = String(formData.get("id") ?? "");
   const active = String(formData.get("active") ?? "") === "true";
@@ -72,5 +73,32 @@ export async function setCommissariatActive(formData: FormData) {
   revalidatePath("/dashboard/komisariat");
   redirect(
     `/dashboard/komisariat?status=${active ? "activated" : "deactivated"}`,
+  );
+}
+
+export async function addCommissariat(formData: FormData) {
+  return runAction(
+    "/dashboard/komisariat",
+    formData,
+    (data) => addCommissariatImpl(data),
+    ["id"],
+  );
+}
+
+export async function editCommissariat(formData: FormData) {
+  return runAction(
+    "/dashboard/komisariat",
+    formData,
+    (data) => editCommissariatImpl(data),
+    ["id"],
+  );
+}
+
+export async function setCommissariatActive(formData: FormData) {
+  return runAction(
+    "/dashboard/komisariat",
+    formData,
+    (data) => setCommissariatActiveImpl(data),
+    ["id"],
   );
 }

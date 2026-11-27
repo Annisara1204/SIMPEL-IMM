@@ -8,7 +8,8 @@ Dokumen ini mencatat bukti per paket kerja saat eksekusi. Status rencana: `RENCA
 | 1 | Selesai | Migrasi `20261128010000`, penguji `supabase/tests/revision_privacy.sql` lolos dengan Kader 0 baris dan Admin 1 baris; `npm run check` exit 0; `npm run build` exit 0 | |
 | 2 | Selesai | `observer_assignment_scope.sql` lolos; unit `request-base-url.test.ts` lolos; QA browser: Kader tidak melihat 2 kotak penugasan, Admin melihat keduanya; curl host asing redirect ke host default; `npm run check` dan `npm run build` exit 0 | |
 | 3 | Selesai | `tests/autosave-policy.test.ts` lolos; QA browser DEV Observer: Ubah skor → "Tersimpan · 06.32.27", tidak ada tombol "Coba lagi"; nilai dikembalikan ke "Belum dinilai"; `npm run check` dan `npm run build` exit 0 | |
-| 4-15 | Belum | | |
+| 4 | Selesai | `tests/action-error.test.ts` lolos; QA browser DEV: duplikat nama Komisariat menghasilkan `?error=...` dan banner inline, bukan error boundary; `npm run check` dan `npm run build` exit 0 | |
+| 5-15 | Belum | | |
 
 ## Catatan Paket 1
 
@@ -37,3 +38,10 @@ Dokumen ini mencatat bukti per paket kerja saat eksekusi. Status rencana: `RENCA
 - BUG-06: Realtime kini memanggil `setAuth` lagi saat `TOKEN_REFRESHED` atau `SIGNED_IN`. QA live lebih dari satu jam tidak dilakukan, jadi perbaikan ini belum terbukti secara runtime dan tetap dicatat sebagai hipotesis.
 - BUG-07: event Realtime rekan menyimpan `revision`; penimpa dengan revisi lebih lama atau sama diabaikan bila data server punya revisi.
 - QA browser DEV (Observer A, kegiatan `48880b89`, Pelatihan/Ke-IMM-an/Observasi): memilih skor 4 menghasilkan "Tersimpan · 06.32.27" dan tidak ada tombol "Coba lagi". Nilai uji dikembalikan ke "Belum dinilai".
+
+## Catatan Paket 4
+
+- `runAction` di `lib/action-error.ts` menjadi pembungkus umum. `penilaianErrorUrl`/`runPenilaianAction` kini memanggil helper itu.
+- Aksi FormData di delapan modul dibungkus: evaluasi (6 aksi), kegiatan (7), pengajuan (7), seleksi komisariat (3), laporan (2), pengguna (3), komisariat (3), impor tes (1). Aksi evaluasi yang sudah memakai `{ok:false}` tidak dibungkus ulang.
+- Banner `?error=` kini tampil global di layout dashboard lewat `components/action-error-banner.tsx`, sehingga halaman tidak perlu masing-masing menyimpan pesan. Banner lama di Penilaian dan Evaluasi dihapus agar tidak dobel.
+- QA browser DEV: menambah Komisariat dengan nama yang sudah ada menghasilkan URL `?error=Nama+Komisariat+tersebut+sudah+terdaftar.` dan pesan tampil di dalam halaman. Tidak ada "Halaman gagal dimuat".

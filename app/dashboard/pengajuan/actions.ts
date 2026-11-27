@@ -1,4 +1,5 @@
 "use server";
+import { runAction } from "@/lib/action-error";
 import { uuidPattern } from "@/lib/validation";
 
 import { revalidatePath } from "next/cache";
@@ -88,7 +89,7 @@ async function getDraftSubmission(
   return submission;
 }
 
-export async function createSubmission(formData: FormData) {
+async function createSubmissionImpl(formData: FormData) {
   const { supabase } = await commissariatClient();
   const eventId = String(formData.get("eventId") ?? "");
   if (!uuidPattern.test(eventId)) throw new Error("Pilih kegiatan yang valid.");
@@ -105,7 +106,7 @@ export async function createSubmission(formData: FormData) {
   revalidatePath("/dashboard/pengajuan");
 }
 
-export async function uploadMandate(formData: FormData) {
+async function uploadMandateImpl(formData: FormData) {
   const { supabase, commissariatId } = await commissariatClient();
   const submissionId = String(formData.get("submissionId") ?? "");
   const submission = await getDraftSubmission(
@@ -167,7 +168,7 @@ function participantFields(formData: FormData) {
   };
 }
 
-export async function addApplicant(formData: FormData) {
+async function addApplicantImpl(formData: FormData) {
   const { supabase, userId, commissariatId } = await commissariatClient();
   const submissionId = String(formData.get("submissionId") ?? "");
   const submission = await getDraftSubmission(
@@ -210,7 +211,7 @@ export async function addApplicant(formData: FormData) {
   revalidatePath("/dashboard/pengajuan");
 }
 
-export async function editApplicant(formData: FormData) {
+async function editApplicantImpl(formData: FormData) {
   const { supabase, commissariatId } = await commissariatClient();
   const participantId = String(formData.get("participantId") ?? "");
   if (!uuidPattern.test(participantId))
@@ -262,7 +263,7 @@ export async function editApplicant(formData: FormData) {
   revalidatePath("/dashboard/pengajuan");
 }
 
-export async function removeApplicant(formData: FormData) {
+async function removeApplicantImpl(formData: FormData) {
   const { supabase, commissariatId } = await commissariatClient();
   const participantId = String(formData.get("participantId") ?? "");
   if (!uuidPattern.test(participantId))
@@ -284,7 +285,7 @@ export async function removeApplicant(formData: FormData) {
   revalidatePath("/dashboard/pengajuan");
 }
 
-export async function submitSubmission(formData: FormData) {
+async function submitSubmissionImpl(formData: FormData) {
   const { supabase, commissariatId } = await commissariatClient();
   const submissionId = String(formData.get("submissionId") ?? "");
   await getDraftSubmission(supabase, submissionId, commissariatId);
@@ -296,7 +297,7 @@ export async function submitSubmission(formData: FormData) {
   revalidatePath("/dashboard");
 }
 
-export async function cancelSubmission(formData: FormData) {
+async function cancelSubmissionImpl(formData: FormData) {
   const { supabase, commissariatId } = await commissariatClient();
   const submissionId = String(formData.get("submissionId") ?? "");
   if (!uuidPattern.test(submissionId))
@@ -315,4 +316,67 @@ export async function cancelSubmission(formData: FormData) {
   if (error) throw new Error(error.message || "Pengajuan gagal dibatalkan.");
   revalidatePath("/dashboard/pengajuan");
   revalidatePath("/dashboard");
+}
+
+export async function createSubmission(formData: FormData) {
+  return runAction(
+    "/dashboard/pengajuan",
+    formData,
+    (data) => createSubmissionImpl(data),
+    ["submissionId", "eventId"],
+  );
+}
+
+export async function uploadMandate(formData: FormData) {
+  return runAction(
+    "/dashboard/pengajuan",
+    formData,
+    (data) => uploadMandateImpl(data),
+    ["submissionId", "eventId"],
+  );
+}
+
+export async function addApplicant(formData: FormData) {
+  return runAction(
+    "/dashboard/pengajuan",
+    formData,
+    (data) => addApplicantImpl(data),
+    ["submissionId", "eventId"],
+  );
+}
+
+export async function editApplicant(formData: FormData) {
+  return runAction(
+    "/dashboard/pengajuan",
+    formData,
+    (data) => editApplicantImpl(data),
+    ["submissionId", "eventId"],
+  );
+}
+
+export async function removeApplicant(formData: FormData) {
+  return runAction(
+    "/dashboard/pengajuan",
+    formData,
+    (data) => removeApplicantImpl(data),
+    ["submissionId", "eventId"],
+  );
+}
+
+export async function submitSubmission(formData: FormData) {
+  return runAction(
+    "/dashboard/pengajuan",
+    formData,
+    (data) => submitSubmissionImpl(data),
+    ["submissionId", "eventId"],
+  );
+}
+
+export async function cancelSubmission(formData: FormData) {
+  return runAction(
+    "/dashboard/pengajuan",
+    formData,
+    (data) => cancelSubmissionImpl(data),
+    ["submissionId", "eventId"],
+  );
 }

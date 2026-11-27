@@ -1,4 +1,5 @@
 "use server";
+import { runAction } from "@/lib/action-error";
 import { uuidPattern } from "@/lib/validation";
 
 import { revalidatePath } from "next/cache";
@@ -36,7 +37,7 @@ async function assertEventActive(
     throw new Error("Kegiatan sudah diarsipkan. Pulihkan terlebih dahulu.");
 }
 
-export async function publishReport(formData: FormData) {
+async function publishReportImpl(formData: FormData) {
   const snapshotId = String(formData.get("snapshotId") ?? "");
   if (!uuidPattern.test(snapshotId))
     throw new Error("Snapshot rapor tidak valid.");
@@ -58,7 +59,7 @@ export async function publishReport(formData: FormData) {
   revalidatePath("/dashboard/laporan");
 }
 
-export async function assignParticipantAccount(formData: FormData) {
+async function assignParticipantAccountImpl(formData: FormData) {
   const participantId = String(formData.get("participantId") ?? "");
   const rawUserId = String(formData.get("userId") ?? "");
   const userId = rawUserId || null;
@@ -180,4 +181,22 @@ export async function loadReportSnapshots(
     }
   }
   return result;
+}
+
+export async function publishReport(formData: FormData) {
+  return runAction(
+    "/dashboard/laporan",
+    formData,
+    (data) => publishReportImpl(data),
+    ["eventId", "snapshotId", "participantId"],
+  );
+}
+
+export async function assignParticipantAccount(formData: FormData) {
+  return runAction(
+    "/dashboard/laporan",
+    formData,
+    (data) => assignParticipantAccountImpl(data),
+    ["eventId", "snapshotId", "participantId"],
+  );
 }

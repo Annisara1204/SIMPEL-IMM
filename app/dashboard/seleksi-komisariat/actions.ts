@@ -1,4 +1,5 @@
 "use server";
+import { runAction } from "@/lib/action-error";
 import { uuidPattern } from "@/lib/validation";
 
 import { revalidatePath } from "next/cache";
@@ -45,7 +46,7 @@ async function assertSubmissionAssignment(
   );
 }
 
-export async function startReview(formData: FormData) {
+async function startReviewImpl(formData: FormData) {
   const { supabase, userId, role } = await reviewerClient();
   const submissionId = String(formData.get("submissionId") ?? "");
   if (!uuidPattern.test(submissionId))
@@ -59,7 +60,7 @@ export async function startReview(formData: FormData) {
   revalidatePath("/dashboard/pengajuan");
 }
 
-export async function saveAdministrativeDecision(formData: FormData) {
+async function saveAdministrativeDecisionImpl(formData: FormData) {
   const { supabase, userId, role } = await reviewerClient();
   const participantId = String(formData.get("participantId") ?? "");
   const status = String(formData.get("status") ?? "");
@@ -138,7 +139,7 @@ export async function saveAdministrativeDecision(formData: FormData) {
   revalidatePath("/dashboard/seleksi-komisariat");
 }
 
-export async function publishAdministrativeResults(formData: FormData) {
+async function publishAdministrativeResultsImpl(formData: FormData) {
   const { supabase, userId, role } = await reviewerClient();
   const submissionId = String(formData.get("submissionId") ?? "");
   if (!uuidPattern.test(submissionId))
@@ -150,4 +151,31 @@ export async function publishAdministrativeResults(formData: FormData) {
   if (error) throw new Error(error.message || "Hasil belum dapat diterbitkan.");
   revalidatePath("/dashboard/seleksi-komisariat");
   revalidatePath("/dashboard/pengajuan");
+}
+
+export async function startReview(formData: FormData) {
+  return runAction(
+    "/dashboard/seleksi-komisariat",
+    formData,
+    (data) => startReviewImpl(data),
+    ["submissionId", "eventId", "participantId"],
+  );
+}
+
+export async function saveAdministrativeDecision(formData: FormData) {
+  return runAction(
+    "/dashboard/seleksi-komisariat",
+    formData,
+    (data) => saveAdministrativeDecisionImpl(data),
+    ["submissionId", "eventId", "participantId"],
+  );
+}
+
+export async function publishAdministrativeResults(formData: FormData) {
+  return runAction(
+    "/dashboard/seleksi-komisariat",
+    formData,
+    (data) => publishAdministrativeResultsImpl(data),
+    ["submissionId", "eventId", "participantId"],
+  );
 }

@@ -1,5 +1,7 @@
+import { Suspense } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { AppShell } from "@/components/app-shell";
+import { ActionErrorBanner } from "@/components/action-error-banner";
 import { roleLabels } from "@/lib/navigation";
 import type { AppRole } from "@/lib/roles";
 
@@ -30,6 +32,9 @@ export default async function DashboardLayout({
 
   return (
     <AppShell role={rawRole} displayName={profile?.display_name ?? undefined}>
+      <Suspense fallback={null}>
+        <ActionErrorBanner />
+      </Suspense>
       {children}
     </AppShell>
   );

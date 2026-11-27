@@ -100,9 +100,6 @@ export default async function AssessmentSettingsPage({
   )
     ? true
     : false;
-  const actionError = Array.isArray(params.error)
-    ? params.error[0]
-    : params.error;
   const [
     { data: events, error: eventsError },
     { data: versions, error: versionsError },
@@ -227,11 +224,6 @@ export default async function AssessmentSettingsPage({
         typesError ||
         materialsError ||
         instructorAssignmentsError) && <DataUnavailable />}
-      {actionError && (
-        <p className="notice notice--danger" role="alert">
-          {actionError}
-        </p>
-      )}
       {!requestedEventId && (
         <section className="event-manage-card">
           <div className="event-manage-title">

@@ -1,4 +1,5 @@
 "use server";
+import { runAction } from "@/lib/action-error";
 import { uuidPattern } from "@/lib/validation";
 
 import { revalidatePath } from "next/cache";
@@ -78,7 +79,7 @@ function requireRubricVersionId(formData: FormData): string {
   return rubricVersionId;
 }
 
-export async function saveAssessmentModeration(formData: FormData) {
+async function saveAssessmentModerationImpl(formData: FormData) {
   const eventId = String(formData.get("eventId") ?? "");
   const participantId = String(formData.get("participantId") ?? "");
   const rubricVersionId = String(formData.get("rubricVersionId") ?? "");
@@ -273,7 +274,7 @@ export async function saveAssessmentModeration(formData: FormData) {
   revalidatePath("/dashboard/evaluasi");
 }
 
-export async function saveCollectiveEvaluation(formData: FormData) {
+async function saveCollectiveEvaluationImpl(formData: FormData) {
   const eventId = String(formData.get("eventId") ?? "");
   const participantId = String(formData.get("participantId") ?? "");
   if (![eventId, participantId].every((id) => uuidPattern.test(id)))
@@ -348,7 +349,7 @@ export async function saveCollectiveEvaluation(formData: FormData) {
   revalidatePath("/dashboard/evaluasi");
 }
 
-export async function updateDevelopmentRecommendation(formData: FormData) {
+async function updateDevelopmentRecommendationImpl(formData: FormData) {
   const recommendationId = String(formData.get("recommendationId") ?? "");
   const recommendation = String(formData.get("recommendation") ?? "").trim();
   if (!uuidPattern.test(recommendationId))
@@ -381,7 +382,7 @@ export async function updateDevelopmentRecommendation(formData: FormData) {
   revalidatePath("/dashboard/evaluasi");
 }
 
-export async function generateAutomaticRecommendations(formData: FormData) {
+async function generateAutomaticRecommendationsImpl(formData: FormData) {
   const eventId = String(formData.get("eventId") ?? "");
   const participantId = String(formData.get("participantId") ?? "");
   if (!uuidPattern.test(eventId) || !uuidPattern.test(participantId))
@@ -509,7 +510,7 @@ export async function generateAutomaticRecommendations(formData: FormData) {
   revalidatePath("/dashboard/evaluasi");
 }
 
-export async function approveDevelopmentRecommendation(formData: FormData) {
+async function approveDevelopmentRecommendationImpl(formData: FormData) {
   const recommendationId = String(formData.get("recommendationId") ?? "");
   if (!uuidPattern.test(recommendationId))
     throw new Error("Rekomendasi tidak valid.");
@@ -888,7 +889,7 @@ export async function approveFinalizePublishReport(formData: FormData) {
   );
 }
 
-export async function finalizeAllEvaluations(formData: FormData) {
+async function finalizeAllEvaluationsImpl(formData: FormData) {
   const eventId = String(formData.get("eventId") ?? "");
   if (!uuidPattern.test(eventId)) throw new Error("Kegiatan tidak valid.");
   const { supabase, userId } = await requireModerator(eventId);
@@ -964,5 +965,59 @@ export async function finalizeAllEvaluations(formData: FormData) {
     : "";
   redirect(
     `/dashboard/evaluasi?eventId=${eventId}&batchOk=${finalized}&batchSkipped=${skipped}&batchMissing=${missingVersions.length}${failureQuery}`,
+  );
+}
+
+export async function saveAssessmentModeration(formData: FormData) {
+  return runAction(
+    "/dashboard/evaluasi",
+    formData,
+    (data) => saveAssessmentModerationImpl(data),
+    ["eventId", "participantId", "versionId", "rubricVersionId"],
+  );
+}
+
+export async function saveCollectiveEvaluation(formData: FormData) {
+  return runAction(
+    "/dashboard/evaluasi",
+    formData,
+    (data) => saveCollectiveEvaluationImpl(data),
+    ["eventId", "participantId", "versionId", "rubricVersionId"],
+  );
+}
+
+export async function updateDevelopmentRecommendation(formData: FormData) {
+  return runAction(
+    "/dashboard/evaluasi",
+    formData,
+    (data) => updateDevelopmentRecommendationImpl(data),
+    ["eventId", "participantId", "versionId", "rubricVersionId"],
+  );
+}
+
+export async function generateAutomaticRecommendations(formData: FormData) {
+  return runAction(
+    "/dashboard/evaluasi",
+    formData,
+    (data) => generateAutomaticRecommendationsImpl(data),
+    ["eventId", "participantId", "versionId", "rubricVersionId"],
+  );
+}
+
+export async function approveDevelopmentRecommendation(formData: FormData) {
+  return runAction(
+    "/dashboard/evaluasi",
+    formData,
+    (data) => approveDevelopmentRecommendationImpl(data),
+    ["eventId", "participantId", "versionId", "rubricVersionId"],
+  );
+}
+
+export async function finalizeAllEvaluations(formData: FormData) {
+  return runAction(
+    "/dashboard/evaluasi",
+    formData,
+    (data) => finalizeAllEvaluationsImpl(data),
+    ["eventId", "participantId", "versionId", "rubricVersionId"],
   );
 }

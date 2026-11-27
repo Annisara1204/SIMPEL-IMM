@@ -1,4 +1,5 @@
 "use server";
+import { runAction } from "@/lib/action-error";
 import { uuidPattern } from "@/lib/validation";
 
 import { revalidatePath } from "next/cache";
@@ -90,7 +91,7 @@ async function assertEventActive(
     throw new Error("Kegiatan sudah diarsipkan. Pulihkan terlebih dahulu.");
 }
 
-export async function updateEvent(formData: FormData) {
+async function updateEventImpl(formData: FormData) {
   const { supabase, userId, role } = await authorizedActor();
   const id = String(formData.get("id") ?? "");
   const name = String(formData.get("name") ?? "").trim();
@@ -147,7 +148,7 @@ export async function updateEvent(formData: FormData) {
   revalidatePath("/dashboard/peserta");
 }
 
-export async function createEvent(formData: FormData) {
+async function createEventImpl(formData: FormData) {
   const { supabase, role } = await authorizedActor();
   if (role !== "admin_system")
     throw new Error("Hanya Admin Sistem yang dapat membuat kegiatan baru.");
@@ -210,15 +211,15 @@ async function setEventArchived(formData: FormData, archived: boolean) {
   revalidatePath("/dashboard/kegiatan");
 }
 
-export async function archiveEvent(formData: FormData) {
+async function archiveEventImpl(formData: FormData) {
   await setEventArchived(formData, true);
 }
 
-export async function restoreEvent(formData: FormData) {
+async function restoreEventImpl(formData: FormData) {
   await setEventArchived(formData, false);
 }
 
-export async function addParticipant(formData: FormData) {
+async function addParticipantImpl(formData: FormData) {
   const { supabase, userId, role } = await authorizedActor();
   const eventId = String(formData.get("eventId") ?? "");
   const displayName = String(formData.get("displayName") ?? "").trim();
@@ -292,7 +293,7 @@ export async function addParticipant(formData: FormData) {
   revalidatePath("/dashboard/peserta");
 }
 
-export async function editParticipant(formData: FormData) {
+async function editParticipantImpl(formData: FormData) {
   const { supabase, userId, role } = await authorizedActor();
   const participantId = String(formData.get("participantId") ?? "");
   const displayName = String(formData.get("displayName") ?? "").trim();
@@ -375,7 +376,7 @@ export async function editParticipant(formData: FormData) {
   revalidatePath("/dashboard/peserta");
 }
 
-export async function removeParticipant(formData: FormData) {
+async function removeParticipantImpl(formData: FormData) {
   const { supabase, userId, role } = await authorizedActor();
   const participantId = String(formData.get("participantId") ?? "");
   if (!uuidPattern.test(participantId))
@@ -403,4 +404,67 @@ export async function removeParticipant(formData: FormData) {
     await supabase.storage.from(photoBucket).remove([current.photo_path]);
   revalidatePath("/dashboard/kegiatan");
   revalidatePath("/dashboard/peserta");
+}
+
+export async function updateEvent(formData: FormData) {
+  return runAction(
+    "/dashboard/kegiatan",
+    formData,
+    (data) => updateEventImpl(data),
+    ["id", "eventId", "archived"],
+  );
+}
+
+export async function createEvent(formData: FormData) {
+  return runAction(
+    "/dashboard/kegiatan",
+    formData,
+    (data) => createEventImpl(data),
+    ["id", "eventId", "archived"],
+  );
+}
+
+export async function archiveEvent(formData: FormData) {
+  return runAction(
+    "/dashboard/kegiatan",
+    formData,
+    (data) => archiveEventImpl(data),
+    ["id", "eventId", "archived"],
+  );
+}
+
+export async function restoreEvent(formData: FormData) {
+  return runAction(
+    "/dashboard/kegiatan",
+    formData,
+    (data) => restoreEventImpl(data),
+    ["id", "eventId", "archived"],
+  );
+}
+
+export async function addParticipant(formData: FormData) {
+  return runAction(
+    "/dashboard/kegiatan",
+    formData,
+    (data) => addParticipantImpl(data),
+    ["id", "eventId", "archived"],
+  );
+}
+
+export async function editParticipant(formData: FormData) {
+  return runAction(
+    "/dashboard/kegiatan",
+    formData,
+    (data) => editParticipantImpl(data),
+    ["id", "eventId", "archived"],
+  );
+}
+
+export async function removeParticipant(formData: FormData) {
+  return runAction(
+    "/dashboard/kegiatan",
+    formData,
+    (data) => removeParticipantImpl(data),
+    ["id", "eventId", "archived"],
+  );
 }

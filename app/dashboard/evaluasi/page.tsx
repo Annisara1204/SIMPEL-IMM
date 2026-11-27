@@ -73,9 +73,6 @@ export default async function CollectiveEvaluationPage({
   )
     redirect("/dashboard");
   const params = await searchParams;
-  const actionError = Array.isArray(params.error)
-    ? params.error[0]
-    : params.error;
   const eventId = Array.isArray(params.eventId)
     ? params.eventId[0]
     : params.eventId;
@@ -374,11 +371,6 @@ export default async function CollectiveEvaluationPage({
           </p>
         </div>
       </div>
-      {actionError && (
-        <p className="notice notice--danger" role="alert">
-          {actionError}
-        </p>
-      )}
       {!eventId && (
         <section className="event-manage-card">
           <h2>Pilih kegiatan</h2>

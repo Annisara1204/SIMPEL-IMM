@@ -43,7 +43,7 @@ Target yang seharusnya dipakai aplikasi adalah **Supabase self-hosted** di serve
 
 ## Cara memperbarui aplikasi (deploy ulang)
 
-Prosedur ini dipakai untuk pembaruan aplikasi. Kode yang aktif sekarang `3c2d413` (deploy 27 November 2026 pukul 14:33 WIB).
+Prosedur ini dipakai untuk pembaruan aplikasi. Kode yang aktif sekarang `3a90a8b` (deploy 27 November 2026 pukul 14:52 WIB).
 
 ```powershell
 # dari workstation, repo ini

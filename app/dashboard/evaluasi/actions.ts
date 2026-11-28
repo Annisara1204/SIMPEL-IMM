@@ -1,5 +1,5 @@
 "use server";
-import { runAction } from "@/lib/action-error";
+import { actionErrorUrl, runAction } from "@/lib/action-error";
 import { uuidPattern } from "@/lib/validation";
 
 import { revalidatePath } from "next/cache";
@@ -43,13 +43,11 @@ function isNextControlError(error: unknown): boolean {
 }
 
 function evaluationErrorUrl(message: string, formData: FormData): string {
-  const params = new URLSearchParams();
-  for (const key of ["eventId", "participantId", "versionId"] as const) {
-    const value = String(formData.get(key) ?? "");
-    if (value) params.set(key, value);
-  }
-  params.set("error", message.slice(0, 300));
-  return `/dashboard/evaluasi?${params.toString()}`;
+  return actionErrorUrl("/dashboard/evaluasi", message, formData, [
+    "eventId",
+    "participantId",
+    "versionId",
+  ] as const);
 }
 
 /**
@@ -861,8 +859,7 @@ async function finalizeFromForm(
     "publish_assessment_report",
     { target_snapshot_id: finalized.value },
   );
-  if (publishError)
-    return failed(publishError.message || "Rapor gagal diterbitkan.");
+  if (publishError) return failed("Rapor gagal diterbitkan.");
   return finalized;
 }
 

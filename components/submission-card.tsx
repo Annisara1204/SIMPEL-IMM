@@ -111,12 +111,19 @@ export function SubmissionCard({
                 required
                 minLength={2}
                 maxLength={120}
+                id="displayName"
                 name="displayName"
               />
             </label>
             <label>
               Jurusan/program studi *
-              <input required minLength={2} maxLength={120} name="major" />
+              <input
+                required
+                minLength={2}
+                maxLength={120}
+                id="major"
+                name="major"
+              />
             </label>
             <label>
               Tahun angkatan *
@@ -126,13 +133,14 @@ export function SubmissionCard({
                 min={1900}
                 max={2100}
                 step={1}
+                id="entryYear"
                 name="entryYear"
                 placeholder="Contoh: 2024"
               />
             </label>
             <label>
               Jabatan (opsional)
-              <input maxLength={120} name="position" />
+              <input maxLength={120} id="position" name="position" />
             </label>
             <label>
               Foto formal (opsional)
@@ -195,6 +203,7 @@ export function SubmissionCard({
                               required
                               minLength={2}
                               maxLength={120}
+                              id="displayName"
                               name="displayName"
                               defaultValue={person.display_name}
                             />
@@ -205,6 +214,7 @@ export function SubmissionCard({
                               required
                               minLength={2}
                               maxLength={120}
+                              id="major"
                               name="major"
                               defaultValue={person.major ?? undefined}
                             />
@@ -217,6 +227,7 @@ export function SubmissionCard({
                               min={1900}
                               max={2100}
                               step={1}
+                              id="entryYear"
                               name="entryYear"
                               defaultValue={person.entry_year ?? undefined}
                             />
@@ -225,6 +236,7 @@ export function SubmissionCard({
                             Jabatan
                             <input
                               maxLength={120}
+                              id="position"
                               name="position"
                               defaultValue={person.position ?? ""}
                             />

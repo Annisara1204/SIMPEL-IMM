@@ -274,7 +274,7 @@ export function ImportWizard({
     <section className="event-manage-card import-card">
       {savedImport ? (
         <>
-          <div className="notice">
+          <div className="notice" role="status">
             <strong>Impor selesai</strong>
             <p>
               {message} ID impor: <code>{savedImport}</code>
@@ -404,7 +404,7 @@ export function ImportWizard({
                 onClick={checkMatches}
                 disabled={isPending || !eventId}
               >
-                Cek peserta
+                {isPending ? "Mencocokkan…" : "Cek peserta"}
               </button>
             </div>
           )}

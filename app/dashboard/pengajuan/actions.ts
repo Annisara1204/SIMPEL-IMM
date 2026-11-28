@@ -1,6 +1,6 @@
 "use server";
 import { sessionLoginUrl } from "@/lib/session-login";
-import { runAction } from "@/lib/action-error";
+import { FormFieldError, runAction } from "@/lib/action-error";
 import { uuidPattern } from "@/lib/validation";
 
 import { revalidatePath } from "next/cache";
@@ -148,18 +148,25 @@ function participantFields(formData: FormData) {
   const major = String(formData.get("major") ?? "").trim();
   const entryYear = Number(formData.get("entryYear"));
   const position = String(formData.get("position") ?? "").trim();
-  if (
-    displayName.length < 2 ||
-    displayName.length > 120 ||
-    major.length < 2 ||
-    major.length > 120 ||
-    !Number.isInteger(entryYear) ||
-    entryYear < 1900 ||
-    entryYear > 2100 ||
-    position.length > 120
-  )
-    throw new Error(
-      "Periksa nama, jurusan/program studi, tahun angkatan, dan jabatan peserta.",
+  if (displayName.length < 2 || displayName.length > 120)
+    throw new FormFieldError(
+      "displayName",
+      "Nama lengkap wajib diisi antara 2 dan 120 karakter.",
+    );
+  if (major.length < 2 || major.length > 120)
+    throw new FormFieldError(
+      "major",
+      "Jurusan atau program studi wajib diisi antara 2 dan 120 karakter.",
+    );
+  if (!Number.isInteger(entryYear) || entryYear < 1900 || entryYear > 2100)
+    throw new FormFieldError(
+      "entryYear",
+      "Tahun angkatan harus berupa tahun antara 1900 dan 2100.",
+    );
+  if (position.length > 120)
+    throw new FormFieldError(
+      "position",
+      "Jabatan peserta maksimal 120 karakter.",
     );
   return {
     display_name: displayName,
@@ -293,7 +300,7 @@ async function submitSubmissionImpl(formData: FormData) {
   const { error } = await supabase.rpc("submit_commissariat_submission", {
     p_submission_id: submissionId,
   });
-  if (error) throw new Error(error.message || "Pengajuan gagal dikirim.");
+  if (error) throw new Error("Pengajuan gagal dikirim.");
   revalidatePath("/dashboard/pengajuan");
   revalidatePath("/dashboard/pengajuan");
 }
@@ -314,7 +321,7 @@ async function cancelSubmissionImpl(formData: FormData) {
   const { error } = await supabase.rpc("cancel_commissariat_submission", {
     p_submission_id: submissionId,
   });
-  if (error) throw new Error(error.message || "Pengajuan gagal dibatalkan.");
+  if (error) throw new Error("Pengajuan gagal dibatalkan.");
   revalidatePath("/dashboard/pengajuan");
   revalidatePath("/dashboard/pengajuan");
 }

@@ -56,7 +56,7 @@ async function startReviewImpl(formData: FormData) {
   const { error } = await supabase.rpc("start_commissariat_review", {
     p_submission_id: submissionId,
   });
-  if (error) throw new Error(error.message || "Tinjauan gagal dimulai.");
+  if (error) throw new Error("Tinjauan gagal dimulai.");
   revalidatePath("/dashboard/seleksi-komisariat");
   revalidatePath("/dashboard/pengajuan");
 }
@@ -109,8 +109,7 @@ async function saveAdministrativeDecisionImpl(formData: FormData) {
     )
     .select("id")
     .single();
-  if (error || !decision)
-    throw new Error(error?.message || "Keputusan gagal disimpan.");
+  if (error || !decision) throw new Error("Keputusan gagal disimpan.");
   const { data: existingNote } = await supabase
     .from("commissariat_submission_internal_notes")
     .select("id")
@@ -149,7 +148,7 @@ async function publishAdministrativeResultsImpl(formData: FormData) {
   const { error } = await supabase.rpc("publish_administrative_selection", {
     p_submission_id: submissionId,
   });
-  if (error) throw new Error(error.message || "Hasil belum dapat diterbitkan.");
+  if (error) throw new Error("Hasil belum dapat diterbitkan.");
   revalidatePath("/dashboard/seleksi-komisariat");
   revalidatePath("/dashboard/pengajuan");
 }

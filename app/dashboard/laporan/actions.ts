@@ -56,7 +56,7 @@ async function publishReportImpl(formData: FormData) {
   const { error } = await supabase.rpc("publish_assessment_report", {
     target_snapshot_id: snapshotId,
   });
-  if (error) throw new Error(error.message || "Rapor gagal diterbitkan.");
+  if (error) throw new Error("Rapor gagal diterbitkan.");
   revalidatePath("/dashboard/laporan");
 }
 
@@ -82,7 +82,7 @@ async function assignParticipantAccountImpl(formData: FormData) {
     target_participant_id: participantId,
     target_user_id: userId,
   });
-  if (error) throw new Error(error.message || "Pengaitan akun peserta gagal.");
+  if (error) throw new Error("Pengaitan akun peserta gagal.");
   revalidatePath("/dashboard/laporan");
 }
 
@@ -133,7 +133,7 @@ export async function auditReportExport(input: {
     target_export_type: input.exportType,
     target_filters: input.filters ?? {},
   });
-  if (error) throw new Error(error.message || "Audit ekspor gagal disimpan.");
+  if (error) throw new Error("Audit ekspor gagal disimpan.");
 }
 
 /**

@@ -4,7 +4,7 @@ import { runAction } from "@/lib/action-error";
 import { uuidPattern } from "@/lib/validation";
 
 import * as XLSX from "xlsx";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, refresh } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
@@ -279,6 +279,7 @@ export async function commitImport(input: {
         "Impor gagal disimpan. Pastikan migrasi Tahap 5 sudah dijalankan.",
     );
   revalidatePath("/dashboard/impor-tes");
+  refresh();
   return { importId: data as string };
 }
 

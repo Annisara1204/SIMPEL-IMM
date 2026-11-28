@@ -586,12 +586,7 @@ async function setMaterialArchived(formData: FormData, archived: boolean) {
       : query.not("archived_at", "is", null)
   ).select("id");
   if (error)
-    redirect(
-      penilaianErrorUrl(
-        error.message || "Perubahan arsip materi gagal.",
-        formData,
-      ),
-    );
+    redirect(penilaianErrorUrl("Perubahan arsip materi gagal.", formData));
   if (!data?.length)
     redirect(
       penilaianErrorUrl(

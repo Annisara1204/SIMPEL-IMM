@@ -3,6 +3,16 @@ import { actionErrorUrl } from "@/lib/action-error-url";
 
 export { actionErrorUrl };
 
+/** Kesalahan validasi yang tahu kolom mana yang perlu diperbaiki. */
+export class FormFieldError extends Error {
+  readonly field: string;
+  constructor(field: string, message: string) {
+    super(message);
+    this.name = "FormFieldError";
+    this.field = field;
+  }
+}
+
 function isNextControlError(error: unknown): boolean {
   const digest = (error as (Error & { digest?: unknown }) | null)?.digest;
   return typeof digest === "string" && digest.startsWith("NEXT_");
@@ -23,6 +33,14 @@ export async function runAction<T>(
       error instanceof Error && error.message
         ? error.message
         : "Operasi gagal. Muat ulang halaman dan coba lagi.";
-    redirect(actionErrorUrl(path, message, formData, contextKeys));
+    redirect(
+      actionErrorUrl(
+        path,
+        message,
+        formData,
+        contextKeys,
+        error instanceof FormFieldError ? error.field : undefined,
+      ),
+    );
   }
 }

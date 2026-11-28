@@ -21,7 +21,6 @@ import {
   type InstructorDuty,
   type InstructorParticipantEvent,
 } from "@/components/instructor-duty-dashboard";
-import { DataUnavailable } from "@/components/data-unavailable";
 
 const allowedRoles: AppRole[] = [
   "admin_system",
@@ -54,16 +53,7 @@ export default async function DashboardPage() {
     .select("display_name, role, account_type")
     .eq("id", userId)
     .maybeSingle();
-  if (error)
-    return (
-      <div className="state-page">
-        <h1>Profil belum tersedia</h1>
-        <DataUnavailable />
-        <form action="/auth/signout" method="post">
-          <button>Keluar</button>
-        </form>
-      </div>
-    );
+  if (error) redirect("/login?reason=session");
   if (!profile?.role || !allowedRoles.includes(profile.role as AppRole))
     return (
       <div className="state-page">

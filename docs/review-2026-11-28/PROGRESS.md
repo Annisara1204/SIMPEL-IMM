@@ -15,7 +15,8 @@ Dokumen ini mencatat bukti per paket kerja saat eksekusi. Status rencana: `RENCA
 | 8 | Selesai (digabung Paket 7) | BUG-08 dikerjakan bersama Paket 7; penguji multi-versi lolos | b36c976 |
 | 9 | Selesai | QA browser DEV: halaman Observasi merender normal setelah filter event; cache profil dan `revalidatePath` target diperiksa dari kode; `npm run check` (20 tes) dan `npm run build` exit 0 | |
 | 10 | Selesai | `tests/authorization-policy.test.ts` lolos; `npm run test:sql` 7/7 penguji stabil lolos; `npm run check` dan `npm run build` exit 0; QA browser DEV Observer masih membuka kegiatan tugasnya | |
-| 11-15 | Belum | | |
+| 11 | Selesai | QA browser DEV: `/login?reason=session` menampilkan "Sesi Anda sudah berakhir"; `npm run check` dan `npm run build` exit 0 | |
+| 12-15 | Belum | | |
 
 ## Catatan Paket 1
 
@@ -91,3 +92,9 @@ Dokumen ini mencatat bukti per paket kerja saat eksekusi. Status rencana: `RENCA
 - `canManageEvent` di `lib/authorization-policy.ts` menjadi aturan murni: Admin lolos, Observer lolos hanya dengan penugasan, peran lain ditolak. Helper `assertEventAssignment` memakainya dan diuji unit.
 - `npm run test:sql` menjalankan tujuh penguji SQL stabil terhadap Supabase lokal. Empat penguji lain masih gagal karena data DEV hasil salinan produksi tidak cocok dengan fixture lama; ini tercatat di catatan Paket 0.
 - QA browser DEV: Observer A masih membuka kegiatan `48880b89` normal setelah perubahan aturan.
+
+## Catatan Paket 11
+
+- AUTH-005: error query profil di `/dashboard` dan `/dashboard/profil` kini mengalihkan ke `/login?reason=session`, bukan menampilkan "Profil belum tersedia".
+- `components/session-expired-notice.tsx` menampilkan pesan "Sesi Anda sudah berakhir. Masuk lagi untuk melanjutkan." pada halaman login.
+- QA browser DEV membuktikan pesan tampil di `/login?reason=session`. Sesi benar-benar kedaluwarsa tidak disimulasikan dengan token lampau, jadi jalur redirect-error hanya diverifikasi dari kode.

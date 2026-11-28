@@ -27,7 +27,10 @@ export default async function ProfilePage({
   const { data: claimsData } = await supabase.auth.getClaims();
   const userId = claimsData?.claims?.sub;
   if (!userId) redirect("/login");
-  const [{ data: profile }, { data: personalProfile }] = await Promise.all([
+  const [
+    { data: profile, error: profileError },
+    { data: personalProfile, error: personalError },
+  ] = await Promise.all([
     supabase
       .from("profiles")
       .select("display_name, account_type, username")
@@ -41,6 +44,7 @@ export default async function ProfilePage({
       .eq("user_id", userId)
       .maybeSingle(),
   ]);
+  if (profileError || personalError) redirect("/login?reason=session");
   if (!profile)
     return (
       <div className="state-page">

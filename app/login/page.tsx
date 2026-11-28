@@ -1,9 +1,10 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, Suspense, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { SessionExpiredNotice } from "@/components/session-expired-notice";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -51,6 +52,9 @@ export default function LoginPage() {
         <p className="login-description">
           Gunakan email dan kata sandi akun yang diberikan Admin.
         </p>
+        <Suspense fallback={null}>
+          <SessionExpiredNotice />
+        </Suspense>
         <form onSubmit={submit} className="login-form">
           <label>
             Email atau username

@@ -798,3 +798,12 @@ Dampak lain: aksi di `app/dashboard/evaluasi/actions.ts` (draf rekomendasi otoma
 - Verifikasi read-only: `npm test` 49/49 lolos, lint 0 error dan 1 warning lama (`WHITE` di `lib/phase7-files.ts`). Tidak ada build atau uji browser dalam review ini.
 - Keputusan pemilik 28 November 2026: (1) `/daftar` diubah menjadi permintaan akun untuk Admin, `DISABLE_SIGNUP=true` tetap; (2) status dipakai sebagai judul versi rubrik, penanda resmi/percobaan menjadi badge atau teks tambahan; (3) peta kompetensi otomatis dihitung per versi rubrik lalu digabung dengan aturan eksplisit, tetap berlabel Sementara. K05 (tidak rotasi kunci) dan K07 (HTTP untuk sementara) tetap sesuai keputusan sebelumnya. `BLUEPRINT.md` sudah diselaraskan.
 - Rencana siap diajukan untuk persetujuan eksekusi paket per paket. Belum ada paket yang dikerjakan atau di-deploy.
+
+## Eksekusi rencana (28 November 2026)
+
+- Pemilik menyetujui seluruh rencana untuk dikerjakan dengan testing, QA, dan commit tiap fase. Bukti lengkap per paket ada di `docs/review-2026-11-28/PROGRESS.md`.
+- Empat belas commit dibuat di `main`, dari `36d8047` (privasi revisi evaluasi) sampai `bb1a661` (helper UI impor dan status pengajuan). Setiap paket memiliki catatan verifikasi tersendiri.
+- Migrasi baru: `20261128010000` (RLS revisi + grant anon), `20261128020000` (EXECUTE anon pada fungsi internal), `20261128030000` (penugasan Observer khusus Admin), `20261128040000` (permintaan akun Instruktur). Semua dipasang di Supabase lokal; rollback disediakan.
+- Verifikasi akhir: `npm run check` exit 0 (81 tes di `npm test`, lint 0 error dan 0 warning), `npm run build` exit 0, `npm run test:sql` 8/8 penguji stabil lolos. QA browser DEV mencakup error inline, form penugasan per peran, autosave Observer, halaman Evaluasi/Laporan/Impor Tes, dan alur permintaan akun.
+- Paket 12 baru selesai sebagian: logika bersama sudah diekstrak dari keenam file UI besar, tetapi pemecahan JSX menjadi komponen presentasional belum dilakukan. Ukuran file masih 537–1.661 baris. Ini sengaja tidak dipaksakan agar tidak menimbulkan regresi tanpa uji browser menyeluruh per peran.
+- Belum ada deploy produksi dalam sesi ini. Kode dan migrasi baru hanya ada di DEV/lokal.

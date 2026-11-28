@@ -47,13 +47,13 @@ export function Phase7DashboardHome({ data }: { data: Phase7Home }) {
             </strong>
           </article>
           <article>
-            <small>Rapor finalized</small>
+            <small>Rapor selesai</small>
             <strong>
               {data.events.reduce((sum, item) => sum + item.finalized, 0)}
             </strong>
           </article>
           <article>
-            <small>Rapor published</small>
+            <small>Rapor diterbitkan</small>
             <strong>
               {data.events.reduce((sum, item) => sum + item.published, 0)}
             </strong>
@@ -96,7 +96,7 @@ export function Phase7DashboardHome({ data }: { data: Phase7Home }) {
                   <small>
                     {item.unavailable
                       ? "Data snapshot Fase 6 belum tersedia"
-                      : `${item.participants} peserta · ${item.sessions} sesi · ${item.reviewers} penilai · ${item.assessmentSubmissions} kiriman · ${item.finalized} final · ${item.published} published · ${item.provisional} provisional · rata-rata ${item.averageScore === null ? "—" : item.averageScore.toFixed(1)}`}
+                      : `${item.participants} peserta · ${item.sessions} sesi · ${item.reviewers} penilai · ${item.assessmentSubmissions} kiriman · ${item.finalized} selesai · ${item.published} diterbitkan · ${item.provisional} sementara · rata-rata ${item.averageScore === null ? "—" : item.averageScore.toFixed(1)}`}
                     <br />
                     Aktivitas asesmen terakhir:{" "}
                     {item.latestActivity

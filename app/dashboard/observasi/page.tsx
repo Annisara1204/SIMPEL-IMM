@@ -655,8 +655,7 @@ export default async function ObservationsPage({
       <p className="privacy-note">
         Skor, bukti, riwayat perubahan, dan catatan hanya dapat dibaca oleh
         Admin Sistem serta Observer dan Instruktur yang ditugaskan pada
-        kegiatan. RLS basis data memisahkan kepemilikan penilaian setiap
-        observer.
+        kegiatan. Aturan akses di sistem memisahkan penilaian tiap penilai.
       </p>
     </div>
   );

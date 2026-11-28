@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { setAssessmentSubmissionStatus } from "../penilaian/assessment-actions";
+import { submissionStatusLabel } from "@/lib/submission-status";
 
 export function SubmissionControls({
   participantId,
@@ -42,15 +43,9 @@ export function SubmissionControls({
     <div className="observer-completion">
       <p>
         Status Anda untuk peserta ini:{" "}
-        <strong>
-          {status === "submitted"
-            ? "Submitted"
-            : status === "finalized"
-              ? "Finalized"
-              : "Draft"}
-        </strong>
-        . {submittedCount} dari {assignedCount} observer mengirim penilaian
-        (informasi; tidak menghalangi finalisasi).
+        <strong>{submissionStatusLabel(status)}</strong>. {submittedCount} dari{" "}
+        {assignedCount} observer mengirim penilaian (informasi; tidak
+        menghalangi finalisasi).
       </p>
       {status === "draft" && (
         <button

@@ -29,7 +29,7 @@ export function HomeHero({
         <h1>{pageTitle[role]}</h1>
         <p className="intro">
           {isPublic
-            ? "Informasi publik Pelatihan Kader DAD IMM Kota Bandung."
+            ? "Informasi publik Pelatihan Darul Arqam Dasar (DAD) IMM Kota Bandung. Ringkasan kegiatan tanpa nama peserta."
             : `Ruang kerja ${roleLabels[role]}.`}
         </p>
       </div>

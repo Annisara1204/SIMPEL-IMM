@@ -42,10 +42,7 @@ export default async function CompetencyFrameworkPage() {
       <div className="users-page">
         <section className="event-manage-card">
           <h1>Kerangka Kompetensi DAD</h1>
-          <p>
-            Master framework belum tersedia. Pastikan migration framework,
-            pemetaan materi, dan rubrik trial sudah dijalankan berurutan.
-          </p>
+          <p>Kerangka belum siap. Hubungi Admin sistem.</p>
         </section>
       </div>
     );

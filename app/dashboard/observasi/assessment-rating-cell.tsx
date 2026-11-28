@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { saveAssessmentRating } from "../penilaian/assessment-actions";
 import { SCORE_SCALE_LABELS } from "@/lib/scoring";
 import { canScheduleAutosave } from "@/lib/autosave-policy";
+import { submissionStatusLabel } from "@/lib/submission-status";
 
 type ResponseStatus = "unrated" | "scored" | "not_observed";
 type Value = {
@@ -383,12 +384,7 @@ export function AssessmentRatingCell(props: Props) {
           </summary>
           {visiblePeers.map((item) => {
             const submissionStatus = props.peerStatuses?.[item.observer_id];
-            const statusLabel =
-              submissionStatus === "submitted"
-                ? "Sudah kirim"
-                : submissionStatus === "finalized"
-                  ? "Final"
-                  : "Draft";
+            const statusLabel = submissionStatusLabel(submissionStatus ?? null);
             return (
               <article key={item.observer_id}>
                 <strong>{item.observer_name}</strong>

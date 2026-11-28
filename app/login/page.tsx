@@ -67,10 +67,11 @@ export default function LoginPage() {
               placeholder="nama@email.com atau username"
             />
           </label>
-          <label>
-            Kata sandi
+          <div className="password-group">
+            <label htmlFor="login-password">Kata sandi</label>
             <span className="password-field">
               <input
+                id="login-password"
                 name="password"
                 type={showPassword ? "text" : "password"}
                 autoComplete="current-password"
@@ -91,7 +92,7 @@ export default function LoginPage() {
                 {showPassword ? "Sembunyikan" : "Tampilkan"}
               </button>
             </span>
-          </label>
+          </div>
           {error && (
             <p className="login-error" role="alert">
               {error}

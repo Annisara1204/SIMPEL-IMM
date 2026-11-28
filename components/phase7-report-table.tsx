@@ -1,17 +1,12 @@
 "use client";
 import Link from "next/link";
 import { statusBadgeClass } from "@/lib/badge-class";
+import { reportStatusLabel } from "@/lib/report-status";
 import { decisionLabel } from "@/lib/decision-labels";
 import type { Dispatch, SetStateAction } from "react";
 import type { ReportFileData } from "@/lib/phase7-files";
 import type { EventRow } from "@/lib/supabase-rows";
 import type { ReportRow } from "@/components/phase7-report-workspace";
-
-const STATUS_LABELS: Record<string, string> = {
-  Provisional: "Sementara",
-  Finalized: "Final",
-  Published: "Diterbitkan",
-};
 
 type Action = (formData: FormData) => void | Promise<void>;
 type Props = {
@@ -91,7 +86,7 @@ export function Phase7ReportTable({
           Unduh{" "}
           {selectedPublishedRows.length
             ? `${selectedPublishedRows.length} rapor terpilih`
-            : `semua ${publishedRows.length} rapor Published`}{" "}
+            : `semua ${publishedRows.length} rapor diterbitkan`}{" "}
           (ZIP)
         </button>
       </div>
@@ -200,7 +195,7 @@ export function Phase7ReportTable({
                   <td>{decisionLabel(decisionOf(row))}</td>
                   <td>
                     <span className={statusBadgeClass(status)}>
-                      {STATUS_LABELS[status] ?? status}
+                      {reportStatusLabel(status)}
                     </span>
                   </td>
                   <td>
@@ -223,6 +218,9 @@ export function Phase7ReportTable({
                                 )!,
                               )
                         }
+                        aria-label={`Unduh PDF rapor ${row.display_name}${
+                          rowVersion ? ` · ${rowVersion}` : ""
+                        }`}
                       >
                         PDF
                       </button>

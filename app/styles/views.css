@@ -2910,6 +2910,14 @@
   color: var(--color-surface);
 }
 
+.password-group {
+  display: grid;
+  gap: 7px;
+  color: var(--ink-soft);
+  font-size: 13px;
+  font-weight: 600;
+}
+
 .password-field {
   position: relative;
   display: flex;

@@ -1,6 +1,7 @@
 "use client";
 import { asRows, firstRelated } from "@/lib/relations";
 import { categorizeScore } from "@/lib/scoring";
+import { submissionStatusLabel } from "@/lib/submission-status";
 import { AssessmentRatingCell } from "@/app/dashboard/observasi/assessment-rating-cell";
 import { SubmissionControls } from "@/app/dashboard/observasi/submission-controls";
 import {
@@ -93,12 +94,7 @@ export function ObservationParticipantCard({
   return (
     <details className="observation-participant" key={participant.id}>
       <summary>
-        {participant.display_name} ·{" "}
-        {status === "submitted"
-          ? "Submitted"
-          : status === "finalized"
-            ? "Finalized"
-            : "Draft"}
+        {participant.display_name} · {submissionStatusLabel(status)}
       </summary>
       <div className="score-summary">
         <strong>

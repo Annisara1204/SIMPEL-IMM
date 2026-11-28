@@ -1,4 +1,5 @@
 import { sessionLoginUrl } from "@/lib/session-login";
+import { decisionLabel } from "@/lib/decision-labels";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -421,7 +422,7 @@ export default async function CollectiveEvaluationPage({
                   ? "assessment-penilaian-tab"
                   : "assessment-penilaian-tab active"
               }
-              aria-current={recapView === "training" ? undefined : "true"}
+              aria-current={recapView === "training" ? undefined : "page"}
               href={`/dashboard/evaluasi?eventId=${eventId}`}
             >
               Peta kompetensi
@@ -433,7 +434,7 @@ export default async function CollectiveEvaluationPage({
                   ? "assessment-penilaian-tab active"
                   : "assessment-penilaian-tab"
               }
-              aria-current={recapView === "training" ? "true" : undefined}
+              aria-current={recapView === "training" ? "page" : undefined}
               href={`/dashboard/evaluasi?eventId=${eventId}&view=training`}
             >
               Rekap penilaian pelatihan
@@ -601,7 +602,7 @@ export default async function CollectiveEvaluationPage({
                         ? "assessment-penilaian-tab active"
                         : "assessment-penilaian-tab"
                     }
-                    aria-current={active ? "true" : undefined}
+                    aria-current={active ? "page" : undefined}
                     href={`/dashboard/evaluasi?eventId=${eventId}&participantId=${participantId}&versionId=${version.id}`}
                   >
                     {label}
@@ -613,13 +614,14 @@ export default async function CollectiveEvaluationPage({
             <div className="notice">
               <strong>
                 {overall.status === "provisional"
-                  ? "Hasil sementara (Provisional)"
+                  ? "Hasil masih sementara"
                   : `Skor agregat ${overall.score?.toFixed(1)} / 100`}
               </strong>
               <p>
-                Rata-rata berasal dari kiriman Submitted/Finalized. N/O bukan
-                nol. Selisih review mulai {policy?.review_score_delta ?? 2}{" "}
-                poin; coverage minimum {policy?.minimum_coverage ?? 80}%.
+                Rata-rata berasal dari penilaian yang sudah dikirim atau
+                selesai. N/O bukan nol. Selisih penilaian mulai{" "}
+                {policy?.review_score_delta ?? 2} poin; cakupan penilaian
+                minimal {policy?.minimum_coverage ?? 80}%.
               </p>
               {overall.reasons.map((reason) => (
                 <small key={reason}>
@@ -641,11 +643,12 @@ export default async function CollectiveEvaluationPage({
                       : `${aspect.score.toFixed(1)} / 5 · ${aspect.scoreOutOf100?.toFixed(1)} / 100`}
                   </p>
                   <p>
-                    Coverage {aspect.coverage.toFixed(1)}% · indikator dinilai{" "}
-                    {aspect.assessedIndicators}/{aspect.plannedIndicators} · N/O{" "}
-                    {aspect.notObservedIndicators} · pending{" "}
+                    Cakupan penilaian {aspect.coverage.toFixed(1)}% · indikator
+                    dinilai {aspect.assessedIndicators}/
+                    {aspect.plannedIndicators} · N/O{" "}
+                    {aspect.notObservedIndicators} · menunggu{" "}
                     {aspect.pendingIndicators} ·{" "}
-                    {aspect.valid ? "Valid" : "Provisional"}
+                    {aspect.valid ? "Lengkap" : "Masih sementara"}
                   </p>
                 </article>
               ))}
@@ -940,7 +943,8 @@ export default async function CollectiveEvaluationPage({
                 {evaluation?.status === "finalized" && (
                   <p className="notice">
                     <strong>
-                      Keputusan final: {evaluation.graduation_decision}
+                      Keputusan final:{" "}
+                      {decisionLabel(evaluation.graduation_decision)}
                     </strong>{" "}
                     ·{" "}
                     {evaluation.approved_at

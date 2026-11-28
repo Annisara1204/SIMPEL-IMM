@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { suggestedColumn, textCell } from "../lib/import-columns.ts";
 import { submissionStatusLabel } from "../lib/submission-status.ts";
+import { reportStatusLabel } from "../lib/report-status.ts";
 
 test("textCell mengubah nilai kosong menjadi string kosong", () => {
   assert.equal(textCell(undefined), "");
@@ -22,4 +23,12 @@ test("status pengajuan memiliki label Indonesia", () => {
   );
   assert.equal(submissionStatusLabel("status_baru"), "status_baru");
   assert.equal(submissionStatusLabel(null), "Status belum diketahui");
+  assert.equal(submissionStatusLabel("finalized"), "Selesai");
+});
+
+test("status rapor memakai kamus terpisah", () => {
+  assert.equal(reportStatusLabel("Provisional"), "Sementara");
+  assert.equal(reportStatusLabel("Finalized"), "Final");
+  assert.equal(reportStatusLabel("Published"), "Diterbitkan");
+  assert.equal(reportStatusLabel(null), "Status belum tersedia");
 });

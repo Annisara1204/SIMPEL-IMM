@@ -85,8 +85,10 @@ export function Phase7ReportTable({
         >
           Unduh{" "}
           {selectedPublishedRows.length
-            ? `${selectedPublishedRows.length} rapor terpilih`
-            : `semua ${publishedRows.length} rapor diterbitkan`}{" "}
+            ? `${selectedPublishedRows.length} terpilih`
+            : publishedRows.length
+              ? `${publishedRows.length} rapor`
+              : "semua rapor"}{" "}
           (ZIP)
         </button>
       </div>

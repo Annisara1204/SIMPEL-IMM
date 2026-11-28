@@ -355,6 +355,55 @@
   }
 }
 
+@media (min-width: 761px) and (max-width: 980px) {
+  .event-edit-form,
+  .participant-add-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .evaluation-actions-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .evaluation-actions-row .btn {
+    width: 100%;
+  }
+}
+
+/* Daftar selector tipografi pendukung yang disetujui untuk dinaikkan. */
+@media (max-width: 760px) {
+  .competency-matrix-scroll::before,
+  .table-wrap::before {
+    content: "Geser tabel →";
+    display: block;
+    padding-bottom: 6px;
+    color: var(--muted);
+    font-size: 11px;
+  }
+  .btn--quiet,
+  .btn--sm {
+    min-height: 44px;
+    padding: 8px 10px;
+    font-size: 11px;
+  }
+  .nav-group p,
+  .metric-row span,
+  .tag,
+  .breadcrumb,
+  .page-footer {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 320px) {
+  .role-edit-form,
+  .commission-edit-form,
+  .participant-edit-form,
+  .import-review .table td select {
+    min-width: 0;
+    width: 100%;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

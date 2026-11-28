@@ -34,8 +34,15 @@
 }
 
 .btn:disabled {
-  opacity: 0.5;
+  opacity: 1;
   cursor: not-allowed;
+  color: var(--muted);
+}
+
+.btn--primary:disabled {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-tint);
+  color: var(--muted);
 }
 
 .btn--primary {

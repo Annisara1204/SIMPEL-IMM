@@ -13,16 +13,7 @@ import {
 } from "./actions";
 import { PrivateImg } from "@/components/private-img";
 import { DataUnavailable } from "@/components/data-unavailable";
-
-const statusLabels: Record<string, string> = {
-  draft: "Draf · dapat diedit",
-  submitted: "Dikirim · menunggu Observer",
-  under_review: "Sedang ditinjau · terkunci",
-  administrative_published: "Hasil administrasi diterbitkan",
-  screening: "Tahap screening",
-  screening_published: "Hasil screening diterbitkan",
-  cancelled: "Dibatalkan",
-};
+import { submissionStatusLabel } from "@/lib/submission-status";
 
 export default async function CommissariatApplicationsPage() {
   if (
@@ -203,7 +194,7 @@ export default async function CommissariatApplicationsPage() {
               <span
                 className={`badge ${submission.status === "under_review" ? "live" : "next"}`}
               >
-                {statusLabels[submission.status] ?? submission.status}
+                {submissionStatusLabel(submission.status)}
               </span>
             </div>
             {editable && (

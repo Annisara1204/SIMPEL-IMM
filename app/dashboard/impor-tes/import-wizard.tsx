@@ -2,6 +2,7 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { commitImport, matchImportedRows, parseWorkbook } from "./actions";
+import { suggestedColumn, textCell } from "@/lib/import-columns";
 
 type Sheet = { name: string; rows: (string | number)[][] };
 type Candidate = { id: string; name: string; commissariat: string };
@@ -20,26 +21,6 @@ type ExistingResult = {
   importedAt: string;
   filename: string;
 };
-
-function textCell(value: string | number | undefined) {
-  return String(value ?? "").trim();
-}
-function suggestedColumn(
-  headers: string[],
-  type: "name" | "commissariat" | "score",
-) {
-  const key = (value: string) =>
-    value.toLocaleLowerCase("id-ID").replace(/[^a-z0-9]/g, "");
-  const patterns =
-    type === "name"
-      ? ["nama", "namalengkap", "name"]
-      : type === "commissariat"
-        ? ["komisariat", "asal", "commission"]
-        : ["skor", "nilai", "score", "totalpoints", "points"];
-  return headers.findIndex((header) =>
-    patterns.some((pattern) => key(header).includes(pattern)),
-  );
-}
 
 export function ImportWizard({
   events,

@@ -16,7 +16,7 @@ Dokumen ini mencatat bukti per paket kerja saat eksekusi. Status rencana: `RENCA
 | 9 | Selesai | QA browser DEV: halaman Observasi merender normal setelah filter event; cache profil dan `revalidatePath` target diperiksa dari kode; `npm run check` (20 tes) dan `npm run build` exit 0 | |
 | 10 | Selesai | `tests/authorization-policy.test.ts` lolos; `npm run test:sql` 7/7 penguji stabil lolos; `npm run check` dan `npm run build` exit 0; QA browser DEV Observer masih membuka kegiatan tugasnya | |
 | 11 | Selesai | QA browser DEV: `/login?reason=session` menampilkan "Sesi Anda sudah berakhir"; `npm run check` dan `npm run build` exit 0 | |
-| 12 | Belum | Lihat catatan khusus di bawah | |
+| 12 | Sebagian | Ekstraksi logika bersama sudah menyentuh keenam file; pemecahan JSX besar lanjutan masih terbuka (lihat catatan) | |
 | 13 | Selesai | `tests/badge-class.test.ts` lolos; `npm run check` dan `npm run build` exit 0; lint 0 warning | |
 | 14 | Selesai (tanpa kode) | K05 dan K07 sudah diputus pemilik, risiko diterima; tercatat di `BLUEPRINT.md` dan `HANDOVER.md` | |
 | 15 | Selesai | `account_requests.sql` lolos; QA browser DEV: `/daftar` menghasilkan `?status=permintaan`, baris pending tampil di halaman Pengguna; data uji dihapus; `npm run check` dan `npm run build` exit 0 | |
@@ -114,3 +114,9 @@ Dokumen ini mencatat bukti per paket kerja saat eksekusi. Status rencana: `RENCA
 - `/daftar` sekarang mengirim permintaan akun tanpa kata sandi dan tanpa `auth.signUp`, sesuai `DISABLE_SIGNUP=true`.
 - Halaman Pengguna menampilkan daftar permintaan dengan aksi Setujui/Tolak/Selesai dibuat. Pembuatan akun tetap dilakukan Admin lewat formulir akun sementara yang sudah ada.
 - QA browser DEV: submit `/daftar` menghasilkan `?status=permintaan`, pesan diterima tampil, dan baris pending tampil di halaman Pengguna. Baris uji dihapus setelahnya.
+
+## Catatan Paket 12 (sebagian)
+
+- Ekstraksi logika bersama sudah menyentuh keenam file UI besar: Penilaian (`validateRubricForActivation`), Laporan (`statusBadgeClass`, DTO), Evaluasi (`score derivation`, auto-competency per versi), Observasi (`getCurrentProfile`, pembatasan riwayat), Impor Tes (`import-columns`), dan Pengajuan (`submission-status`). Penguji unit ditambahkan untuk helper-helper ini.
+- Yang BELUM selesai: pemecahan JSX besar menjadi komponen presentasional. Ukuran saat ini: Penilaian 1.661 baris, Workspace Laporan 1.534, Evaluasi 1.248, Observasi 841, Impor Tes 598, Pengajuan 537. Ini sengaja tidak dipaksakan karena menyentuh banyak props dan berisiko regresi tanpa uji browser menyeluruh per peran.
+- QA browser DEV: halaman Impor Tes merender normal. Halaman Pengajuan belum diuji di browser karena tidak ada akun Komisariat di database lokal; perubahan hanya pada label status dan diuji unit.

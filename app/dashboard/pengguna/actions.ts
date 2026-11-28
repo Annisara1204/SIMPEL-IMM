@@ -1,5 +1,6 @@
 "use server";
 import { runAction } from "@/lib/action-error";
+import { getCurrentProfile } from "@/lib/supabase/server";
 import { uuidPattern } from "@/lib/validation";
 
 import { revalidatePath } from "next/cache";
@@ -182,5 +183,37 @@ export async function assignUserCommissariat(formData: FormData) {
     formData,
     (data) => assignUserCommissariatImpl(data),
     ["akun", "userId"],
+  );
+}
+
+async function updateAccountRequestImpl(formData: FormData) {
+  const { supabase, userId, profile } = await getCurrentProfile();
+  if (profile?.role !== "admin_system")
+    throw new Error("Hanya Admin Sistem yang dapat memproses permintaan akun.");
+  const id = String(formData.get("requestId") ?? "");
+  const status = String(formData.get("status") ?? "");
+  if (
+    !uuidPattern.test(id) ||
+    !["approved", "rejected", "done"].includes(status)
+  )
+    throw new Error("Permintaan atau keputusan tidak valid.");
+  const { error } = await supabase
+    .from("account_requests")
+    .update({
+      status,
+      reviewed_at: new Date().toISOString(),
+      reviewed_by: userId,
+    })
+    .eq("id", id);
+  if (error) throw new Error("Permintaan gagal diperbarui.");
+  revalidatePath("/dashboard/pengguna");
+}
+
+export async function updateAccountRequest(formData: FormData) {
+  return runAction(
+    "/dashboard/pengguna",
+    formData,
+    (data) => updateAccountRequestImpl(data),
+    ["requestId", "status"],
   );
 }

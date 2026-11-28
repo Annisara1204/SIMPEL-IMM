@@ -18,7 +18,8 @@ Dokumen ini mencatat bukti per paket kerja saat eksekusi. Status rencana: `RENCA
 | 11 | Selesai | QA browser DEV: `/login?reason=session` menampilkan "Sesi Anda sudah berakhir"; `npm run check` dan `npm run build` exit 0 | |
 | 12 | Belum | Lihat catatan khusus di bawah | |
 | 13 | Selesai | `tests/badge-class.test.ts` lolos; `npm run check` dan `npm run build` exit 0; lint 0 warning | |
-| 14-15 | Belum | | |
+| 14 | Selesai (tanpa kode) | K05 dan K07 sudah diputus pemilik, risiko diterima; tercatat di `BLUEPRINT.md` dan `HANDOVER.md` | |
+| 15 | Selesai | `account_requests.sql` lolos; QA browser DEV: `/daftar` menghasilkan `?status=permintaan`, baris pending tampil di halaman Pengguna; data uji dihapus; `npm run check` dan `npm run build` exit 0 | |
 
 ## Catatan Paket 1
 
@@ -106,3 +107,10 @@ Dokumen ini mencatat bukti per paket kerja saat eksekusi. Status rencana: `RENCA
 - A08 sesuai keputusan pemilik: judul versi rubrik memakai status (`Aktif`/`Draf`/`Diarsipkan`), penanda resmi/percobaan pindah ke badge.
 - A09: `statusBadgeClass()` di `lib/badge-class.ts` memetakan status dinamis ke modifier baru. Semua pemakaian alias lama (`badge done/live/next`) diganti dan blok alias dihapus dari `primitives.css`.
 - A10: konstanta `WHITE` yang mati dihapus. `npm run lint` kini 0 error, 0 warning.
+
+## Catatan Paket 15
+
+- Tabel `public.account_requests` ditambah migrasi `20261128040000`. RLS: `anon` hanya boleh INSERT pending, tidak bisa SELECT; Admin Sistem bisa SELECT/UPDATE.
+- `/daftar` sekarang mengirim permintaan akun tanpa kata sandi dan tanpa `auth.signUp`, sesuai `DISABLE_SIGNUP=true`.
+- Halaman Pengguna menampilkan daftar permintaan dengan aksi Setujui/Tolak/Selesai dibuat. Pembuatan akun tetap dilakukan Admin lewat formulir akun sementara yang sudah ada.
+- QA browser DEV: submit `/daftar` menghasilkan `?status=permintaan`, pesan diterima tampil, dan baris pending tampil di halaman Pengguna. Baris uji dihapus setelahnya.

@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import {
   assignUserCommissariat,
   createTemporaryInstructor,
+  updateAccountRequest,
   updateUserRole,
 } from "./actions";
 import { DataUnavailable } from "@/components/data-unavailable";
@@ -47,7 +48,11 @@ export default async function UsersPage({
     .maybeSingle();
   if (actor?.role !== "admin_system") redirect("/dashboard");
 
-  const [{ data: users, error }, { data: commissariats }] = await Promise.all([
+  const [
+    { data: users, error },
+    { data: commissariats },
+    { data: accountRequests },
+  ] = await Promise.all([
     supabase
       .from("profiles")
       .select(
@@ -59,6 +64,10 @@ export default async function UsersPage({
       .select("id, name")
       .eq("is_active", true)
       .order("name"),
+    supabase
+      .from("account_requests")
+      .select("id, email, display_name, status, created_at")
+      .order("created_at", { ascending: true }),
   ]);
 
   return (
@@ -77,9 +86,9 @@ export default async function UsersPage({
       <div className="notice">
         <strong>Akun permanen dan sementara</strong>
         <p>
-          Instruktur tetap mendaftar sendiri. Instruktur perbantuan dibuat dari
-          formulir ini. Akun baru belum mendapat akses dashboard sampai role
-          ditetapkan.
+          Instruktur tetap mengajukan akun lewat halaman daftar; Admin yang
+          membuat akunnya. Instruktur perbantuan dibuat dari formulir ini. Akun
+          baru belum mendapat akses dashboard sampai role ditetapkan.
         </p>
       </div>
       {query.akun === "setup" && (
@@ -258,6 +267,62 @@ export default async function UsersPage({
           </table>
         </div>
       )}
+      <section className="event-manage-card">
+        <h2>Permintaan akun Instruktur</h2>
+        <p>
+          Permintaan dari halaman daftar. Buat akun permanen setelah permintaan
+          disetujui, lalu tetapkan perannya di tabel pengguna.
+        </p>
+        {accountRequests?.length ? (
+          <div className="table-wrap">
+            <table className="table">
+              <thead>
+                <tr>
+                  <th scope="col">Nama</th>
+                  <th scope="col">Email</th>
+                  <th scope="col">Status</th>
+                  <th scope="col">Aksi</th>
+                </tr>
+              </thead>
+              <tbody>
+                {accountRequests.map((request) => (
+                  <tr key={request.id}>
+                    <td>{request.display_name}</td>
+                    <td>{request.email}</td>
+                    <td>{request.status}</td>
+                    <td>
+                      <form
+                        action={updateAccountRequest}
+                        className="role-edit-form"
+                      >
+                        <input
+                          type="hidden"
+                          name="requestId"
+                          value={request.id}
+                        />
+                        <select
+                          name="status"
+                          defaultValue={request.status}
+                          aria-label={`Status permintaan ${request.display_name}`}
+                        >
+                          <option value="approved">Setujui</option>
+                          <option value="rejected">Tolak</option>
+                          <option value="done">Selesai dibuat</option>
+                        </select>
+                        <button type="submit">Simpan</button>
+                      </form>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <p className="assessment-assignment-empty">
+            Belum ada permintaan akun.
+          </p>
+        )}
+      </section>
     </div>
   );
 }

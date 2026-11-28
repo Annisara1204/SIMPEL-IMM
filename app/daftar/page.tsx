@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { registerPermanentInstructor } from "./actions";
+import { requestInstructorAccount } from "./actions";
 
 export default async function RegisterPage({
   searchParams,
@@ -17,28 +17,26 @@ export default async function RegisterPage({
           i<span>•</span>
         </div>
         <p className="login-eyebrow">INSTRUKTUR TETAP</p>
-        <h1>Daftar akun permanen</h1>
+        <h1>Ajukan akun permanen</h1>
         <p className="login-description">
-          Buat akun menggunakan email dan kata sandi. Akun akan menunggu
-          Superadmin menetapkan role dan subrole sebelum fitur dashboard dapat
-          digunakan.
+          Kirim nama dan email untuk diajukan. Admin Sistem akan membuat akun
+          dan menetapkan peran. Belum ada kata sandi yang dibuat di halaman ini.
         </p>
-        {query.status === "email" && (
+        {query.status === "permintaan" && (
           <p className="profile-success" role="status">
-            Pendaftaran diterima. Periksa email untuk mengonfirmasi akun, lalu
-            masuk kembali.
+            Permintaan diterima. Admin Sistem akan memproses akun Anda.
           </p>
         )}
         {query.error && (
           <p className="login-error" role="alert">
             {query.error === "data"
-              ? "Isi nama, email yang valid, dan kata sandi minimal 10 karakter."
-              : "Pendaftaran gagal. Pastikan email belum digunakan dan pengaturan Supabase sudah benar."}
+              ? "Isi nama dan email yang valid."
+              : "Permintaan gagal dikirim. Coba lagi atau hubungi Admin sistem."}
           </p>
         )}
-        <form action={registerPermanentInstructor} className="login-form">
+        <form action={requestInstructorAccount} className="login-form">
           <label>
-            Nama tampilan
+            Nama lengkap
             <input
               name="displayName"
               autoComplete="name"
@@ -58,22 +56,11 @@ export default async function RegisterPage({
               placeholder="nama@email.com"
             />
           </label>
-          <label>
-            Kata sandi
-            <input
-              name="password"
-              type="password"
-              autoComplete="new-password"
-              minLength={10}
-              required
-              placeholder="Minimal 10 karakter"
-            />
-          </label>
-          <button type="submit">Daftar</button>
+          <button type="submit">Kirim permintaan</button>
         </form>
         <p className="login-footnote">
-          Pendaftaran ini khusus instruktur tetap. Akun perbantuan dibuat oleh
-          Superadmin menggunakan username dan kata sandi.
+          Instruktur perbantuan dibuat oleh Admin menggunakan username dan kata
+          sandi.
         </p>
       </section>
     </main>

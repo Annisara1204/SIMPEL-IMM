@@ -15,6 +15,7 @@ files=(
   supabase/tests/public_aggregate_allowlist.sql
   supabase/tests/observer_assignment_scope.sql
   supabase/tests/finalize_approval_order.sql
+  supabase/tests/account_requests.sql
   supabase/tests/rpc_contract_behavior.sql
 )
 

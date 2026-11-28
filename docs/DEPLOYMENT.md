@@ -58,15 +58,26 @@ Jangan pernah menyalin `.env.local` / `.env.qa-test` ke server; jangan push `.en
 
 ## Rollback
 
+Jalankan seluruh langkah dalam satu sesi `ssh`. Direktori `.git` tidak dibawa ke server, jangan memakai `git reset --hard`.
+
 ```bash
 ssh -i ~/.ssh/imm_prod_43-173-33-195 ubuntu@43.173.33.195
-cd /home/ubuntu/imm-app
-# restore dari snapshot direktori sebelumnya (jika dibuat), atau
-git reset --hard <commit-lama>   # hanya bila .git dibawa ke server (tidak)
-npm ci --include=dev && npm run build && pm2 restart imm
+sha256sum /home/ubuntu/imm-app/.env.production | cut -c1-8   # harus 0e854f9c
+stat -c '%a' /home/ubuntu/imm-app/.env.production            # harus 600
+ls -1dt /home/ubuntu/imm-deploy-backups/*/ | head -1         # mis. 20261128-092719/
 ```
 
-Disarankan sebelum redeploy besar: `cp -a /home/ubuntu/imm-app /home/ubuntu/imm-app.bak-$(date +%F)`.
+Lalu, masih di server, pulihkan hanya berkas aplikasi dari path backup yang dipilih:
+
+```bash
+rsync -az --exclude .git --exclude node_modules --exclude .next --exclude '.env*' \
+  /home/ubuntu/imm-deploy-backups/20261128-092719/ /home/ubuntu/imm-app/
+cd /home/ubuntu/imm-app && npm ci --include=dev && npm run build && pm2 restart imm --update-env
+```
+
+Smoke 13 halaman dari `docs/STATUS-PRODUKSI-SATU-VERSI.md` harus balas 200, `pm2 status` online, dan hash env masih `0e854f9c`. Hapus berkas yang ditambahkan setelah backup hanya setelah konfirmasi pemilik. Prosedur ini tidak memulihkan skema `auth`; bila deploy mengubah DB, hentikan rollback dan minta keputusan pemilik.
+
+Sebelum redeploy besar, buat backup segar aplikasi, `.env.production`, dan dump database ke direktori ber-timestamp di `/home/ubuntu/imm-deploy-backups/`.
 
 ## Bootstrap admin (13 November 2026 — riwayat)
 

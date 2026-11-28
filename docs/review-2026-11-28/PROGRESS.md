@@ -122,3 +122,8 @@ Dokumen ini mencatat bukti per paket kerja saat eksekusi. Status rencana: `RENCA
 - Ukuran file induk setelah pemecahan: Penilaian 1.113, Workspace Laporan 1.336, Evaluasi 1.110, Observasi 662, Impor Tes 435, Pengajuan 197 baris. File Penilaian, Laporan, dan Evaluasi masih besar karena query dan derivasi data, tetapi blok JSX terberat sudah dipindah.
 - Props diketik eksplisit, bukan `any`. Baris hasil RPC/relasi tetap melewati `asRows` dengan guard saat dibutuhkan.
 - QA browser DEV: kartu versi rubrik menampilkan "Versi 1 · Aktif" dan badge "Resmi"; tabel status rapor menampilkan 39 baris; formulir keputusan Evaluasi menampilkan "Keputusan kelulusan" dan "Simpan draf evaluasi"; kartu peserta Observasi menampilkan "Fadilla Marta Kusuma · Submitted" dengan Realtime tersambung; halaman Impor Tes dan Pengajuan merender normal. Akun Komisariat uji dibuat di database lokal untuk QA Pengajuan.
+
+## Deploy produksi
+
+- Semua 15 paket di-deploy ke produksi 28 November 2026 pukul 08:29 WIB sebagai commit `7c8fb93`, dengan backup segar `/home/ubuntu/imm-deploy-backups/20261128-092719/` dan empat migrasi baru terpasang.
+- Verifikasi produksi: 13 halaman smoke 200, hash `.env.production` tetap `0e854f9c…`, pm2 online restart ke-51, QA browser read-only `/daftar` dan `/login?reason=session` sesuai. Rincian ada di `docs/STATUS-PRODUKSI-SATU-VERSI.md`.

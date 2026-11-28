@@ -536,7 +536,7 @@ export default async function ObservationsPage({
                           .join(", ") || "belum ada"}
                       </p>
                     </div>
-                    <span className="badge next">
+                    <span className="badge badge--neutral">
                       Penilaian individu · belum difinalisasi
                     </span>
                     {activeVersion && (

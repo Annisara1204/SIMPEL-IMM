@@ -230,7 +230,7 @@ export default async function CompetencyFrameworkPage() {
           <h1>{framework.name}</h1>
           <p>{framework.description}</p>
         </div>
-        <span className="badge next">
+        <span className="badge badge--neutral">
           v{frameworkVersion.version} · {frameworkVersion.status} ·{" "}
           {framework.is_trial ? "PERCOBAAN" : "RESMI"}
         </span>

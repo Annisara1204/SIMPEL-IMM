@@ -1103,13 +1103,18 @@ export default async function AssessmentSettingsPage({
                         );
                         const valid =
                           validateRubricForActivation(aspects) === null;
+                        const statusLabel =
+                          version.status === "active"
+                            ? "Aktif"
+                            : version.status === "archived"
+                              ? "Diarsipkan"
+                              : "Draf";
                         return (
                           <div className="rubric-version" key={version.id}>
                             <div className="event-manage-title">
                               <div>
                                 <h3>
-                                  Versi {version.version} ·{" "}
-                                  {version.is_trial ? "PERCOBAAN" : "RESMI"}
+                                  Versi {version.version} · {statusLabel}
                                 </h3>
                                 <p>
                                   Bobot aspek: {aspectTotal.toFixed(2)}% · Aspek
@@ -1118,13 +1123,9 @@ export default async function AssessmentSettingsPage({
                                 </p>
                               </div>
                               <span
-                                className={`badge ${version.status === "active" ? "done" : "next"}`}
+                                className={`badge ${version.is_trial ? "tag" : "done"}`}
                               >
-                                {version.status === "active"
-                                  ? "Aktif"
-                                  : version.status === "archived"
-                                    ? "Diarsipkan"
-                                    : "Draf"}
+                                {version.is_trial ? "Percobaan" : "Resmi"}
                               </span>
                             </div>
                             {version.status === "active" && canManageRubric && (

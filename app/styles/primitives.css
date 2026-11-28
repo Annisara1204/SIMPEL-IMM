@@ -133,40 +133,33 @@
   white-space: nowrap;
 }
 
-/* Nama modifier lama (done/live/next/...) masih dipakai pada nilai dinamis,
-   jadi keduanya didukung sampai semua pemanggilan TSX diperbarui. */
-.badge--success,
-.badge.done {
+/* Status dinamis dipetakan oleh statusBadgeClass() di lib/badge-class.ts. */
+.badge--success {
   color: var(--color-success);
   background: var(--color-success-soft);
 }
 
-.badge--warning,
-.badge.live {
+.badge--warning {
   color: var(--color-warning);
   background: var(--color-warning-soft);
 }
 
-.badge--neutral,
-.badge.next {
+.badge--neutral {
   color: var(--muted);
   background: var(--color-border-soft);
 }
 
-.badge--published,
-.badge.published {
+.badge--published {
   background: var(--color-success-soft);
   color: var(--color-success-deep);
 }
 
-.badge--finalized,
-.badge.finalized {
+.badge--finalized {
   background: var(--color-info-soft);
   color: var(--color-info);
 }
 
-.badge--provisional,
-.badge.provisional {
+.badge--provisional {
   background: var(--color-warning-soft);
   color: var(--color-warning-ink);
 }

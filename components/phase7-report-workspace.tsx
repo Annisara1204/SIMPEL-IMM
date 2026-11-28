@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { statusBadgeClass } from "@/lib/badge-class";
 
 import { useRouter } from "next/navigation";
 
@@ -1184,7 +1185,7 @@ export function Phase7ReportWorkspace(props: Props) {
                         </td>
                         <td>{decisionLabel(decisionOf(row))}</td>
                         <td>
-                          <span className={`badge ${status.toLowerCase()}`}>
+                          <span className={statusBadgeClass(status)}>
                             {STATUS_LABELS[status] ?? status}
                           </span>
                         </td>

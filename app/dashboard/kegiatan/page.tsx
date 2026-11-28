@@ -221,7 +221,7 @@ export default async function ActivitiesPage({
                   )}
                 </p>
               </div>
-              <span className="badge live">
+              <span className="badge badge--warning">
                 {statusNames[event.status as keyof typeof statusNames] ??
                   "Status tidak dikenal"}
               </span>

@@ -42,7 +42,6 @@ export type ReportFileData = {
 const MAROON = "0.545 0.118 0.247";
 const INK = "0.12 0.16 0.2";
 const MUTED = "0.45 0.48 0.51";
-const WHITE = "1 1 1";
 const LIGHT = "0.97 0.96 0.97";
 const TRACK = "0.88 0.91 0.94";
 

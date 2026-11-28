@@ -210,7 +210,7 @@ export function Phase7DashboardHome({ data }: { data: Phase7Home }) {
               : "Belum ada rapor yang diterbitkan untuk akun ini."}
           </p>
         </div>
-        <span className={report ? "badge done" : "temporary-pill"}>
+        <span className={report ? "badge badge--success" : "temporary-pill"}>
           {report ? "PUBLISHED" : "MENUNGGU HASIL"}
         </span>
       </div>

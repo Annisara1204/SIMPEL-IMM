@@ -111,7 +111,7 @@ export function AssessmentRealtime({ versionId }: { versionId: string }) {
     };
   }, [versionId, router]);
   return (
-    <span className="badge live" aria-live="polite">
+    <span className="badge badge--warning" aria-live="polite">
       {status}
     </span>
   );

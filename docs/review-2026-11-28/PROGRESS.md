@@ -16,7 +16,9 @@ Dokumen ini mencatat bukti per paket kerja saat eksekusi. Status rencana: `RENCA
 | 9 | Selesai | QA browser DEV: halaman Observasi merender normal setelah filter event; cache profil dan `revalidatePath` target diperiksa dari kode; `npm run check` (20 tes) dan `npm run build` exit 0 | |
 | 10 | Selesai | `tests/authorization-policy.test.ts` lolos; `npm run test:sql` 7/7 penguji stabil lolos; `npm run check` dan `npm run build` exit 0; QA browser DEV Observer masih membuka kegiatan tugasnya | |
 | 11 | Selesai | QA browser DEV: `/login?reason=session` menampilkan "Sesi Anda sudah berakhir"; `npm run check` dan `npm run build` exit 0 | |
-| 12-15 | Belum | | |
+| 12 | Belum | Lihat catatan khusus di bawah | |
+| 13 | Selesai | `tests/badge-class.test.ts` lolos; `npm run check` dan `npm run build` exit 0; lint 0 warning | |
+| 14-15 | Belum | | |
 
 ## Catatan Paket 1
 
@@ -98,3 +100,9 @@ Dokumen ini mencatat bukti per paket kerja saat eksekusi. Status rencana: `RENCA
 - AUTH-005: error query profil di `/dashboard` dan `/dashboard/profil` kini mengalihkan ke `/login?reason=session`, bukan menampilkan "Profil belum tersedia".
 - `components/session-expired-notice.tsx` menampilkan pesan "Sesi Anda sudah berakhir. Masuk lagi untuk melanjutkan." pada halaman login.
 - QA browser DEV membuktikan pesan tampil di `/login?reason=session`. Sesi benar-benar kedaluwarsa tidak disimulasikan dengan token lampau, jadi jalur redirect-error hanya diverifikasi dari kode.
+
+## Catatan Paket 13
+
+- A08 sesuai keputusan pemilik: judul versi rubrik memakai status (`Aktif`/`Draf`/`Diarsipkan`), penanda resmi/percobaan pindah ke badge.
+- A09: `statusBadgeClass()` di `lib/badge-class.ts` memetakan status dinamis ke modifier baru. Semua pemakaian alias lama (`badge done/live/next`) diganti dan blok alias dihapus dari `primitives.css`.
+- A10: konstanta `WHITE` yang mati dihapus. `npm run lint` kini 0 error, 0 warning.

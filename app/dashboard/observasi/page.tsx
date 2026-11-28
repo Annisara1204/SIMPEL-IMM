@@ -1,18 +1,11 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentProfile } from "@/lib/supabase/server";
-import { asRows, firstRelated } from "@/lib/relations";
-import { AssessmentRatingCell } from "./assessment-rating-cell";
-import { ObserverNotes, type NoteRecord } from "./observer-notes";
-import { isNoteRecord } from "@/lib/supabase-rows";
+import { ObservationParticipantCard } from "@/components/observation-participant-card";
+import { firstRelated } from "@/lib/relations";
 import { AssessmentRealtime } from "./assessment-realtime";
-import { SubmissionControls } from "./submission-controls";
 import { stageOrder } from "@/lib/stage-labels";
-import {
-  calculateWeightedScore,
-  categorizeScore,
-  type ScoringAspect,
-} from "@/lib/scoring";
+import { calculateWeightedScore, type ScoringAspect } from "@/lib/scoring";
 import { DataUnavailable } from "@/components/data-unavailable";
 
 type ObservationsPageProps = {
@@ -597,7 +590,6 @@ export default async function ObservationsPage({
                         scoringAspects,
                         participantScores,
                       );
-                      const category = categorizeScore(calculated.value);
                       const mySubmission = mySubmissions.get(participant.id);
                       const participantSubmissions = (submissions ?? []).filter(
                         (item) => item.participant_id === participant.id,
@@ -620,198 +612,27 @@ export default async function ObservationsPage({
                               : "draft"
                           : (mySubmission?.status ?? "draft");
                       return (
-                        <details
-                          className="observation-participant"
+                        <ObservationParticipantCard
                           key={participant.id}
-                        >
-                          <summary>
-                            {participant.display_name} ·{" "}
-                            {status === "submitted"
-                              ? "Submitted"
-                              : status === "finalized"
-                                ? "Finalized"
-                                : "Draft"}
-                          </summary>
-                          <div className="score-summary">
-                            <strong>
-                              {calculated.value === null
-                                ? "Belum ada penilaian Anda"
-                                : `Pratinjau penilaian Anda: ${calculated.value.toFixed(1)} / 100`}
-                            </strong>
-                            {category && (
-                              <span className={`score-category ${category.id}`}>
-                                {category.label}
-                              </span>
-                            )}
-                            <small>
-                              {
-                                participantObservations.filter(
-                                  (item) => item.response_status === "scored",
-                                ).length
-                              }{" "}
-                              dinilai ·{" "}
-                              {
-                                participantObservations.filter(
-                                  (item) =>
-                                    item.response_status === "not_observed",
-                                ).length
-                              }{" "}
-                              N/O ·{" "}
-                              {Math.max(
-                                0,
-                                allIndicatorIds.size -
-                                  participantObservations.filter(
-                                    (item) =>
-                                      item.response_status !== "unrated",
-                                  ).length,
-                              )}{" "}
-                              belum dinilai
-                            </small>
-                          </div>
-                          {[...activeVersion.rubric_aspects]
-                            .sort((a, b) => a.position - b.position)
-                            .map((aspect) => (
-                              <div
-                                className="observation-aspect"
-                                key={aspect.id}
-                              >
-                                <h3>
-                                  {aspect.name}{" "}
-                                  <small>
-                                    {Number(aspect.weight).toFixed(1)}%
-                                  </small>
-                                </h3>
-                                {[...(aspect.rubric_indicator_aspects ?? [])]
-                                  .filter((mapping) => {
-                                    const indicator = firstRelated(
-                                      mapping.rubric_indicators,
-                                    );
-                                    return (
-                                      indicator &&
-                                      (!hasMaterialMapping ||
-                                        mappedIndicators.has(
-                                          indicator.competency_indicator_id,
-                                        ))
-                                    );
-                                  })
-                                  .sort(
-                                    (a, b) =>
-                                      (firstRelated(a.rubric_indicators)
-                                        ?.position ?? 0) -
-                                      (firstRelated(b.rubric_indicators)
-                                        ?.position ?? 0),
-                                  )
-                                  .map((mapping) => {
-                                    const indicator = firstRelated(
-                                      mapping.rubric_indicators,
-                                    );
-                                    if (!indicator) return null;
-                                    const saved = observationMap.get(
-                                      `${participant.id}:${indicator.id}`,
-                                    );
-                                    const masterMapping = mappedIndicators.get(
-                                      indicator.competency_indicator_id,
-                                    );
-                                    if (
-                                      hasMaterialMapping &&
-                                      (!masterMapping ||
-                                        masterMapping.competency_indicator_rubric_version_id !==
-                                          indicator.competency_indicator_rubric_version_id)
-                                    )
-                                      return null;
-                                    return (
-                                      <div
-                                        className="observation-indicator"
-                                        key={mapping.id}
-                                      >
-                                        <div>
-                                          <strong>{indicator.name}</strong>
-                                          {indicator.target && (
-                                            <small>
-                                              Target: {indicator.target}
-                                            </small>
-                                          )}
-                                          <small>
-                                            Bobot{" "}
-                                            {Number(mapping.weight).toFixed(1)}%
-                                            dalam aspek ·{" "}
-                                            {masterMapping?.is_required
-                                              ? "Wajib"
-                                              : "Opsional"}
-                                          </small>
-                                        </div>
-                                        <AssessmentRatingCell
-                                          participantId={participant.id}
-                                          rubricVersionId={activeVersion.id}
-                                          indicatorId={indicator.id}
-                                          rating={saved ?? null}
-                                          peerRatings={(ratings ?? []).filter(
-                                            (item) =>
-                                              item.participant_id ===
-                                                participant.id &&
-                                              item.indicator_id ===
-                                                indicator.id,
-                                          )}
-                                          observerId={userId}
-                                          peerStatuses={
-                                            submissionStatusByObserver.get(
-                                              participant.id,
-                                            ) ?? {}
-                                          }
-                                          readOnly={
-                                            profile.role === "admin_system"
-                                          }
-                                          locked={
-                                            status !== "draft" &&
-                                            profile.role !== "admin_system"
-                                          }
-                                          descriptors={
-                                            indicator.score_descriptors
-                                          }
-                                          guidance={
-                                            masterMapping?.observation_guidance
-                                          }
-                                        />
-                                      </div>
-                                    );
-                                  })}
-                              </div>
-                            ))}
-                          <ObserverNotes
-                            participantId={participant.id}
-                            rubricVersionId={activeVersion.id}
-                            currentUserId={userId}
-                            notes={asRows<NoteRecord>(
-                              (observerNotes ?? [])
-                                .filter(
-                                  (note) =>
-                                    note.participant_id === participant.id,
-                                )
-                                .map((note) => ({
-                                  ...note,
-                                  observer_note_revisions: (
-                                    note.observer_note_revisions ?? []
-                                  )
-                                    .slice()
-                                    .sort((a, b) => b.revision - a.revision)
-                                    .slice(0, 8),
-                                })),
-                              isNoteRecord,
-                            )}
-                            locked={
-                              profile.role === "admin_system" ||
-                              status !== "draft"
-                            }
-                          />
-                          <SubmissionControls
-                            participantId={participant.id}
-                            rubricVersionId={activeVersion.id}
-                            status={status}
-                            role={profile.role}
-                            submittedCount={submittedCount}
-                            assignedCount={eventAssignments.length}
-                          />
-                        </details>
+                          participant={participant}
+                          status={status}
+                          calculated={calculated}
+                          participantObservations={participantObservations}
+                          allIndicatorIds={allIndicatorIds}
+                          activeVersion={activeVersion}
+                          hasMaterialMapping={hasMaterialMapping}
+                          mappedIndicators={mappedIndicators}
+                          observationMap={observationMap}
+                          ratings={ratings ?? []}
+                          eventAssignments={eventAssignments}
+                          observerNotes={observerNotes ?? []}
+                          profile={profile}
+                          submissionStatusByObserver={
+                            submissionStatusByObserver
+                          }
+                          submittedCount={submittedCount}
+                          userId={userId}
+                        />
                       );
                     })
                   )}

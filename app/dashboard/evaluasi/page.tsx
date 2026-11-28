@@ -23,12 +23,9 @@ import {
 } from "@/lib/training-recap";
 import {
   approveDevelopmentRecommendation,
-  approveFinalizePublishReport,
   finalizeAllEvaluations,
-  finalizeCollectiveEvaluation,
   generateAutomaticRecommendations,
   saveAssessmentModeration,
-  saveCollectiveEvaluation,
   updateDevelopmentRecommendation,
 } from "./actions";
 import { DataUnavailable } from "@/components/data-unavailable";

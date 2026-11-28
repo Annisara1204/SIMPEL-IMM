@@ -1,7 +1,4 @@
 "use client";
-import Link from "next/link";
-import { statusBadgeClass } from "@/lib/badge-class";
-
 import { useRouter } from "next/navigation";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -108,12 +105,6 @@ const coverageOf = (row: ReportRow) => {
       ) / weight
     : null;
 };
-const STATUS_LABELS: Record<string, string> = {
-  Provisional: "Sementara",
-  Finalized: "Final",
-  Published: "Diterbitkan",
-};
-
 export function Phase7ReportWorkspace(props: Props) {
   const router = useRouter();
   const {

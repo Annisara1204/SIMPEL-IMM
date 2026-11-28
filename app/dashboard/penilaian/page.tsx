@@ -1,26 +1,14 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { firstRelated } from "@/lib/relations";
-import { validateRubricForActivation } from "@/lib/rubric-weights";
 import {
-  activateRubric,
-  addAspect,
-  addIndicator,
   archiveMaterial,
-  archiveRubricVersion,
   createAssessmentType,
   copyRubricToMaterials,
   createRubricVersion,
   createTrainingMaterial,
-  editAspect,
-  editIndicator,
-  linkIndicatorToAspect,
-  removeDraftAspect,
-  removeDraftIndicatorMapping,
   restoreMaterial,
   setTrainingMaterialFramework,
-  unlinkIndicatorFromAspect,
 } from "./rubric-actions";
 import {
   assignInstructorEvent,
@@ -32,8 +20,6 @@ import {
   instructorPositions,
   instructorPositionLabel,
 } from "@/lib/instructor-roles";
-import { FrameworkRubricPicker } from "./framework-rubric-picker";
-import { SCORE_SCALE_LABELS } from "@/lib/scoring";
 import { DataUnavailable } from "@/components/data-unavailable";
 import { RubricVersionCard } from "@/components/rubric-version-card";
 

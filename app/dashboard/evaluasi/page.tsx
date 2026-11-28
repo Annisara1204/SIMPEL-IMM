@@ -16,6 +16,7 @@ import type {
   RubricVersionJoined,
 } from "@/lib/supabase-rows";
 import { buildAutoCompetencyMap } from "@/lib/auto-competency";
+import { EvaluationDecisionForm } from "@/components/evaluation-decision-form";
 import {
   buildTrainingMatrix,
   type TrainingRecapSnapshot,
@@ -951,151 +952,15 @@ export default async function CollectiveEvaluationPage({
                     {evaluation.decision_rationale}
                   </p>
                 )}
-                <form
-                  action={
-                    evaluation?.status === "finalized"
-                      ? undefined
-                      : saveCollectiveEvaluation
-                  }
-                  className="evaluation-notes-form"
-                >
-                  <input type="hidden" name="eventId" value={eventId} />
-                  <input
-                    type="hidden"
-                    name="participantId"
-                    value={participantId}
-                  />
-                  <input
-                    type="hidden"
-                    name="rubricVersionId"
-                    value={selectedVersionId ?? ""}
-                  />
-                  <div className="evaluation-notes-grid">
-                    <label>
-                      Kekuatan
-                      <textarea
-                        name="strengths"
-                        defaultValue={evaluation?.strengths ?? ""}
-                        readOnly={evaluation?.status === "finalized"}
-                      />
-                    </label>
-                    <label>
-                      Area pengembangan
-                      <textarea
-                        name="developmentAreas"
-                        defaultValue={evaluation?.development_areas ?? ""}
-                        readOnly={evaluation?.status === "finalized"}
-                      />
-                    </label>
-                    <label>
-                      Bukti pendukung (satu referensi per baris)
-                      <textarea
-                        name="evidenceReferencesText"
-                        defaultValue={evidenceText}
-                        readOnly={evaluation?.status === "finalized"}
-                      />
-                    </label>
-                    <label>
-                      Catatan pembahasan instruktur
-                      <textarea
-                        name="discussionNotes"
-                        defaultValue={evaluation?.discussion_notes ?? ""}
-                        readOnly={evaluation?.status === "finalized"}
-                      />
-                    </label>
-                    <label>
-                      Kesimpulan kolektif
-                      <textarea
-                        name="collectiveSummary"
-                        defaultValue={evaluation?.collective_summary ?? ""}
-                        readOnly={evaluation?.status === "finalized"}
-                      />
-                    </label>
-                    <label>
-                      Rekomendasi ringkas
-                      <textarea
-                        name="recommendationSummary"
-                        defaultValue={evaluation?.recommendation_summary ?? ""}
-                        readOnly={evaluation?.status === "finalized"}
-                      />
-                    </label>
-                  </div>
-                  <div className="evaluation-decision-grid">
-                    <label>
-                      Keputusan kelulusan
-                      <select
-                        key={evaluation?.graduation_decision ?? "kosong"}
-                        name="decision"
-                        defaultValue={evaluation?.graduation_decision ?? ""}
-                        disabled={evaluation?.status === "finalized"}
-                        required
-                      >
-                        <option value="">Belum diputuskan</option>
-                        <option value="pass">Lulus</option>
-                        <option value="not_pass">Tidak Lulus</option>
-                        <option value="further_discussion">
-                          Perlu Pembahasan Lanjutan
-                        </option>
-                      </select>
-                    </label>
-                    <label>
-                      Alasan keputusan
-                      <textarea
-                        name="decisionRationale"
-                        minLength={10}
-                        required
-                        defaultValue={evaluation?.decision_rationale ?? ""}
-                        readOnly={evaluation?.status === "finalized"}
-                      />
-                    </label>
-                  </div>
-                  {evaluation?.status !== "finalized" && (
-                    <div className="evaluation-actions">
-                      <div className="evaluation-actions-row">
-                        <button
-                          type="submit"
-                          formNoValidate
-                          className="btn btn--primary"
-                        >
-                          Simpan draf evaluasi
-                        </button>
-                        <button
-                          className="btn btn--primary"
-                          type="submit"
-                          formAction={finalizeCollectiveEvaluation}
-                          disabled={
-                            overall.status !== "ready_for_collective_evaluation"
-                          }
-                        >
-                          Finalisasi dan simpan snapshot
-                        </button>
-                        <button
-                          className="btn btn--primary"
-                          type="submit"
-                          formAction={approveFinalizePublishReport}
-                          disabled={
-                            overall.status !== "ready_for_collective_evaluation"
-                          }
-                        >
-                          Setujui, finalisasi, terbitkan, dan unduh rapor
-                        </button>
-                      </div>
-                      <p className="evaluation-hint">
-                        Pilih keputusan kelulusan dan isi alasan minimal 10
-                        karakter sebelum finalisasi. Simpan draf tetap bisa
-                        dilakukan tanpa keduanya. Tombol finalisasi juga
-                        dinonaktifkan bila coverage belum memenuhi minimal{" "}
-                        {policy?.minimum_coverage ?? 80}% pada setiap aspek.
-                      </p>
-                      {overall.status !== "ready_for_collective_evaluation" && (
-                        <small className="evaluation-hint">
-                          Belum dapat difinalisasi: penuhi coverage setiap aspek
-                          minimal {policy?.minimum_coverage ?? 80}%.
-                        </small>
-                      )}
-                    </div>
-                  )}
-                </form>
+                <EvaluationDecisionForm
+                  eventId={eventId}
+                  participantId={participantId}
+                  selectedVersionId={selectedVersionId}
+                  evaluation={evaluation}
+                  evidenceText={evidenceText}
+                  overall={overall}
+                  policy={policy}
+                />
                 {evaluation?.status !== "finalized" && (
                   <>
                     <form

@@ -1,4 +1,5 @@
 import { sessionLoginUrl } from "@/lib/session-login";
+import { ConfirmFormAction } from "@/components/confirm-form-action";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -450,7 +451,15 @@ export default async function AssessmentSettingsPage({
                               observer.id === assignment.observer_id,
                           )?.display_name || "Akun Observer"}
                         </span>
-                        <form action={removeObserverAssignment}>
+                        <ConfirmFormAction
+                          action={removeObserverAssignment}
+                          message={`Cabut akses ${
+                            observers?.find(
+                              (observer) =>
+                                observer.id === assignment.observer_id,
+                            )?.display_name ?? "Observer"
+                          }? Penugasan ini akan dihapus.`}
+                        >
                           <input
                             type="hidden"
                             name="assignmentId"
@@ -468,7 +477,7 @@ export default async function AssessmentSettingsPage({
                           >
                             Cabut akses
                           </button>
-                        </form>
+                        </ConfirmFormAction>
                       </div>
                     ))}
                     {!eventAssignments.length && (
@@ -522,7 +531,15 @@ export default async function AssessmentSettingsPage({
                           )?.display_name || "Akun Instruktur"}{" "}
                           · {instructorPositionLabel(assignment.position)}
                         </span>
-                        <form action={removeInstructorEventAssignment}>
+                        <ConfirmFormAction
+                          action={removeInstructorEventAssignment}
+                          message={`Cabut tugas ${
+                            instructors?.find(
+                              (instructor) =>
+                                instructor.id === assignment.instructor_id,
+                            )?.display_name ?? "Instruktur"
+                          }? Penugasan ini akan dihapus.`}
+                        >
                           <input
                             type="hidden"
                             name="assignmentId"
@@ -540,7 +557,7 @@ export default async function AssessmentSettingsPage({
                           >
                             Cabut tugas
                           </button>
-                        </form>
+                        </ConfirmFormAction>
                       </div>
                     ))}
                     {!eventInstructorAssignments.length && (
@@ -744,11 +761,16 @@ export default async function AssessmentSettingsPage({
                                         </form>
                                       )}
                                       {canManageRubric && (
-                                        <form
+                                        <ConfirmFormAction
                                           action={
                                             material.archived_at
                                               ? restoreMaterial
                                               : archiveMaterial
+                                          }
+                                          message={
+                                            material.archived_at
+                                              ? `Pulihkan materi ${material.name}? Materi akan aktif kembali.`
+                                              : `Arsipkan materi ${material.name}? Materi tidak dapat dipakai sampai dipulihkan.`
                                           }
                                           className="event-archive-form"
                                         >
@@ -772,7 +794,7 @@ export default async function AssessmentSettingsPage({
                                               ? "Pulihkan materi"
                                               : "Arsipkan materi"}
                                           </button>
-                                        </form>
+                                        </ConfirmFormAction>
                                       )}
                                     </div>
                                   );

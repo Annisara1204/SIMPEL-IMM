@@ -1,4 +1,5 @@
 import { sessionLoginUrl } from "@/lib/session-login";
+import { ConfirmFormAction } from "@/components/confirm-form-action";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -232,15 +233,20 @@ export default async function ActivitiesPage({
               <strong>{event.participants.length}</strong> peserta terdaftar
             </p>
             {profile.role === "admin_system" && (
-              <form
+              <ConfirmFormAction
                 action={showArchived ? restoreEvent : archiveEvent}
+                message={
+                  showArchived
+                    ? `Pulihkan kegiatan ${event.name}? Kegiatan akan tampil kembali.`
+                    : `Arsipkan kegiatan ${event.name}? Kegiatan akan disembunyikan sampai dipulihkan.`
+                }
                 className="event-archive-form"
               >
                 <input type="hidden" name="id" value={event.id} />
                 <button type="submit">
                   {showArchived ? "Pulihkan kegiatan" : "Arsipkan kegiatan"}
                 </button>
-              </form>
+              </ConfirmFormAction>
             )}
             <details>
               <summary>Ubah informasi kegiatan</summary>

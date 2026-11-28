@@ -1,4 +1,5 @@
 import { PrivateImg } from "@/components/private-img";
+import { ConfirmFormAction } from "@/components/confirm-form-action";
 import { submissionStatusLabel } from "@/lib/submission-status";
 import {
   addApplicant,
@@ -251,8 +252,9 @@ export function SubmissionCard({
                           </label>
                           <button type="submit">Simpan perubahan</button>
                         </form>
-                        <form
+                        <ConfirmFormAction
                           action={removeApplicant}
+                          message={`Hapus ${person.display_name} dari draf pengajuan? Data peserta ini akan dihapus.`}
                           className="participant-delete-form"
                         >
                           <input
@@ -263,7 +265,7 @@ export function SubmissionCard({
                           <button className="remove-button" type="submit">
                             Hapus dari draf
                           </button>
-                        </form>
+                        </ConfirmFormAction>
                       </details>
                     </td>
                   )}
@@ -301,7 +303,11 @@ export function SubmissionCard({
         </div>
       )}
       {canCancel && (
-        <form action={cancelSubmission} className="application-cancel-form">
+        <ConfirmFormAction
+          action={cancelSubmission}
+          message={`Batalkan pengajuan ${event?.name ?? "ini"}? Pengajuan tidak dapat dikirim kembali setelah dibatalkan.`}
+          className="application-cancel-form"
+        >
           <input type="hidden" name="submissionId" value={submission.id} />
           <button className="remove-button" type="submit">
             Batalkan pengajuan
@@ -311,7 +317,7 @@ export function SubmissionCard({
               Pengajuan dapat dibatalkan sampai Observer mulai meninjau.
             </small>
           )}
-        </form>
+        </ConfirmFormAction>
       )}
       {submission.status === "under_review" && (
         <p className="privacy-note">

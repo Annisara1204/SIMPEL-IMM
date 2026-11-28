@@ -1,4 +1,5 @@
 "use server";
+import { sessionLoginUrl } from "@/lib/session-login";
 import { runAction } from "@/lib/action-error";
 import { getCurrentProfile } from "@/lib/supabase/server";
 import { uuidPattern } from "@/lib/validation";
@@ -21,7 +22,7 @@ async function createTemporaryInstructorImpl(formData: FormData) {
   const supabase = await createClient();
   const { data: claimsData } = await supabase.auth.getClaims();
   const actorId = claimsData?.claims?.sub;
-  if (!actorId) redirect("/login");
+  if (!actorId) redirect(await sessionLoginUrl());
   const { data: actor } = await supabase
     .from("profiles")
     .select("role")
@@ -77,7 +78,7 @@ async function updateUserRoleImpl(formData: FormData) {
   const supabase = await createClient();
   const { data: claimsData } = await supabase.auth.getClaims();
   const userId = claimsData?.claims?.sub;
-  if (!userId) redirect("/login");
+  if (!userId) redirect(await sessionLoginUrl());
 
   const { data: actor } = await supabase
     .from("profiles")
@@ -122,7 +123,7 @@ async function assignUserCommissariatImpl(formData: FormData) {
   const supabase = await createClient();
   const { data: claimsData } = await supabase.auth.getClaims();
   const userId = claimsData?.claims?.sub;
-  if (!userId) redirect("/login");
+  if (!userId) redirect(await sessionLoginUrl());
   const { data: actor } = await supabase
     .from("profiles")
     .select("role")

@@ -1,3 +1,4 @@
+import { sessionLoginUrl } from "@/lib/session-login";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
@@ -7,7 +8,7 @@ export async function staffClient(roles: string[]) {
   const supabase = await createClient();
   const { data } = await supabase.auth.getClaims();
   const userId = data?.claims?.sub;
-  if (!userId) redirect("/login");
+  if (!userId) redirect(await sessionLoginUrl());
 
   const fetchProfile = () =>
     supabase.from("profiles").select("role").eq("id", userId).maybeSingle();

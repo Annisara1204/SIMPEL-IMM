@@ -1,5 +1,6 @@
 "use server";
 
+import { sessionLoginUrl } from "@/lib/session-login";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -36,7 +37,7 @@ export async function updateOwnProfile(formData: FormData) {
   const supabase = await createClient();
   const { data: claimsData } = await supabase.auth.getClaims();
   const userId = claimsData?.claims?.sub;
-  if (!userId) redirect("/login");
+  if (!userId) redirect(await sessionLoginUrl());
   const fullName = String(formData.get("fullName") ?? "").trim();
   const birthPlace = String(formData.get("birthPlace") ?? "").trim();
   const birthDate = String(formData.get("birthDate") ?? "");

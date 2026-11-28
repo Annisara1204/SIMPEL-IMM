@@ -1,3 +1,4 @@
+import { sessionLoginUrl } from "@/lib/session-login";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentProfile } from "@/lib/supabase/server";
@@ -34,7 +35,7 @@ export default async function ObservationsPage({
       </div>
     );
   const { supabase, userId, profile } = await getCurrentProfile();
-  if (!userId) redirect("/login");
+  if (!userId) redirect(await sessionLoginUrl());
   if (
     !profile ||
     !["admin_system", "observer", "instruktur"].includes(profile.role ?? "")

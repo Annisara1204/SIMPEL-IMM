@@ -1,4 +1,5 @@
 "use server";
+import { sessionLoginUrl } from "@/lib/session-login";
 import { runAction } from "@/lib/action-error";
 import { uuidPattern } from "@/lib/validation";
 
@@ -13,7 +14,7 @@ async function currentUser() {
   const supabase = await createClient();
   const { data: claims } = await supabase.auth.getClaims();
   const userId = claims?.claims?.sub;
-  if (!userId) redirect("/login");
+  if (!userId) redirect(await sessionLoginUrl());
   const { data: profile } = await supabase
     .from("profiles")
     .select("role")

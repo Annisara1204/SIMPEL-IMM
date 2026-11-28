@@ -1,3 +1,4 @@
+import { sessionLoginUrl } from "@/lib/session-login";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import type { AppRole } from "@/lib/roles";
@@ -47,7 +48,7 @@ export default async function DashboardPage() {
   const supabase = await createClient();
   const { data: claimsData } = await supabase.auth.getClaims();
   const userId = claimsData?.claims?.sub;
-  if (!userId) redirect("/login");
+  if (!userId) redirect(await sessionLoginUrl());
   const { data: profile, error } = await supabase
     .from("profiles")
     .select("display_name, role, account_type")

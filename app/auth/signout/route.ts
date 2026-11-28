@@ -1,12 +1,14 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { requestBaseUrl } from "@/lib/request-base-url";
+import { SESSION_COOKIE } from "@/lib/session-login-path";
 
 export async function POST(request: NextRequest) {
   const response = NextResponse.redirect(
     new URL("/", requestBaseUrl(request)),
     { status: 303 },
   );
+  response.cookies.set(SESSION_COOKIE, "", { maxAge: 0, path: "/" });
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (url && key) {

@@ -1,3 +1,4 @@
+import { sessionLoginUrl } from "@/lib/session-login";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
@@ -26,7 +27,7 @@ export default async function ProfilePage({
   const supabase = await createClient();
   const { data: claimsData } = await supabase.auth.getClaims();
   const userId = claimsData?.claims?.sub;
-  if (!userId) redirect("/login");
+  if (!userId) redirect(await sessionLoginUrl());
   const [
     { data: profile, error: profileError },
     { data: personalProfile, error: personalError },

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { SessionExpiredNotice } from "@/components/session-expired-notice";
+import { SESSION_COOKIE } from "@/lib/session-login-path";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -26,6 +27,7 @@ export default function LoginPage() {
         password: String(form.get("password") ?? ""),
       });
       if (signInError) throw signInError;
+      document.cookie = `${SESSION_COOKIE}=1; path=/; max-age=${60 * 60 * 24 * 30}; samesite=lax`;
       router.replace("/dashboard");
       router.refresh();
     } catch (err) {

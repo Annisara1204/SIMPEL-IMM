@@ -1,3 +1,4 @@
+import { sessionLoginUrl } from "@/lib/session-login";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import type { StaffEventSummaryRow } from "@/lib/supabase-rows";
@@ -28,7 +29,7 @@ export default async function AnalitikPage() {
   const supabase = await createClient();
   const { data: claimsData } = await supabase.auth.getClaims();
   const userId = claimsData?.claims?.sub;
-  if (!userId) redirect("/login");
+  if (!userId) redirect(await sessionLoginUrl());
 
   const { data: profile } = await supabase
     .from("profiles")

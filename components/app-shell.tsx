@@ -231,11 +231,6 @@ export function AppShell({
           </div>
           <div className="topbar-right">
             {!isPublic && (
-              <span className="safe-pill">
-                <i /> Sesi terverifikasi
-              </span>
-            )}
-            {!isPublic && (
               <div className="profile">
                 <div className="avatar">
                   {displayName?.slice(0, 2).toUpperCase() ?? "AK"}

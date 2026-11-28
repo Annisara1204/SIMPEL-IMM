@@ -225,7 +225,8 @@ export function AppShell({
               <Menu size={19} aria-hidden="true" />
             </button>
             <div className="breadcrumb">
-              {isPublic ? "Publik" : "Dashboard"} <span>/</span>{" "}
+              {isPublic ? "Publik" : "Dashboard"}{" "}
+              <span aria-hidden="true">/</span>{" "}
               <b>{breadcrumbLabel(pathname)}</b>
             </div>
           </div>

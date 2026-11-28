@@ -198,7 +198,7 @@
 
 .breadcrumb span {
   padding: 0 9px;
-  color: var(--color-border-strong);
+  color: var(--muted);
 }
 
 .breadcrumb b {

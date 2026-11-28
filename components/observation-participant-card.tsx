@@ -185,6 +185,7 @@ export function ObservationParticipantCard({
                       participantId={participant.id}
                       rubricVersionId={activeVersion.id}
                       indicatorId={indicator.id}
+                      indicatorName={indicator.name ?? "Indikator"}
                       rating={saved ?? null}
                       peerRatings={(ratings ?? []).filter(
                         (item) =>

@@ -5,6 +5,7 @@ import { saveAssessmentRating } from "../penilaian/assessment-actions";
 import { SCORE_SCALE_LABELS } from "@/lib/scoring";
 import { canScheduleAutosave } from "@/lib/autosave-policy";
 import { submissionStatusLabel } from "@/lib/submission-status";
+import { announceSave } from "@/lib/autosave-announcer";
 
 type ResponseStatus = "unrated" | "scored" | "not_observed";
 type Value = {
@@ -28,6 +29,7 @@ type Props = {
   participantId: string;
   rubricVersionId: string;
   indicatorId: string;
+  indicatorName: string;
   rating: Value | null;
   peerRatings: PeerRating[];
   /** Status submission tiap penilai, dipakai hanya untuk tampilan. */
@@ -99,6 +101,14 @@ export function AssessmentRatingCell(props: Props) {
   }, [value, saved]);
   const [conflict, setConflict] = useState<Value | null>(initialDraft.conflict);
   const [status, setStatus] = useState(initialDraft.status);
+  const announcedOnce = useRef(false);
+  useEffect(() => {
+    if (!announcedOnce.current) {
+      announcedOnce.current = true;
+      return;
+    }
+    announceSave(`Penilaian ${props.indicatorName}: ${status}`);
+  }, [status, props.indicatorName]);
   const [pending, startTransition] = useTransition();
   const [saveFailed, setSaveFailed] = useState(false);
   const [online, setOnline] = useState(
@@ -303,6 +313,7 @@ export function AssessmentRatingCell(props: Props) {
     <div className="observation-cell assessment-rating-cell">
       <label>
         {props.readOnly ? "Nilai Anda" : "Penilaian Anda"}
+        <span className="sr-only"> — {props.indicatorName}</span>
         <select
           value={
             value.response_status === "not_observed"
@@ -360,9 +371,7 @@ export function AssessmentRatingCell(props: Props) {
           placeholder="Tuliskan perilaku atau bukti konkret yang Anda amati."
         />
       </label>
-      <small className="assessment-save-status" aria-live="polite">
-        {status}
-      </small>
+      <small className="assessment-save-status">{status}</small>
       {saveFailed && !conflict && (
         <button
           type="button"

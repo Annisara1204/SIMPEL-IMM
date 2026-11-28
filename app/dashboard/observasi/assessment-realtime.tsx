@@ -3,10 +3,19 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { announceSave } from "@/lib/autosave-announcer";
 
 export function AssessmentRealtime({ versionId }: { versionId: string }) {
   const router = useRouter();
   const [status, setStatus] = useState("Menghubungkan Realtime…");
+  const announcedOnce = useRef(false);
+  useEffect(() => {
+    if (!announcedOnce.current) {
+      announcedOnce.current = true;
+      return;
+    }
+    announceSave(`Pembaruan nilai: ${status}`);
+  }, [status]);
   const refreshTimer = useRef<number | null>(null);
   useEffect(() => {
     // Nilai/catatan sel diperbarui lokal per sel (event "assessment-realtime-change");
@@ -110,9 +119,5 @@ export function AssessmentRealtime({ versionId }: { versionId: string }) {
       if (channel) void client.removeChannel(channel);
     };
   }, [versionId, router]);
-  return (
-    <span className="badge badge--warning" aria-live="polite">
-      {status}
-    </span>
-  );
+  return <span className="badge badge--warning">{status}</span>;
 }

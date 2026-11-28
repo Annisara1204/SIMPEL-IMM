@@ -19,7 +19,7 @@ export function RubricPreview({ items }: { items: RubricPreviewItem[] }) {
           <header>
             <div>
               <span className="competency-code">{item.code}</span>
-              <h2>{item.name}</h2>
+              <h3>{item.name}</h3>
             </div>
             <span
               className={`badge ${item.rubricStatus === "published" ? "done" : "next"}`}

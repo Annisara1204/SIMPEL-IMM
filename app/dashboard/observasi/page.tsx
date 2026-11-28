@@ -5,6 +5,7 @@ import { getCurrentProfile } from "@/lib/supabase/server";
 import { ObservationParticipantCard } from "@/components/observation-participant-card";
 import { firstRelated } from "@/lib/relations";
 import { AssessmentRealtime } from "./assessment-realtime";
+import { AutosaveStatusRegion } from "@/components/autosave-status-region";
 import { stageOrder } from "@/lib/stage-labels";
 import { calculateWeightedScore, type ScoringAspect } from "@/lib/scoring";
 import { DataUnavailable } from "@/components/data-unavailable";
@@ -533,6 +534,7 @@ export default async function ObservationsPage({
                     <span className="badge badge--neutral">
                       Penilaian individu · belum difinalisasi
                     </span>
+                    <AutosaveStatusRegion />
                     {activeVersion && (
                       <AssessmentRealtime versionId={activeVersion.id} />
                     )}

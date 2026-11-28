@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { saveObserverNote } from "../penilaian/assessment-actions";
 import { asRow } from "@/lib/relations";
 import { canScheduleAutosave } from "@/lib/autosave-policy";
+import { announceSave } from "@/lib/autosave-announcer";
 
 type NoteType = "observation" | "strength" | "development" | "special";
 type NoteRevision = {
@@ -85,6 +86,14 @@ function NoteEditor({
   });
   const [conflict, setConflict] = useState<typeof latest | null>(null);
   const [status, setStatus] = useState("Belum ada perubahan");
+  const announcedOnce = useRef(false);
+  useEffect(() => {
+    if (!announcedOnce.current) {
+      announcedOnce.current = true;
+      return;
+    }
+    announceSave(`Catatan penilaian: ${status}`);
+  }, [status]);
   const [pending, startTransition] = useTransition();
   const [saveFailed, setSaveFailed] = useState(false);
 
@@ -231,7 +240,7 @@ function NoteEditor({
           placeholder={noteTypes.find((type) => type.id === noteType)?.hint}
         />
       </label>
-      <small aria-live="polite">
+      <small>
         {locked
           ? "Terkunci setelah dikirim; buka kembali untuk revisi."
           : status}

@@ -3,10 +3,11 @@
 import { useMemo, useState, useTransition } from "react";
 import { commitImport, matchImportedRows, parseWorkbook } from "./actions";
 import { suggestedColumn, textCell } from "@/lib/import-columns";
+import { ImportReviewTable } from "@/components/import-review-table";
 
 type Sheet = { name: string; rows: (string | number)[][] };
-type Candidate = { id: string; name: string; commissariat: string };
-type ReviewedRow = {
+export type Candidate = { id: string; name: string; commissariat: string };
+export type ReviewedRow = {
   rowNumber: number;
   name: string;
   commissariat: string;
@@ -15,7 +16,7 @@ type ReviewedRow = {
   participantId: string;
   include: boolean;
 };
-type ExistingResult = {
+export type ExistingResult = {
   participantId: string;
   score: number;
   importedAt: string;
@@ -408,164 +409,19 @@ export function ImportWizard({
             </div>
           )}
           {!!rows.length && (
-            <div className="import-review">
-              <h2>Periksa kecocokan sebelum menyimpan</h2>
-              <p>
-                Pastikan setiap baris cocok dengan peserta yang benar. Baris
-                yang tidak disertakan tidak akan diimpor.
-              </p>
-              <div className="table-wrap">
-                <table className="table">
-                  <thead>
-                    <tr>
-                      <th scope="col">Baris</th>
-                      <th scope="col">Nama dari berkas</th>
-                      <th scope="col">Komisariat</th>
-                      <th scope="col">Nilai</th>
-                      <th scope="col">Peserta yang cocok</th>
-                      <th scope="col">Sertakan</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {rows.map((row) => (
-                      <tr key={row.rowNumber}>
-                        <td>{row.rowNumber}</td>
-                        <td>{row.name}</td>
-                        <td>{row.commissariat}</td>
-                        <td>{row.score}</td>
-                        <td>
-                          <select
-                            aria-label={`Peserta baris ${row.rowNumber}`}
-                            value={row.participantId}
-                            disabled={!row.include}
-                            onChange={(event) =>
-                              chooseParticipant(
-                                row.rowNumber,
-                                event.target.value,
-                              )
-                            }
-                          >
-                            <option value="">
-                              {row.candidates.length
-                                ? "Pilih peserta"
-                                : "Tidak cocok otomatis — pilih manual"}
-                            </option>
-                            {row.candidates.map((candidate) => (
-                              <option key={candidate.id} value={candidate.id}>
-                                {candidate.name} · {candidate.commissariat}
-                              </option>
-                            ))}
-                            {!row.candidates.length &&
-                              participants.map((candidate) => (
-                                <option key={candidate.id} value={candidate.id}>
-                                  {candidate.name} · {candidate.commissariat}
-                                </option>
-                              ))}
-                          </select>
-                          {row.candidates.length > 1 && (
-                            <small className="match-warning">
-                              Nama dan Komisariat sama ditemukan pada beberapa
-                              peserta. Pastikan pilihan benar.
-                            </small>
-                          )}
-                        </td>
-                        <td>
-                          <input
-                            type="checkbox"
-                            checked={row.include}
-                            onChange={(event) =>
-                              toggleInclude(row.rowNumber, event.target.checked)
-                            }
-                            aria-label={`Sertakan baris ${row.rowNumber}`}
-                          />
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              {[...selectedGroups].map(([participantId, group]) => {
-                const prior = existing.find(
-                  (item) => item.participantId === participantId,
-                );
-                if (group.length < 2 && !prior) return null;
-                const person = participants.find(
-                  (item) => item.id === participantId,
-                );
-                return (
-                  <div className="duplicate-choice" key={participantId}>
-                    <strong>
-                      {person?.name} · {person?.commissariat}
-                    </strong>
-                    <p>
-                      Peserta ini memiliki beberapa nilai sumber. Pilih hasil
-                      yang akan dipakai; semua baris impor tetap disimpan
-                      sebagai riwayat.
-                    </p>
-                    <div className="duplicate-options">
-                      {prior && (
-                        <label>
-                          <input
-                            type="radio"
-                            name={`current-${participantId}`}
-                            checked={
-                              currentChoice[participantId] ===
-                              `existing:${participantId}`
-                            }
-                            onChange={() =>
-                              setCurrentChoice((current) => ({
-                                ...current,
-                                [participantId]: `existing:${participantId}`,
-                              }))
-                            }
-                          />
-                          <span>
-                            Pertahankan nilai saat ini {prior.score} dari{" "}
-                            {prior.filename}
-                          </span>
-                        </label>
-                      )}
-                      {group.map((row) => (
-                        <label key={row.rowNumber}>
-                          <input
-                            type="radio"
-                            name={`current-${participantId}`}
-                            checked={
-                              currentChoice[participantId] ===
-                              String(row.rowNumber)
-                            }
-                            onChange={() =>
-                              setCurrentChoice((current) => ({
-                                ...current,
-                                [participantId]: String(row.rowNumber),
-                              }))
-                            }
-                          />
-                          <span>
-                            Gunakan nilai {row.score} dari baris {row.rowNumber}
-                          </span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })}
-              <button
-                type="button"
-                className="btn btn--primary btn--lg"
-                onClick={saveReviewedImport}
-                disabled={isPending || !canSave}
-              >
-                {isPending ? "Menyimpan…" : "Simpan hasil yang sudah ditinjau"}
-              </button>
-              {!canSave && (
-                <p className="data-caption">
-                  Pilih peserta untuk setiap baris yang disertakan, lalu
-                  tentukan nilai yang dipakai jika ada nilai lama atau baris
-                  ganda.
-                </p>
-              )}
-            </div>
+            <ImportReviewTable
+              rows={rows}
+              participants={participants}
+              existing={existing}
+              selectedGroups={selectedGroups}
+              currentChoice={currentChoice}
+              setCurrentChoice={setCurrentChoice}
+              chooseParticipant={chooseParticipant}
+              toggleInclude={toggleInclude}
+              canSave={canSave}
+              isPending={isPending}
+              saveReviewedImport={saveReviewedImport}
+            />
           )}
           {message && (
             <p className="notice notice--danger" role="alert">

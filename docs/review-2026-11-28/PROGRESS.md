@@ -14,7 +14,8 @@ Dokumen ini mencatat bukti per paket kerja saat eksekusi. Status rencana: `RENCA
 | 7 | Selesai | `tests/auto-competency.test.ts` (termasuk multi-versi), `tests/score-derivation.test.ts`, dan `tests/rubric-weights.test.ts` lolos; QA browser DEV: teks peta kompetensi otomatis sesuai aturan baru; `npm run check` (20 tes) dan `npm run build` exit 0 | |
 | 8 | Selesai (digabung Paket 7) | BUG-08 dikerjakan bersama Paket 7; penguji multi-versi lolos | b36c976 |
 | 9 | Selesai | QA browser DEV: halaman Observasi merender normal setelah filter event; cache profil dan `revalidatePath` target diperiksa dari kode; `npm run check` (20 tes) dan `npm run build` exit 0 | |
-| 10-15 | Belum | | |
+| 10 | Selesai | `tests/authorization-policy.test.ts` lolos; `npm run test:sql` 7/7 penguji stabil lolos; `npm run check` dan `npm run build` exit 0; QA browser DEV Observer masih membuka kegiatan tugasnya | |
+| 11-15 | Belum | | |
 
 ## Catatan Paket 1
 
@@ -84,3 +85,9 @@ Dokumen ini mencatat bukti per paket kerja saat eksekusi. Status rencana: `RENCA
 - `summarizeEvent` kini menunggu daftar versi lebih dulu, lalu menjalankan tiga query sisanya secara paralel.
 - Delapan pemanggil `revalidatePath("/dashboard")` diganti path spesifik: profil, penilaian, pengguna, dan pengajuan.
 - QA browser DEV: halaman Observasi dengan event `48880b89` merender daftar tahap normal, tanpa error boundary. Jumlah request server tidak diukur dengan alat, jadi klaim penghematan belum diverifikasi secara kuantitatif.
+
+## Catatan Paket 10
+
+- `canManageEvent` di `lib/authorization-policy.ts` menjadi aturan murni: Admin lolos, Observer lolos hanya dengan penugasan, peran lain ditolak. Helper `assertEventAssignment` memakainya dan diuji unit.
+- `npm run test:sql` menjalankan tujuh penguji SQL stabil terhadap Supabase lokal. Empat penguji lain masih gagal karena data DEV hasil salinan produksi tidak cocok dengan fixture lama; ini tercatat di catatan Paket 0.
+- QA browser DEV: Observer A masih membuka kegiatan `48880b89` normal setelah perubahan aturan.

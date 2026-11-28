@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { uuidPattern } from "@/lib/validation";
 import { createClient } from "@/lib/supabase/server";
+import { canManageEvent } from "@/lib/authorization-policy";
 
 type SupabaseClient = Awaited<ReturnType<typeof createClient>>;
 
@@ -13,14 +14,13 @@ export async function assertEventAssignment(
   actionLabel: string,
 ) {
   if (!uuidPattern.test(eventId)) throw new Error("Kegiatan tidak valid.");
-  if (role === "admin_system") return;
   const { data: assignment, error } = await supabase
     .from("observer_assignments")
     .select("id")
     .eq("event_id", eventId)
     .eq("observer_id", userId)
     .maybeSingle();
-  if (error || !assignment)
+  if (!canManageEvent(role, !error && assignment !== null))
     throw new Error(
       `Anda hanya dapat ${actionLabel} pada kegiatan yang ditugaskan.`,
     );

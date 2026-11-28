@@ -16,7 +16,7 @@ Dokumen ini mencatat bukti per paket kerja saat eksekusi. Status rencana: `RENCA
 | 9 | Selesai | QA browser DEV: halaman Observasi merender normal setelah filter event; cache profil dan `revalidatePath` target diperiksa dari kode; `npm run check` (20 tes) dan `npm run build` exit 0 | |
 | 10 | Selesai | `tests/authorization-policy.test.ts` lolos; `npm run test:sql` 7/7 penguji stabil lolos; `npm run check` dan `npm run build` exit 0; QA browser DEV Observer masih membuka kegiatan tugasnya | |
 | 11 | Selesai | QA browser DEV: `/login?reason=session` menampilkan "Sesi Anda sudah berakhir"; `npm run check` dan `npm run build` exit 0 | |
-| 12 | Sebagian | Ekstraksi logika bersama sudah menyentuh keenam file; pemecahan JSX besar lanjutan masih terbuka (lihat catatan) | |
+| 12 | Selesai | Keenam file UI besar dipecah menjadi komponen presentasional; `npm run check` dan `npm run build` exit 0; QA browser pada Penilaian, Laporan, Evaluasi, Observasi, Impor Tes, dan Pengajuan | 308e2b9, 46df1b6, 7798df2, 0976e50, ef073a9, 892053e |
 | 13 | Selesai | `tests/badge-class.test.ts` lolos; `npm run check` dan `npm run build` exit 0; lint 0 warning | |
 | 14 | Selesai (tanpa kode) | K05 dan K07 sudah diputus pemilik, risiko diterima; tercatat di `BLUEPRINT.md` dan `HANDOVER.md` | |
 | 15 | Selesai | `account_requests.sql` lolos; QA browser DEV: `/daftar` menghasilkan `?status=permintaan`, baris pending tampil di halaman Pengguna; data uji dihapus; `npm run check` dan `npm run build` exit 0 | |
@@ -115,8 +115,10 @@ Dokumen ini mencatat bukti per paket kerja saat eksekusi. Status rencana: `RENCA
 - Halaman Pengguna menampilkan daftar permintaan dengan aksi Setujui/Tolak/Selesai dibuat. Pembuatan akun tetap dilakukan Admin lewat formulir akun sementara yang sudah ada.
 - QA browser DEV: submit `/daftar` menghasilkan `?status=permintaan`, pesan diterima tampil, dan baris pending tampil di halaman Pengguna. Baris uji dihapus setelahnya.
 
-## Catatan Paket 12 (sebagian)
+## Catatan Paket 12
 
-- Ekstraksi logika bersama sudah menyentuh keenam file UI besar: Penilaian (`validateRubricForActivation`), Laporan (`statusBadgeClass`, DTO), Evaluasi (`score derivation`, auto-competency per versi), Observasi (`getCurrentProfile`, pembatasan riwayat), Impor Tes (`import-columns`), dan Pengajuan (`submission-status`). Penguji unit ditambahkan untuk helper-helper ini.
-- Yang BELUM selesai: pemecahan JSX besar menjadi komponen presentasional. Ukuran saat ini: Penilaian 1.661 baris, Workspace Laporan 1.534, Evaluasi 1.248, Observasi 841, Impor Tes 598, Pengajuan 537. Ini sengaja tidak dipaksakan karena menyentuh banyak props dan berisiko regresi tanpa uji browser menyeluruh per peran.
-- QA browser DEV: halaman Impor Tes merender normal. Halaman Pengajuan belum diuji di browser karena tidak ada akun Komisariat di database lokal; perubahan hanya pada label status dan diuji unit.
+- Keenam file UI besar sudah dipecah menjadi komponen presentasional, satu per commit: Penilaian `308e2b9`, Laporan `46df1b6`, Evaluasi `7798df2`, Observasi `0976e50`, Impor Tes `ef073a9`, Pengajuan `892053e`.
+- Komponen baru: `rubric-version-card.tsx` (491 baris), `phase7-report-table.tsx` (282), `evaluation-decision-form.tsx` (170), `observation-participant-card.tsx` (242), `import-review-table.tsx` (188), dan `submission-card.tsx` (339).
+- Ukuran file induk setelah pemecahan: Penilaian 1.113, Workspace Laporan 1.336, Evaluasi 1.110, Observasi 662, Impor Tes 435, Pengajuan 197 baris. File Penilaian, Laporan, dan Evaluasi masih besar karena query dan derivasi data, tetapi blok JSX terberat sudah dipindah.
+- Props diketik eksplisit, bukan `any`. Baris hasil RPC/relasi tetap melewati `asRows` dengan guard saat dibutuhkan.
+- QA browser DEV: kartu versi rubrik menampilkan "Versi 1 · Aktif" dan badge "Resmi"; tabel status rapor menampilkan 39 baris; formulir keputusan Evaluasi menampilkan "Keputusan kelulusan" dan "Simpan draf evaluasi"; kartu peserta Observasi menampilkan "Fadilla Marta Kusuma · Submitted" dengan Realtime tersambung; halaman Impor Tes dan Pengajuan merender normal. Akun Komisariat uji dibuat di database lokal untuk QA Pengajuan.

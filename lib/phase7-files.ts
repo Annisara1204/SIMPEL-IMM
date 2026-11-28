@@ -1,5 +1,6 @@
 import type { ReportSnapshotData } from "./supabase-rows";
 import { categorizeScore } from "./scoring.ts";
+import { scoreOutOf100 } from "./score-derivation.ts";
 import { decisionLabel } from "./decision-labels.ts";
 
 export type ReportFileData = {
@@ -198,7 +199,7 @@ function reportRows(report: ReportFileData): DrawRow[] {
     const score = raw == null ? null : Number(raw);
     const out = aspect.scoreOutOf100 ?? aspect.score_out_of_100;
     if (out == null && score === null) return null;
-    return Number(out ?? (score ?? 0) * 20);
+    return Number(out ?? scoreOutOf100(score) ?? 0);
   };
 
   rows.push({

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { firstRelated } from "@/lib/relations";
+import { validateRubricForActivation } from "@/lib/rubric-weights";
 import {
   activateRubric,
   addAspect,
@@ -1101,32 +1102,7 @@ export default async function AssessmentSettingsPage({
                           0,
                         );
                         const valid =
-                          aspects.length > 0 &&
-                          Math.abs(aspectTotal - 100) < 0.001 &&
-                          aspects.every((aspect) => {
-                            const mappings =
-                              aspect.rubric_indicator_aspects ?? [];
-                            return (
-                              mappings.length > 0 &&
-                              Math.abs(
-                                mappings.reduce(
-                                  (sum, mapping) =>
-                                    sum + Number(mapping.weight),
-                                  0,
-                                ) - 100,
-                              ) < 0.001 &&
-                              mappings.every((mapping) =>
-                                [1, 2, 3, 4, 5].every(
-                                  (score) =>
-                                    String(
-                                      firstRelated(mapping.rubric_indicators)
-                                        ?.score_descriptors?.[String(score)] ??
-                                        "",
-                                    ).trim().length >= 3,
-                                ),
-                              )
-                            );
-                          });
+                          validateRubricForActivation(aspects) === null;
                         return (
                           <div className="rubric-version" key={version.id}>
                             <div className="event-manage-title">

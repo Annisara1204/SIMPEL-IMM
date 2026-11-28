@@ -1,3 +1,5 @@
+import { scoreOutOf100 } from "./score-derivation.ts";
+
 export type ScoringIndicator = { id: string; weight: number };
 export type ScoringAspect = {
   id: string;
@@ -70,7 +72,7 @@ export function calculateWeightedScore(
     return { value: null, observedIndicators: 0, includedAspects };
   const averageOnFivePointScale = weightedAspects / observedAspectWeight;
   // Skala 1–5 dipetakan linier ke persentase: 1→20, 3→60, 5→100.
-  const value = (averageOnFivePointScale / 5) * 100;
+  const value = scoreOutOf100(averageOnFivePointScale) ?? 0;
   return {
     value,
     observedIndicators: observedIndicatorIds.size,

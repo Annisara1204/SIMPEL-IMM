@@ -70,6 +70,30 @@ test("peserta dengan snapshot memakai nilai gabungan final", () => {
   );
 });
 
+test("nilai sementara multi-versi adalah rata-rata per versi, bukan normalisasi", () => {
+  const versionA = "11111111-1111-4111-8111-111111111111";
+  const versionB = "22222222-2222-4222-8222-222222222222";
+  const result = buildAutoCompetencyMap({
+    participants: [{ id: "p3", display_name: "Dua versi" }],
+    summaryRows: [
+      {
+        ...summaryRow("p3", "i1", "a1", 4),
+        assessment_scope_key: `session:${versionA}`,
+        source_rubric_version_ids: [versionA],
+      },
+      {
+        ...summaryRow("p3", "i2", "a1", 2),
+        assessment_scope_key: `session:${versionB}`,
+        source_rubric_version_ids: [versionB],
+      },
+    ],
+    snapshotRows: [],
+    minimumCoverage: 80,
+  });
+  assert.equal(result.rows[0].status, "provisional");
+  assert.equal(result.rows[0].finalScore, 60);
+});
+
 test("peserta tanpa snapshot mendapat nilai sementara dari agregasi", () => {
   const result = buildAutoCompetencyMap({
     participants: [{ id: "p2", display_name: "Sementara" }],

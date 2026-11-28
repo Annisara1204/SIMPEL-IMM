@@ -495,10 +495,10 @@ export default async function CollectiveEvaluationPage({
                 <h3>Peta kompetensi otomatis</h3>
                 <p className="data-caption">
                   Semua peserta tampil. Status Final memakai nilai dari rapor;
-                  status Sementara memakai penilaian terkini. Bobot aspek dapat
-                  berasal dari rubrik berbeda sehingga totalnya bisa lebih dari
-                  100%; nilai sementara dinormalisasi dari aspek yang tersedia.
-                  Materi terarsipkan tidak ikut dalam nilai sementara.
+                  status Sementara memakai penilaian terkini. Nilai sementara
+                  dihitung per versi rubrik lalu digabung dengan rata-rata
+                  sederhana, tanpa normalisasi bobot lintas versi. Materi
+                  terarsipkan tidak ikut dalam nilai sementara.
                 </p>
                 <div className="competency-matrix-scroll">
                   <table className="competency-matrix">

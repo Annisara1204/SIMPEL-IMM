@@ -11,7 +11,8 @@ Dokumen ini mencatat bukti per paket kerja saat eksekusi. Status rencana: `RENCA
 | 4 | Selesai | `tests/action-error.test.ts` lolos; QA browser DEV: duplikat nama Komisariat menghasilkan `?error=...` dan banner inline, bukan error boundary; `npm run check` dan `npm run build` exit 0 | |
 | 5 | Selesai | `tests/finalize-validation.test.ts` dan `finalize_approval_order.sql` lolos; QA browser DEV: halaman Evaluasi dengan tombol satu klik merender tanpa error boundary; `npm run check` dan `npm run build` exit 0 | |
 | 6 | Selesai | `tests/report-snapshot-dto.test.ts` dan `tests/supabase-rows.test.ts` lolos; QA browser DEV: halaman Laporan dua kegiatan merender tanpa error boundary; `npm run check` (19 tes) dan `npm run build` exit 0 | |
-| 7-15 | Belum | | |
+| 7 | Selesai | `tests/auto-competency.test.ts` (termasuk multi-versi), `tests/score-derivation.test.ts`, dan `tests/rubric-weights.test.ts` lolos; QA browser DEV: teks peta kompetensi otomatis sesuai aturan baru; `npm run check` (20 tes) dan `npm run build` exit 0 | |
+| 8-15 | Belum | | |
 
 ## Catatan Paket 1
 
@@ -63,3 +64,12 @@ Dokumen ini mencatat bukti per paket kerja saat eksekusi. Status rencana: `RENCA
 - Pemeriksa baris RPC dipindah ke `lib/row-guards.ts` agar bisa diuji dengan `node --test`; `lib/supabase-rows.ts` mengekspornya kembali.
 - Cast langsung hasil RPC diganti `asRows` dengan guard di Evaluasi, Laporan, dan Observasi. Satu batas `as unknown as` di `lib/relations.ts:43` tetap dipertahankan.
 - QA browser DEV: halaman Laporan untuk dua kegiatan merender normal. Tidak ada baris "Indikator yang perlu perhatian" pada data lokal, jadi tampilan angka Rentang belum terbukti di browser; penguji unit menjadi bukti utama.
+
+## Catatan Paket 7
+
+- `lib/score-derivation.ts` menjadi satu rumus konversi skor 1–5 ke 0–100. Dipakai Phase 6, `lib/scoring.ts`, PDF, dan komponen terkait.
+- BUG-08 sesuai keputusan pemilik: peta kompetensi sementara dihitung per versi rubrik lalu digabung rata-rata sederhana. Normalisasi bobot lintas versi dihapus. Penguji baru membuktikan dua versi dengan skor 80 dan 40 menghasilkan 60.
+- Teks penjelas di halaman Evaluasi diperbarui agar tidak lagi menyebut normalisasi.
+- A07: tujuh pemanggilan `indicators.find` per baris diganti satu `Map` kunci `participantId:indicatorId:scopeKey`.
+- A04: `validateRubricForActivation` di `lib/rubric-weights.ts` dipakai halaman dan Server Action. Pengecekan status draf dan versi aktif tetap ada di Server Action. Penguji mencakup bobot 99,999/100,001 dan uraian kosong.
+- QA browser DEV: halaman Evaluasi menampilkan teks "dihitung per versi rubrik lalu digabung dengan rata-rata sederhana, tanpa normalisasi bobot lintas versi".

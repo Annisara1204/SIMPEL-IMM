@@ -4,7 +4,11 @@ import { uuidPattern } from "@/lib/validation";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { asRows, firstRelated, type Relation } from "@/lib/relations";
-import { evenWeight, roundWeight } from "@/lib/rubric-weights";
+import {
+  evenWeight,
+  roundWeight,
+  validateRubricForActivation,
+} from "@/lib/rubric-weights";
 import { nextVersionsByMaterial } from "@/lib/rubric-copy";
 import type {
   CompetencyMaterialAspectLink,
@@ -1502,40 +1506,8 @@ async function activateRubricImpl(formData: FormData) {
     throw new Error(
       "Tambahkan aspek dan indikator sebelum mengaktifkan rubrik.",
     );
-  const close = (n: number) => Math.abs(n - 100) < 0.001;
-  if (
-    !close(aspects.reduce((sum, aspect) => sum + Number(aspect.weight), 0)) ||
-    aspects.some(
-      (aspect) =>
-        !aspect.rubric_indicator_aspects.length ||
-        !close(
-          aspect.rubric_indicator_aspects.reduce(
-            (sum, mapping) => sum + Number(mapping.weight),
-            0,
-          ),
-        ),
-    )
-  )
-    throw new Error(
-      "Bobot antar-aspek dan bobot pemetaan indikator pada setiap aspek masing-masing harus berjumlah 100%.",
-    );
-  if (
-    aspects.some((aspect) =>
-      aspect.rubric_indicator_aspects.some((mapping) => {
-        const indicator = Array.isArray(mapping.rubric_indicators)
-          ? mapping.rubric_indicators[0]
-          : mapping.rubric_indicators;
-        return [1, 2, 3, 4, 5].some(
-          (score) =>
-            String(indicator?.score_descriptors?.[String(score)] ?? "").trim()
-              .length < 3,
-        );
-      }),
-    )
-  )
-    throw new Error(
-      "Lengkapi uraian perilaku untuk skor 1 sampai 5 pada setiap indikator.",
-    );
+  const activationError = validateRubricForActivation(aspects);
+  if (activationError) throw new Error(activationError);
   const { data: version } = await supabase
     .from("rubric_versions")
     .select("event_id, stage, material_id, assessment_type_id")

@@ -1,3 +1,5 @@
+import { scoreOutOf100 } from "./score-derivation.ts";
+
 export type SubmittedRating = {
   participantId: string;
   rubricVersionId: string;
@@ -172,6 +174,12 @@ export function calculateAspectAggregates(
   coverageThreshold = 80,
 ): AspectAggregate[] {
   const result: AspectAggregate[] = [];
+  const aggregateByKey = new Map<string, IndicatorAggregate>();
+  for (const item of indicators)
+    aggregateByKey.set(
+      `${item.participantId}:${item.indicatorId}:${item.scopeKey}`,
+      item,
+    );
   const participantIds = new Set(planned.map((item) => item.participantId));
   for (const participantId of participantIds) {
     const participantPlan = planned.filter(
@@ -193,26 +201,16 @@ export function calculateAspectAggregates(
     }
     for (const [aspectId, rows] of aspectPlans) {
       const plannedCount = rows.length;
-      const valid = rows.flatMap((row) =>
-        indicators.find(
-          (item) =>
-            item.participantId === participantId &&
-            item.indicatorId === row.competencyIndicatorId &&
-            item.scopeKey === row.assessmentScopeKey,
-        )?.average !== null
-          ? [
-              {
-                row,
-                aggregate: indicators.find(
-                  (item) =>
-                    item.participantId === participantId &&
-                    item.indicatorId === row.competencyIndicatorId &&
-                    item.scopeKey === row.assessmentScopeKey,
-                )!,
-              },
-            ]
-          : [],
-      );
+      const aggregateFor = (row: PlannedIndicator) =>
+        aggregateByKey.get(
+          `${participantId}:${row.competencyIndicatorId}:${row.assessmentScopeKey}`,
+        );
+      const valid = rows.flatMap((row) => {
+        const aggregate = aggregateFor(row);
+        return aggregate?.average !== null && aggregate
+          ? [{ row, aggregate }]
+          : [];
+      });
       const validWeight = valid.reduce(
         (sum, item) => sum + Number(item.row.indicatorWeight),
         0,
@@ -225,38 +223,15 @@ export function calculateAspectAggregates(
           ) / validWeight
         : null;
       const notObservedIndicators = rows.filter(
-        (row) =>
-          indicators.find(
-            (item) =>
-              item.participantId === participantId &&
-              item.indicatorId === row.competencyIndicatorId &&
-              item.scopeKey === row.assessmentScopeKey,
-          )?.notObserved,
+        (row) => aggregateFor(row)?.notObserved,
       ).length;
       const pendingIndicators = rows.filter(
-        (row) =>
-          !indicators.find(
-            (item) =>
-              item.participantId === participantId &&
-              item.indicatorId === row.competencyIndicatorId &&
-              item.scopeKey === row.assessmentScopeKey,
-          ) ||
-          (indicators.find(
-            (item) =>
-              item.participantId === participantId &&
-              item.indicatorId === row.competencyIndicatorId &&
-              item.scopeKey === row.assessmentScopeKey,
-          )?.pending ?? 0) > 0,
+        (row) => !aggregateFor(row) || (aggregateFor(row)?.pending ?? 0) > 0,
       ).length;
       // Indikator tanpa skor yang hanya berisi N/O dibuang dari denominator.
       // Indikator yang sudah berskor tetap dihitung walau ada N/O di dalamnya.
       const notObservedOnlyCount = rows.filter((row) => {
-        const aggregate = indicators.find(
-          (item) =>
-            item.participantId === participantId &&
-            item.indicatorId === row.competencyIndicatorId &&
-            item.scopeKey === row.assessmentScopeKey,
-        );
+        const aggregate = aggregateFor(row);
         return aggregate?.average === null && (aggregate?.notObserved ?? 0) > 0;
       }).length;
       const coverageDenominator = Math.max(
@@ -272,7 +247,7 @@ export function calculateAspectAggregates(
         aspectName: rows[0].aspectName,
         weight: Number(rows[0].aspectWeight),
         score,
-        scoreOutOf100: score === null ? null : (score / 5) * 100,
+        scoreOutOf100: scoreOutOf100(score),
         plannedIndicators: plannedCount,
         assessedIndicators: valid.length,
         coverageDenominator,

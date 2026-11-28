@@ -7,6 +7,21 @@ import {
 import { summarizeParticipants } from "./participant-summary.ts";
 import type { AssessmentSummaryRow, ReportSnapshotData } from "./supabase-rows";
 
+const uuidPattern =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** Versi rubrik sumber; baris tanpa versi kanonik masuk satu kelompok. */
+function rubricVersionKey(row: AssessmentSummaryRow): string {
+  const source = (row.source_rubric_version_ids ?? []).find((id) =>
+    uuidPattern.test(id),
+  );
+  if (source) return source;
+  const session = row.assessment_scope_key.startsWith("session:")
+    ? row.assessment_scope_key.slice("session:".length)
+    : "";
+  return uuidPattern.test(session) ? session : "single";
+}
+
 export type CompetencyParticipant = { id: string; display_name: string };
 
 export type CompetencySnapshotRow = {
@@ -121,25 +136,64 @@ export function buildAutoCompetencyMap({
       if (aspect.score !== null && !aspectScores.has(name))
         aspectScores.set(name, aspect.score);
     }
-    const overall = calculateOverallScore(aspects);
-    let finalScore = overall.score;
-    if (finalScore === null) {
-      const valid = aspects.filter(
-        (aspect) => aspect.score !== null && Number(aspect.weight) > 0,
-      );
-      const weight = valid.reduce(
-        (sum, aspect) => sum + Number(aspect.weight),
-        0,
-      );
-      finalScore = weight
-        ? (valid.reduce(
-            (sum, aspect) => sum + (aspect.score! / 5) * Number(aspect.weight),
-            0,
-          ) /
-            weight) *
-          100
-        : null;
+    // Nilai sementara dihitung per versi rubrik lalu digabung dengan rata-rata
+    // sederhana. Tidak ada normalisasi bobot tersembunyi lintas versi.
+    const rowsByVersion = new Map<string, AssessmentSummaryRow[]>();
+    for (const row of rowsFor) {
+      const key = rubricVersionKey(row);
+      const group = rowsByVersion.get(key) ?? [];
+      group.push(row);
+      rowsByVersion.set(key, group);
     }
+    const versionScores: number[] = [];
+    for (const versionRows of rowsByVersion.values()) {
+      const versionPlanned: PlannedIndicator[] = versionRows.map((row) => ({
+        participantId: participant.id,
+        rubricVersionId: rubricVersionKey(row),
+        localIndicatorId: row.indicator_id,
+        competencyIndicatorId: row.indicator_id,
+        assessmentScope: row.assessment_scope,
+        assessmentScopeKey: row.assessment_scope_key,
+        aspectId: row.aspect_id,
+        aspectName: row.aspect_name.trim() || "Aspek",
+        aspectWeight: Number(row.aspect_weight),
+        indicatorWeight: Number(row.indicator_weight),
+        expectedObserverIds: [],
+      }));
+      const versionIndicators: IndicatorAggregate[] = versionRows.map(
+        (row) => ({
+          participantId: participant.id,
+          indicatorId: row.indicator_id,
+          scope: row.assessment_scope,
+          scopeKey: row.assessment_scope_key,
+          sourceRubricVersionIds: row.source_rubric_version_ids ?? [],
+          average:
+            row.average_score === null ? null : Number(row.average_score),
+          validRatings: Number(row.valid_rating_count),
+          minimum:
+            row.minimum_score === null ? null : Number(row.minimum_score),
+          maximum:
+            row.maximum_score === null ? null : Number(row.maximum_score),
+          range: row.score_range === null ? null : Number(row.score_range),
+          notObserved: Number(row.not_observed_count),
+          pending: Number(row.pending_count),
+          reviewStatus: row.review_status,
+          observerScores: [],
+        }),
+      );
+      const versionAspects = calculateAspectAggregates(
+        versionPlanned,
+        versionIndicators,
+        minimumCoverage,
+      );
+      const versionOverall = calculateOverallScore(versionAspects);
+      if (versionOverall.score !== null)
+        versionScores.push(versionOverall.score);
+    }
+    const finalScore = versionScores.length
+      ? versionScores.reduce((sum, score) => sum + score, 0) /
+        versionScores.length
+      : null;
     return {
       participantId: participant.id,
       displayName: participant.display_name,

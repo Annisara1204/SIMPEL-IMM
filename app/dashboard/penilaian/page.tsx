@@ -203,9 +203,8 @@ export default async function AssessmentSettingsPage({
       </div>
       {!canManageRubric && (
         <p className="notice">
-          <strong>Pengelolaan rubrik oleh Super Admin.</strong> Anda dapat
-          melihat rubrik dan mengatur penugasan Observer, tetapi pembuatan,
-          perubahan, dan aktivasi rubrik hanya dapat dilakukan Admin Sistem.
+          <strong>Pengelolaan rubrik oleh Admin Sistem.</strong> Anda hanya
+          dapat melihat rubrik; pengaturan dilakukan Admin Sistem.
         </p>
       )}
       {(eventsError ||

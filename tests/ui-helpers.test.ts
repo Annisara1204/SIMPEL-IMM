@@ -3,6 +3,7 @@ import test from "node:test";
 import { suggestedColumn, textCell } from "../lib/import-columns.ts";
 import { submissionStatusLabel } from "../lib/submission-status.ts";
 import { reportStatusLabel } from "../lib/report-status.ts";
+import { isActiveNav } from "../lib/navigation.ts";
 
 test("textCell mengubah nilai kosong menjadi string kosong", () => {
   assert.equal(textCell(undefined), "");
@@ -24,6 +25,19 @@ test("status pengajuan memiliki label Indonesia", () => {
   assert.equal(submissionStatusLabel("status_baru"), "status_baru");
   assert.equal(submissionStatusLabel(null), "Status belum diketahui");
   assert.equal(submissionStatusLabel("finalized"), "Selesai");
+});
+
+test("menu aktif memakai segmen penuh", () => {
+  assert.equal(isActiveNav("/dashboard/observasi", "/dashboard"), false);
+  assert.equal(isActiveNav("/dashboard", "/dashboard"), true);
+  assert.equal(
+    isActiveNav("/dashboard/observasi", "/dashboard/observasi"),
+    true,
+  );
+  assert.equal(
+    isActiveNav("/dashboard/profil-instruktur", "/dashboard/profil"),
+    false,
+  );
 });
 
 test("status rapor memakai kamus terpisah", () => {

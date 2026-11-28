@@ -118,9 +118,15 @@ export function navHref(label: string, role: AppRole): string | null {
   return destination?.href ?? null;
 }
 
+/** Penanda menu aktif. Halaman dasar tidak menyalakan semua subhalaman. */
+export function isActiveNav(pathname: string, href: string): boolean {
+  if (href === "/" || href === "/dashboard") return pathname === href;
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
 /** Segmen path → label menu, untuk breadcrumb topbar. */
 export function breadcrumbLabel(pathname: string): string {
-  if (pathname === "/") return "Beranda";
+  if (pathname === "/") return "Dashboard";
   if (pathname === "/dashboard") return "Ringkasan";
   const destination = navDestinations.find(
     (item) => pathname === item.href || pathname.startsWith(`${item.href}?`),

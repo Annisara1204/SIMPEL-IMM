@@ -17,6 +17,7 @@ files=(
   supabase/tests/finalize_approval_order.sql
   supabase/tests/account_requests.sql
   supabase/tests/rpc_contract_behavior.sql
+  supabase/tests/is_assessment_moderator.sql
 )
 
 failed=0

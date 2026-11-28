@@ -102,14 +102,13 @@ export default async function ReportingPage({ searchParams }: Props) {
         <DataUnavailable />
       </div>
     );
-  const [moderator, { data: rows, error: reportError }] = await Promise.all([
-    isEventModerator(supabase, selectedEvent.id),
-    supabase.rpc("get_event_report_rows", {
-      target_event_id: selectedEvent.id,
-    }),
-  ]);
+  const moderator = await isEventModerator(supabase, selectedEvent.id);
   const canManage = role === "admin_system" || moderator === true;
-  if (role === "instruktur" && !canManage) redirect("/dashboard");
+  if (role === "instruktur" && !canManage) redirect("/dashboard?reason=akses");
+  const { data: rows, error: reportError } = await supabase.rpc(
+    "get_event_report_rows",
+    { target_event_id: selectedEvent.id },
+  );
   const reportRows = asRows<EventReportRow>(rows, isEventReportRow).map(
     (row) => ({
       ...row,

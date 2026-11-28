@@ -32,7 +32,12 @@ const allowedRoles: AppRole[] = [
   "peserta",
 ];
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ reason?: string }>;
+}) {
+  const params = await searchParams;
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !key)
@@ -175,6 +180,12 @@ export default async function DashboardPage() {
   return (
     <>
       <HomeHero role={role} />
+      {params.reason === "akses" && (
+        <p className="notice" role="status">
+          Rekap penilaian tidak tersedia untuk subrole ini. Anda tetap dapat
+          mengisi Observasi untuk kegiatan yang ditugaskan.
+        </p>
+      )}
       {phase7Home ? (
         <Phase7DashboardHome data={phase7Home} />
       ) : (

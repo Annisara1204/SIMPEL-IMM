@@ -101,9 +101,9 @@ export default function LoginPage() {
           <button disabled={loading}>{loading ? "Memeriksa…" : "Masuk"}</button>
         </form>
         <p className="login-footnote">
-          Instruktur tetap dapat{" "}
+          Instruktur dapat{" "}
           <Link prefetch={false} href="/daftar">
-            mendaftar dengan email
+            mengajukan akun permanen
           </Link>
           . Instruktur perbantuan memakai username yang diberikan Superadmin.
         </p>

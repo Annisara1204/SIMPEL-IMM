@@ -26,7 +26,12 @@ import {
   ClipboardCheck,
   type LucideIcon,
 } from "lucide-react";
-import { navHref, breadcrumbLabel, roleLabels } from "@/lib/navigation";
+import {
+  navHref,
+  breadcrumbLabel,
+  roleLabels,
+  isActiveNav,
+} from "@/lib/navigation";
 import type { AppRole } from "@/lib/roles";
 
 type NavItem = { label: string; icon: LucideIcon; group: string };
@@ -47,6 +52,7 @@ const menuByRole: Record<AppRole, NavItem[]> = {
       group: "PENGELOLAAN",
     },
     { label: "Kerangka DAD", icon: FileText, group: "PENGELOLAAN" },
+    { label: "Observasi", icon: Eye, group: "DATA & LAPORAN" },
     { label: "Seleksi Komisariat", icon: ClipboardCheck, group: "PENGELOLAAN" },
     {
       label: "Evaluasi Kolektif",
@@ -110,7 +116,7 @@ export function AppShell({
   isPublic = false,
   children,
 }: {
-  role: AppRole;
+  role: AppRole | null;
   displayName?: string;
   isPublic?: boolean;
   children: React.ReactNode;
@@ -118,23 +124,24 @@ export function AppShell({
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
   const items =
-    role === "public"
-      ? menuByRole[role]
-      : [
-          ...menuByRole[role],
-          ...(role === "instruktur"
-            ? []
-            : [
-                {
-                  label: "Profil Instruktur",
-                  icon: GraduationCap,
-                  group: "INFORMASI",
-                },
-              ]),
-          { label: "Profil saya", icon: UserRound, group: "AKUN" },
-        ];
+    role === null
+      ? []
+      : role === "public"
+        ? menuByRole[role]
+        : [
+            ...menuByRole[role],
+            ...(role === "instruktur"
+              ? []
+              : [
+                  {
+                    label: "Profil Instruktur",
+                    icon: GraduationCap,
+                    group: "INFORMASI",
+                  },
+                ]),
+            { label: "Profil saya", icon: UserRound, group: "AKUN" },
+          ];
   const groups = [...new Set(items.map((item) => item.group))];
-  const homeHref = role === "public" ? "/" : "/dashboard";
 
   return (
     <div className="app-shell">
@@ -172,12 +179,9 @@ export function AppShell({
               {items
                 .filter((item) => item.group === group)
                 .map((item) => {
-                  const href = navHref(item.label, role) ?? homeHref;
-                  const isCurrent =
-                    pathname === href ||
-                    (href !== "/" &&
-                      href !== "/dashboard" &&
-                      pathname.startsWith(href));
+                  const href = navHref(item.label, role ?? "public");
+                  if (!href) return null;
+                  const isCurrent = isActiveNav(pathname, href);
                   return (
                     <Link
                       prefetch={false}
@@ -231,18 +235,18 @@ export function AppShell({
             </div>
           </div>
           <div className="topbar-right">
-            {!isPublic && (
+            {!isPublic && role !== null && (
               <div className="profile">
                 <div className="avatar">
                   {displayName?.slice(0, 2).toUpperCase() ?? "AK"}
                 </div>
                 <div className="profile-text">
                   <strong>{displayName ?? "Akun pengguna"}</strong>
-                  <small>{roleLabels[role]}</small>
+                  <small>{role ? roleLabels[role] : "Akun pengguna"}</small>
                 </div>
               </div>
             )}
-            {!isPublic && (
+            {!isPublic && role !== null && (
               <form action="/auth/signout" method="post">
                 <button className="signout-button" type="submit">
                   Keluar

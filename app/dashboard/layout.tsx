@@ -28,10 +28,11 @@ export default async function DashboardLayout({
   // /dashboard menampilkan arahan "menunggu penetapan akses" untuk mereka.
   // Halaman lain menggerbang role masing-masing dan mengalihkan ke
   // /dashboard bila tidak berwenang.
-  if (!rawRole || !(rawRole in roleLabels)) return <>{children}</>;
+  const shellRole =
+    rawRole && rawRole in roleLabels ? (rawRole as AppRole) : null;
 
   return (
-    <AppShell role={rawRole} displayName={profile?.display_name ?? undefined}>
+    <AppShell role={shellRole} displayName={profile?.display_name ?? undefined}>
       <Suspense fallback={null}>
         <ActionErrorBanner />
       </Suspense>

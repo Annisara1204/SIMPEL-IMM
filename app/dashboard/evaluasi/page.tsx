@@ -108,7 +108,7 @@ export default async function CollectiveEvaluationPage({
     profile.role === "admin_system" ||
     (await isEventModerator(supabase, eventId));
   if (profile.role === "instruktur" && eventId && !isModerator)
-    redirect("/dashboard");
+    redirect("/dashboard?reason=akses");
   const { data: participants } = eventId
     ? await supabase.rpc("get_event_assessment_participants", {
         target_event_id: eventId,

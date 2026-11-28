@@ -102,6 +102,16 @@ Keadaan di atas diperiksa langsung di server pada 24 November 2026 sebelum dan s
 - `npm run check` sebelum deploy exit 0 (81 tes lolos, lint 0 error dan 0 warning), `npm run build` exit 0, `npm run test:sql` 8/8 penguji stabil lolos di DEV.
 - Container `wms_prod_*`, nginx, dan layanan Supabase lain tidak disentuh. Rollback aplikasi: pulihkan direktori dari backup di atas, lalu `npm ci --include=dev && npm run build && pm2 restart imm --update-env`. Rollback migrasi: jalankan empat berkas di `supabase/rollback/` sesuai urutan terbalik; dump database ada di backup yang sama. Pengguna wajib Ctrl+F5 agar bundle baru dipakai.
 
+## Deploy 28 November 2026 (`08187a1`, perbaikan UI/UX)
+
+- Backup segar dibuat lebih dulu di `/home/ubuntu/imm-deploy-backups/20261128-142754/`: direktori aplikasi lengkap (781 MB), salinan `.env.production`, dan dump database `postgres.dump` (2,8 MB) dari container `supabase-db`. Hash `.env.production` `0e854f9c…` dan mode `600` tidak berubah sebelum maupun sesudah backup.
+- Sembilan commit di-push ke `origin/main` sebelum deploy, dari `0d91e01` sampai `08187a1`. Tidak ada migrasi database baru pada deploy ini.
+- rsync tanpa `--delete`, `--delete-excluded`, atau pengiriman `.env*`; hash env masih `0e854f9c…`. Di server: `npm ci --include=dev` (377 paket, 0 kerentanan), `npm run build` OK, `pm2 restart imm --update-env` OK. Proses `imm` online, restart ke-52, pid `571089`.
+- Smoke 13 halaman via `http://127.0.0.1:8080` balas 200: `/`, `/login`, `/daftar`, `/dashboard`, `/dashboard/kegiatan`, `/dashboard/peserta`, `/dashboard/observasi`, `/dashboard/penilaian`, `/dashboard/evaluasi`, `/dashboard/laporan`, `/dashboard/analitik`, `/dashboard/pengguna`, `/dashboard/kerangka`. Bundel CSS memuat `Geser tabel`. Log PM2 setelah restart hanya baris Ready, tanpa error baru.
+- QA browser PRODUKSI read-only dengan viewport 390 px: `/login` menampilkan textbox "Kata sandi" yang tidak berubah saat tombol ditekan, `/login?reason=session` menampilkan notice sesi habis, beranda publik menampilkan "Darul Arqam Dasar (DAD)", dan `scrollWidth - clientWidth = 0`. Tidak ada formulir atau data produksi yang diubah saat QA.
+- Verifikasi sebelum deploy: `npm run check` exit 0 dengan 86 tes, lint 0 error, format bersih; `npm run test:sql` 9/9; `npm run build` exit 0. Container `wms_prod_*`, nginx, dan layanan Supabase tidak disentuh.
+- Rollback aplikasi: pulihkan direktori dari backup di atas, lalu `npm ci --include=dev && npm run build && pm2 restart imm --update-env`. Rollback ini tidak mengembalikan skema `auth`; bila diperlukan, gunakan dump di direktori backup yang sama. Pengguna wajib Ctrl+F5 agar bundel baru dipakai.
+
 ## 5. Aturan pembaruan
 
 Setiap perubahan status produksi, deploy, atau hasil verifikasi harus menulis ke dokumen ini terlebih dahulu, baru ke dokumen lain. Jangan menambah klaim "belum ada deploy", "database kosong", "belum ada admin", atau "deploy ditunda" di dokumen lain tanpa menyatakan bahwa itu riwayat lama.

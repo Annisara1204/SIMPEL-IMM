@@ -294,7 +294,7 @@ async function submitSubmissionImpl(formData: FormData) {
   });
   if (error) throw new Error(error.message || "Pengajuan gagal dikirim.");
   revalidatePath("/dashboard/pengajuan");
-  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/pengajuan");
 }
 
 async function cancelSubmissionImpl(formData: FormData) {
@@ -315,7 +315,7 @@ async function cancelSubmissionImpl(formData: FormData) {
   });
   if (error) throw new Error(error.message || "Pengajuan gagal dibatalkan.");
   revalidatePath("/dashboard/pengajuan");
-  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/pengajuan");
 }
 
 export async function createSubmission(formData: FormData) {

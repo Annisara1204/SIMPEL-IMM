@@ -12,7 +12,9 @@ Dokumen ini mencatat bukti per paket kerja saat eksekusi. Status rencana: `RENCA
 | 5 | Selesai | `tests/finalize-validation.test.ts` dan `finalize_approval_order.sql` lolos; QA browser DEV: halaman Evaluasi dengan tombol satu klik merender tanpa error boundary; `npm run check` dan `npm run build` exit 0 | |
 | 6 | Selesai | `tests/report-snapshot-dto.test.ts` dan `tests/supabase-rows.test.ts` lolos; QA browser DEV: halaman Laporan dua kegiatan merender tanpa error boundary; `npm run check` (19 tes) dan `npm run build` exit 0 | |
 | 7 | Selesai | `tests/auto-competency.test.ts` (termasuk multi-versi), `tests/score-derivation.test.ts`, dan `tests/rubric-weights.test.ts` lolos; QA browser DEV: teks peta kompetensi otomatis sesuai aturan baru; `npm run check` (20 tes) dan `npm run build` exit 0 | |
-| 8-15 | Belum | | |
+| 8 | Selesai (digabung Paket 7) | BUG-08 dikerjakan bersama Paket 7; penguji multi-versi lolos | b36c976 |
+| 9 | Selesai | QA browser DEV: halaman Observasi merender normal setelah filter event; cache profil dan `revalidatePath` target diperiksa dari kode; `npm run check` (20 tes) dan `npm run build` exit 0 | |
+| 10-15 | Belum | | |
 
 ## Catatan Paket 1
 
@@ -73,3 +75,12 @@ Dokumen ini mencatat bukti per paket kerja saat eksekusi. Status rencana: `RENCA
 - A07: tujuh pemanggilan `indicators.find` per baris diganti satu `Map` kunci `participantId:indicatorId:scopeKey`.
 - A04: `validateRubricForActivation` di `lib/rubric-weights.ts` dipakai halaman dan Server Action. Pengecekan status draf dan versi aktif tetap ada di Server Action. Penguji mencakup bobot 99,999/100,001 dan uraian kosong.
 - QA browser DEV: halaman Evaluasi menampilkan teks "dihitung per versi rubrik lalu digabung dengan rata-rata sederhana, tanpa normalisasi bobot lintas versi".
+
+## Catatan Paket 9
+
+- `getCurrentProfile()` di `lib/supabase/server.ts` membungkus `getClaims` dan query profil dengan `cache()` React per request. Halaman Observasi memakainya.
+- Query `rubric_versions`, `observer_assignments`, `rubric_assessment_types`, dan `rubric_materials` kini difilter ke event yang dipilih, atau ke event penugasan bila belum ada pilihan.
+- Embed riwayat rating yang tidak dipakai UI dihapus dari query ratings. Riwayat catatan dibatasi delapan entri terbaru di sisi UI; batas transfer data dari PostgREST belum diterapkan karena klien Supabase JS tidak mendukung parameter nested `limit`.
+- `summarizeEvent` kini menunggu daftar versi lebih dulu, lalu menjalankan tiga query sisanya secara paralel.
+- Delapan pemanggil `revalidatePath("/dashboard")` diganti path spesifik: profil, penilaian, pengguna, dan pengajuan.
+- QA browser DEV: halaman Observasi dengan event `48880b89` merender daftar tahap normal, tanpa error boundary. Jumlah request server tidak diukur dengan alat, jadi klaim penghematan belum diverifikasi secara kuantitatif.

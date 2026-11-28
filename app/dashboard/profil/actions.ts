@@ -118,7 +118,7 @@ export async function updateOwnProfile(formData: FormData) {
     await supabase.storage
       .from("account-profile-photos")
       .remove([existing.photo_path]);
-  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/profil");
   revalidatePath("/dashboard/profil");
   redirect("/dashboard/profil?status=saved");
 }

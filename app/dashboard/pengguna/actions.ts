@@ -114,7 +114,7 @@ async function updateUserRoleImpl(formData: FormData) {
       "Perubahan role gagal disimpan. Periksa kebijakan RLS dan koneksi Supabase.",
     );
   revalidatePath("/dashboard/pengguna");
-  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/pengguna");
 }
 
 async function assignUserCommissariatImpl(formData: FormData) {
@@ -155,7 +155,7 @@ async function assignUserCommissariatImpl(formData: FormData) {
       "Akun gagal ditautkan. Pastikan migrasi pengajuan Komisariat sudah dijalankan.",
     );
   revalidatePath("/dashboard/pengguna");
-  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/pengguna");
 }
 
 export async function createTemporaryInstructor(formData: FormData) {

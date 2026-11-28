@@ -124,7 +124,7 @@ async function assignInstructorEventImpl(formData: FormData) {
     );
   }
   revalidatePath("/dashboard/penilaian");
-  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/penilaian");
 }
 
 async function removeInstructorEventAssignmentImpl(formData: FormData) {
@@ -138,7 +138,7 @@ async function removeInstructorEventAssignmentImpl(formData: FormData) {
     .eq("id", assignmentId);
   if (error) throw new Error("Penugasan Instruktur gagal dihapus.");
   revalidatePath("/dashboard/penilaian");
-  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/penilaian");
 }
 
 export async function updateInstructorDutyItem(formData: FormData) {
@@ -165,7 +165,7 @@ export async function updateInstructorDutyItem(formData: FormData) {
     throw new Error(
       "Status tugas gagal diperbarui. Pastikan migrasi subrole Instruktur sudah dijalankan.",
     );
-  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/penilaian");
 }
 
 export async function assignObserver(formData: FormData) {

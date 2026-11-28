@@ -77,27 +77,27 @@ async function summarizeEvent(
   supabase: Supabase,
   event: { id: string; name: string },
 ): Promise<StaffEventSummary> {
-  const [{ data: summary, error }, { data: progress }, { data: versions }] =
+  const { data: versions } = await supabase
+    .from("rubric_versions")
+    .select("id")
+    .eq("event_id", event.id)
+    .eq("status", "active");
+  const versionIds = (versions ?? []).map((item: { id: string }) => item.id);
+  const [{ data: summary, error }, { data: progress }, { data: submissions }] =
     await Promise.all([
       supabase.rpc("get_staff_event_summary", { target_event_id: event.id }),
       supabase.rpc("get_event_assessment_progress", {
         target_event_id: event.id,
       }),
-      supabase
-        .from("rubric_versions")
-        .select("id")
-        .eq("event_id", event.id)
-        .eq("status", "active"),
+      versionIds.length
+        ? supabase
+            .from("assessment_submissions")
+            .select("id,status,updated_at")
+            .in("rubric_version_id", versionIds)
+            .order("updated_at", { ascending: false })
+        : Promise.resolve({ data: [] }),
     ]);
   const row = (summary?.[0] ?? null) as StaffEventSummaryRow | null;
-  const versionIds = (versions ?? []).map((item: { id: string }) => item.id);
-  const { data: submissions } = versionIds.length
-    ? await supabase
-        .from("assessment_submissions")
-        .select("id,status,updated_at")
-        .in("rubric_version_id", versionIds)
-        .order("updated_at", { ascending: false })
-    : { data: [] };
   return {
     id: event.id,
     name: event.name,

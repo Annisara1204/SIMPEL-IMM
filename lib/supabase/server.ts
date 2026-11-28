@@ -1,5 +1,20 @@
+import { cache } from "react";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+
+/** Satu verifikasi sesi dan profil per request, dipakai ulang Server Component. */
+export const getCurrentProfile = cache(async () => {
+  const supabase = await createClient();
+  const { data: claims } = await supabase.auth.getClaims();
+  const userId = claims?.claims?.sub ?? null;
+  if (!userId) return { supabase, userId, profile: null };
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("id, role, display_name, commissariat_id")
+    .eq("id", userId)
+    .maybeSingle();
+  return { supabase, userId, profile };
+});
 
 export async function createClient() {
   const cookieStore = await cookies();

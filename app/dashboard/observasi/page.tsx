@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { getCurrentProfile } from "@/lib/supabase/server";
 import { asRows, firstRelated } from "@/lib/relations";
 import { AssessmentRatingCell } from "./assessment-rating-cell";
 import { ObserverNotes, type NoteRecord } from "./observer-notes";
@@ -40,15 +40,8 @@ export default async function ObservationsPage({
         </Link>
       </div>
     );
-  const supabase = await createClient();
-  const { data: claims } = await supabase.auth.getClaims();
-  const userId = claims?.claims?.sub;
+  const { supabase, userId, profile } = await getCurrentProfile();
   if (!userId) redirect("/login");
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", userId)
-    .maybeSingle();
   if (
     !profile ||
     !["admin_system", "observer", "instruktur"].includes(profile.role ?? "")
@@ -100,13 +93,21 @@ export default async function ObservationsPage({
         : Promise.resolve({ data: [], error: null })
       : eventQuery,
     profile.role === "admin_system"
-      ? supabase
-          .from("rubric_versions")
-          .select(
-            "id, event_id, stage, material_id, assessment_type_id, version, rubric_aspects(id, name, weight, position, rubric_indicator_aspects(id, weight, rubric_indicators(id, name, target, position, score_descriptors, competency_indicator_id, competency_indicator_rubric_version_id)))",
-          )
-          .eq("status", "active")
-          .order("version", { ascending: false })
+      ? (requestedEventId
+          ? supabase
+              .from("rubric_versions")
+              .select(
+                "id, event_id, stage, material_id, assessment_type_id, version, rubric_aspects(id, name, weight, position, rubric_indicator_aspects(id, weight, rubric_indicators(id, name, target, position, score_descriptors, competency_indicator_id, competency_indicator_rubric_version_id)))",
+              )
+              .eq("status", "active")
+              .eq("event_id", requestedEventId)
+          : supabase
+              .from("rubric_versions")
+              .select(
+                "id, event_id, stage, material_id, assessment_type_id, version, rubric_aspects(id, name, weight, position, rubric_indicator_aspects(id, weight, rubric_indicators(id, name, target, position, score_descriptors, competency_indicator_id, competency_indicator_rubric_version_id)))",
+              )
+              .eq("status", "active")
+        ).order("version", { ascending: false })
       : assignedEventIds.length
         ? supabase
             .from("rubric_versions")
@@ -114,20 +115,40 @@ export default async function ObservationsPage({
               "id, event_id, stage, material_id, assessment_type_id, version, rubric_aspects(id, name, weight, position, rubric_indicator_aspects(id, weight, rubric_indicators(id, name, target, position, score_descriptors, competency_indicator_id, competency_indicator_rubric_version_id)))",
             )
             .eq("status", "active")
-            .in("event_id", assignedEventIds)
+            .in(
+              "event_id",
+              requestedEventId ? [requestedEventId] : assignedEventIds,
+            )
             .order("version", { ascending: false })
         : Promise.resolve({ data: [], error: null }),
-    supabase.from("observer_assignments").select("id, event_id, observer_id"),
     supabase
-      .from("rubric_assessment_types")
-      .select("id, event_id, stage, name, position")
-      .order("position"),
-    supabase
-      .from("rubric_materials")
-      .select(
-        "id, event_id, name, position, competency_material_id, archived_at",
-      )
-      .order("position"),
+      .from("observer_assignments")
+      .select("id, event_id, observer_id")
+      .in("event_id", requestedEventId ? [requestedEventId] : assignedEventIds),
+    (requestedEventId
+      ? supabase
+          .from("rubric_assessment_types")
+          .select("id, event_id, stage, name, position")
+          .eq("event_id", requestedEventId)
+      : supabase
+          .from("rubric_assessment_types")
+          .select("id, event_id, stage, name, position")
+          .in("event_id", assignedEventIds)
+    ).order("position"),
+    (requestedEventId
+      ? supabase
+          .from("rubric_materials")
+          .select(
+            "id, event_id, name, position, competency_material_id, archived_at",
+          )
+          .eq("event_id", requestedEventId)
+      : supabase
+          .from("rubric_materials")
+          .select(
+            "id, event_id, name, position, competency_material_id, archived_at",
+          )
+          .in("event_id", assignedEventIds)
+    ).order("position"),
   ]);
   const selectedEvent =
     events?.find((event) => event.id === requestedEventId) ?? null;
@@ -202,7 +223,7 @@ export default async function ObservationsPage({
         supabase
           .from("assessment_ratings")
           .select(
-            "id, participant_id, indicator_id, observer_id, observer_name, score, response_status, evidence, revision, updated_at, assessment_rating_revisions(id,revision,score_before,status_before,evidence_before,score_after,status_after,evidence_after,changed_by,changed_at)",
+            "id, participant_id, indicator_id, observer_id, observer_name, score, response_status, evidence, revision, updated_at",
           )
           .eq("rubric_version_id", activeVersion.id),
         supabase
@@ -761,10 +782,20 @@ export default async function ObservationsPage({
                             rubricVersionId={activeVersion.id}
                             currentUserId={userId}
                             notes={asRows<NoteRecord>(
-                              (observerNotes ?? []).filter(
-                                (note) =>
-                                  note.participant_id === participant.id,
-                              ),
+                              (observerNotes ?? [])
+                                .filter(
+                                  (note) =>
+                                    note.participant_id === participant.id,
+                                )
+                                .map((note) => ({
+                                  ...note,
+                                  observer_note_revisions: (
+                                    note.observer_note_revisions ?? []
+                                  )
+                                    .slice()
+                                    .sort((a, b) => b.revision - a.revision)
+                                    .slice(0, 8),
+                                })),
                               isNoteRecord,
                             )}
                             locked={
